@@ -1,0 +1,194 @@
+body {
+    margin: 0;
+    overflow: hidden;
+    background-color: #050505;
+    color: white;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    touch-action: none;
+}
+
+canvas {
+    display: block;
+}
+
+/* ARAYÜZ KATMANI */
+#ui-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+#level-indicator {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #fff;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    margin-bottom: 10px;
+}
+
+#xp-container {
+    width: 300px;
+    max-width: 90vw;
+}
+
+#xp-bar {
+    width: 100%;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(0, 255, 255, 0.6);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+}
+
+#xp-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #00ffff, #ff00ff);
+    transition: width 0.3s ease-out;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+}
+
+#xp-text {
+    font-size: 0.9rem;
+    color: #0ff;
+    margin-top: 5px;
+    text-align: center;
+}
+
+#shield-indicator {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    font-size: 2rem;
+    display: flex;
+    gap: 10px;
+}
+
+/* BAŞLANGIÇ EKRANI */
+#start-screen,
+#game-over-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(5px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+    z-index: 20;
+    transition: opacity 0.3s;
+}
+
+/* LEVEL UP EKRANI */
+#levelup-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(10, 10, 20, 0.95);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+    z-index: 30;
+}
+
+h1 {
+    font-size: 4rem;
+    margin: 0 0 20px 0;
+    background: linear-gradient(to right, #0ff, #f0f);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+}
+
+h2 {
+    font-size: 2.5rem;
+    color: #ffd700;
+    text-shadow: 0 0 20px #ffd700;
+    margin-bottom: 30px;
+}
+
+p {
+    font-size: 1.2rem;
+    color: #aaa;
+    text-align: center;
+    max-width: 600px;
+    line-height: 1.6;
+}
+
+button.main-btn {
+    margin-top: 30px;
+    padding: 15px 50px;
+    font-size: 1.5rem;
+    background: white;
+    color: black;
+    border: none;
+    font-weight: bold;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+    transition: transform 0.1s, box-shadow 0.1s;
+}
+
+button.main-btn:active {
+    transform: scale(0.95);
+}
+
+/* PERK KARTLARI */
+.perk-container {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    padding: 20px;
+}
+
+.perk-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid #333;
+    border-radius: 15px;
+    padding: 20px;
+    width: 250px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.perk-card:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #0ff;
+    transform: translateY(-5px);
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
+}
+
+.perk-title {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #fff;
+    margin-bottom: 10px;
+}
+
+.perk-desc {
+    font-size: 0.9rem;
+    color: #ccc;
+}
+
+.hidden {
+    display: none !important;
+}

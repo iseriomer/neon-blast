@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Neon Parçacık: Evrim</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- Oyun Arayüzü -->
+    <div id="ui-layer">
+        <div id="level-indicator">Seviye: 1</div>
+        <div id="xp-container">
+            <div id="xp-bar">
+                <div id="xp-fill"></div>
+            </div>
+            <div id="xp-text">0 / 1000</div>
+        </div>
+        <div id="shield-indicator"></div>
+    </div>
+
+    <!-- Başlangıç Ekranı -->
+    <div id="start-screen">
+        <h1>NEON EVRİM</h1>
+        <p>Merkezi koru. Düşmanları yok et.<br>XP barını doldurup EVRİM GEÇİR.</p>
+        <button class="main-btn" id="start-btn">BAŞLAT</button>
+    </div>
+
+    <!-- Oyun Sonu Ekranı -->
+    <div id="game-over-screen" class="hidden">
+        <h1 style="color: #ff0055; -webkit-text-fill-color: #ff0055;">OYUN BİTTİ</h1>
+        <p id="final-score">Skorun: 0</p>
+        <button class="main-btn" id="restart-btn">TEKRAR DENE</button>
+    </div>
+
+    <!-- Level Up / Perk Seçim Ekranı -->
+    <div id="levelup-screen" class="hidden">
+        <h2>SEVİYE ATLADIN!</h2>
+        <p>Bir güçlendirme seç:</p>
+        <div class="perk-container" id="perk-list">
+            <!-- Kartlar JS ile buraya gelecek -->
+        </div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <script src="game.js"></script>
+</body>
+
+</html>
