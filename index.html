@@ -20,6 +20,7 @@
             <div id="xp-text">0 / 1000</div>
         </div>
         <div id="shield-indicator"></div>
+        <div id="fps-counter">FPS: 60</div>
     </div>
 
     <!-- Başlangıç Ekranı -->
@@ -47,7 +48,17 @@
 
     <canvas id="gameCanvas"></canvas>
 
-    <script src="game.js"></script>
+    <!-- Load scripts in order -->
+    <script src="game/constants.js"></script>
+    <script src="game/audio.js"></script>
+    <script src="game/objectPool.js"></script>
+    <script src="game/particle.js"></script>
+    <script src="game/projectile.js"></script>
+    <script src="game/enemy.js"></script>
+    <script src="game/player.js"></script>
+    <script src="game/perks.js"></script>
+    <script src="game/ui.js"></script>
+    <script src="game/game.js"></script>
 </body>
 
 </html>

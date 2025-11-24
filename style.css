@@ -70,6 +70,19 @@ canvas {
     gap: 10px;
 }
 
+#fps-counter {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 1rem;
+    font-weight: bold;
+    color: #0f0;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-family: monospace;
+}
+
 /* BAŞLANGIÇ EKRANI */
 #start-screen,
 #game-over-screen {
