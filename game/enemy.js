@@ -21,9 +21,14 @@ class Enemy {
         this.x = x;
         this.y = y;
         this.type = type;
-        this.radius = type.radius;
+        
+        // YARIÇAP ve HIZ ölçekleniyor
+        this.radius = type.radius * GAME_SCALE; 
+        
+        // Hız hesaplamasına GAME_SCALE eklendi
+        this.speed = (type.speed * (1 + (difficultyMultiplier * 0.1))) * GAME_SCALE;
+        
         this.color = type.color;
-        this.speed = type.speed * (1 + (difficultyMultiplier * 0.1));
         this.hp = type.hp + Math.floor(difficultyMultiplier / 2);
         this.maxHp = this.hp;
         this.id = Math.random();

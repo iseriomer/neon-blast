@@ -21,7 +21,9 @@ class Projectile {
         this.y = y;
         this.velocity = velocity;
         this.isSplit = isSplit;
-        this.radius = isSplit ? playerStats.shotSize / 2 : playerStats.shotSize;
+        // Radius hesaplamasına * GAME_SCALE ekle
+        const baseSize = isSplit ? playerStats.shotSize / 2 : playerStats.shotSize;
+        this.radius = baseSize * GAME_SCALE;
         this.color = playerStats.color;
         this.penetration = isSplit ? 1 : playerStats.piercing;
         this.hitList = [];

@@ -1,5 +1,10 @@
 // constants.js - Game Constants
+// constants.js dosyasının EN ÜSTÜNE ekle:
 
+const BASE_SCREEN_WIDTH = 1920; // Referans PC ekran genişliği
+// Ekran genişliğine göre bir oran belirle (Mobilde çok küçülmemesi için en az 0.6 ile sınırla)
+let GAME_SCALE = Math.max(window.innerWidth / BASE_SCREEN_WIDTH, 0.6);
+// ...
 const CANVAS = document.getElementById('gameCanvas');
 const CTX = CANVAS.getContext('2d');
 

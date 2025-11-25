@@ -1,4 +1,4 @@
-// particle.js - Particle System
+// particle.js - Particle System (OPTIMIZED)
 
 class Particle {
     constructor() {
@@ -19,21 +19,13 @@ class Particle {
         this.alpha = 1;
     }
 
-    draw() {
-        CTX.save();
-        CTX.globalAlpha = this.alpha;
-        CTX.beginPath();
-        CTX.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
-        CTX.fillStyle = this.color;
-        CTX.shadowBlur = 10;
-        CTX.shadowColor = this.color;
-        CTX.fill();
-        CTX.shadowBlur = 0;
-        CTX.restore();
-    }
+    // draw() METODUNU SİLDİK! 
+    // Çizim işlemi artık tamamen RenderOptimizer'da yapılacak.
 
     update() {
-        this.draw();
+        // Gereksiz draw() çağrısı kaldırıldı.
+        // Sadece fizik hesaplamaları kaldı.
+        
         this.velocity.x *= FRICTION;
         this.velocity.y *= FRICTION;
         this.x += this.velocity.x;
@@ -45,7 +37,7 @@ class Particle {
     }
 }
 
-// Particle Pool
+// Particle Pool (Aynen kalıyor)
 const particlePool = new ObjectPool(
     () => new Particle(),
     (particle, x, y, radius, color, velocity) => {
@@ -54,16 +46,16 @@ const particlePool = new ObjectPool(
     POOL_SIZES.PARTICLE
 );
 
-// Helper function to spawn particles
+// Helper function (Aynen kalıyor)
 function spawnParticles(x, y, count, radius, color, velocityMultiplier = 1) {
     for (let i = 0; i < count; i++) {
         particlePool.get(
             x, y,
-            Math.random() * radius,
+            (Math.random() * radius) * GAME_SCALE,
             color,
             {
-                x: (Math.random() - 0.5) * (Math.random() * 8 * velocityMultiplier),
-                y: (Math.random() - 0.5) * (Math.random() * 8 * velocityMultiplier)
+                x: (Math.random() - 0.5) * (Math.random() * 8 * velocityMultiplier) * GAME_SCALE,
+                y: (Math.random() - 0.5) * (Math.random() * 8 * velocityMultiplier) * GAME_SCALE
             }
         );
     }

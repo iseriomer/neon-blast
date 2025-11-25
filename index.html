@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Neon Parçacık: Evrim</title>
+    <title>Neon Parçacık: Evrim [OPTIMIZED]</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -27,6 +27,10 @@
     <div id="start-screen">
         <h1>NEON EVRİM</h1>
         <p>Merkezi koru. Düşmanları yok et.<br>XP barını doldurup EVRİM GEÇİR.</p>
+        <p style="font-size: 0.9rem; color: #888; margin-top: 10px;">
+            ⚡ OPTIMIZED VERSION ⚡<br>
+            Press <strong>P</strong> for Performance Monitor
+        </p>
         <button class="main-btn" id="start-btn">BAŞLAT</button>
     </div>
 
@@ -34,31 +38,107 @@
     <div id="game-over-screen" class="hidden">
         <h1 style="color: #ff0055; -webkit-text-fill-color: #ff0055;">OYUN BİTTİ</h1>
         <p id="final-score">Skorun: 0</p>
-        <button class="main-btn" id="restart-btn">TEKRAR DENE</button>
+        
+        <div id="leaderboard-section">
+            <input type="text" id="player-name-input" placeholder="İsmini Gir" maxlength="20">
+            <button class="main-btn" id="submit-score-btn" style="padding: 10px 30px; font-size: 1rem;">SKORU KAYDET</button>
+            
+            <div class="leaderboard-container">
+                <h3>🏆 EN İYİ 5 OYUNCU 🏆</h3>
+                <ul id="leaderboard-list">
+                    <li>Yükleniyor...</li>
+                </ul>
+            </div>
+        </div>
+        <button class="main-btn" id="restart-btn" style="margin-top: 20px;">TEKRAR DENE</button>
     </div>
 
     <!-- Level Up / Perk Seçim Ekranı -->
     <div id="levelup-screen" class="hidden">
         <h2>SEVİYE ATLADIN!</h2>
         <p>Bir güçlendirme seç:</p>
-        <div class="perk-container" id="perk-list">
-            <!-- Kartlar JS ile buraya gelecek -->
-        </div>
+        <div class="perk-container" id="perk-list"></div>
     </div>
 
+    <!-- Admin Panel -->
+    <div id="admin-panel" class="hidden">
+        <h3>🛠️ ADMIN PANELİ</h3>
+        <div class="admin-grid">
+            <button onclick="adminGodMode()" id="btn-godmode">🛡️ God Mode: KAPALI</button>
+            <button onclick="adminLevelUp()">⬆️ Level Atla</button>
+            <button onclick="adminKillAll()">💀 Herkesi Öldür</button>
+            <button onclick="adminAddScore()">💰 +5000 Puan</button>
+            <button onclick="adminMaxFireRate()">🔫 Makineli Tüfek</button>
+            <button onclick="adminSpawnBoss()">😈 Boss Çağır</button>
+        </div>
+        <div class="admin-info">
+            Panel: <b>H</b> | Profiler: <b>P</b>
+        </div>
+    </div>
+    <!-- <div id="bg-selector-container" style="position: absolute; top: 10px; left: 10px; z-index: 1000;">
+        <select id="bg-select" style="background: rgba(0,0,0,0.8); color: #00ffff; border: 1px solid #00ffff; padding: 5px 10px; font-family: 'Courier New'; cursor: pointer; outline: none;">
+            <option value="nebula">🌌 Deep Space (Mor)</option>
+            <option value="magma">🔥 Solar Flare (Turuncu)</option>
+            <option value="toxic">bio Toxic Waste (Yeşil)</option>
+            <option value="bokeh">✨ Dreamy Bokeh (Renkli)</option>
+        </select>
+    </div> -->
     <canvas id="gameCanvas"></canvas>
 
-    <!-- Load scripts in order -->
+    <!-- Load Firebase Leaderboard -->
+    <script type="module" src="game/leaderboard.js"></script>
+
+    <!-- OPTIMIZATION NOTE: Load order is critical! -->
+    <!-- 1. Constants and utilities first -->
     <script src="game/constants.js"></script>
     <script src="game/audio.js"></script>
+    
+    <!-- 2. NEW: Performance profiler -->
+    <script src="game/performance-profiler.js"></script>
+    
+    <!-- 3. NEW: Spatial grid for collision optimization -->
+    <script src="game/spatial-grid.js"></script>
+    
+    <!-- 4. NEW: Batch renderer -->
+    <script src="game/optimized-renderer.js"></script>
+    
+    <!-- 5. Core systems -->
     <script src="game/objectPool.js"></script>
     <script src="game/particle.js"></script>
-    <script src="game/projectile.js"></script>
+    
+    <!-- 6. REPLACE: Optimized projectile system -->
+    <script src="game/projectile-OPTIMIZED.js"></script>
+    
+    <!-- 7. Original systems -->
     <script src="game/enemy.js"></script>
-    <script src="game/player.js"></script>
+    
+    <!-- 8. REPLACE: Optimized player -->
+    <script src="game/player-OPTIMIZED.js"></script>
+    
     <script src="game/perks.js"></script>
     <script src="game/ui.js"></script>
-    <script src="game/game.js"></script>
+    
+    <!-- 9. REPLACE: Main game loop with all optimizations -->
+    <script src="game/game-OPTIMIZED.js"></script>
+    <script src="game/background.js"></script>
+    <script src="game/admin.js"></script>
+
+    <script>
+        // Initialize systems
+        initAdminPanel();
+        
+        // Show optimization tips on load
+        console.log('%c⚡ PERFORMANCE OPTIMIZATIONS ACTIVE ⚡', 'color: #0f0; font-size: 16px; font-weight: bold;');
+        console.log('%cPress "P" to toggle Performance Profiler', 'color: #0ff;');
+        console.log('%cPress "H" to toggle Admin Panel', 'color: #0ff;');
+        console.log('%c📊 Key Optimizations:', 'color: #ff0; font-weight: bold;');
+        console.log('  ✓ Spatial Grid Collision Detection (O(n*m) → O(n))');
+        console.log('  ✓ Batch Rendering (400 calls → 5 calls)');
+        console.log('  ✓ Dynamic Quality Adjustment');
+        console.log('  ✓ Projectile Cap (Max 250)');
+        console.log('  ✓ Reduced Shadow Rendering');
+        console.log('  ✓ Optimized Homing Logic');
+    </script>
 </body>
 
 </html>

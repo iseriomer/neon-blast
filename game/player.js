@@ -60,8 +60,8 @@ function shoot(targetX, targetY, gameState) {
     for (let i = 0; i < count; i++) {
         const currentAngle = startAngle + (i * spread);
         const velocity = {
-            x: Math.cos(currentAngle) * gameState.playerStats.shotSpeed,
-            y: Math.sin(currentAngle) * gameState.playerStats.shotSpeed
+            x: Math.cos(currentAngle) * (gameState.playerStats.shotSpeed * GAME_SCALE),
+            y: Math.sin(currentAngle) * (gameState.playerStats.shotSpeed * GAME_SCALE)
         };
         projectilePool.get(player.x, player.y, velocity, false, gameState.playerStats);
     }

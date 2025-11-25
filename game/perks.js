@@ -19,7 +19,7 @@ const ALL_PERKS = [
     },
     {
         id: 'sniper',
-        title: 'Nuri Yarra',
+        title: 'Mermi Manyağı',
         desc: 'Mermi hızı ve hasarı artar, atış hızı düşer.',
         apply: (stats) => { 
             stats.shotSpeed *= 1.5; 
@@ -49,7 +49,7 @@ const ALL_PERKS = [
         id: 'knockback',
         title: 'Geri Tepme',
         desc: 'Mermiler düşmanları geriye iter.',
-        apply: (stats) => { stats.knockback += 5; }
+        apply: (stats) => { stats.knockback += 15; }
     },
     {
         id: 'side_cannons',
@@ -78,8 +78,11 @@ const ALL_PERKS = [
     {
         id: 'cluster',
         title: 'Misket Bombası',
-        desc: 'Patlamalar etrafa küçük bombalar saçar.',
-        apply: (stats) => { stats.cluster = true; }
+        desc: 'Vuruş noktasında patlayan mayınlar bırakır. (Tekrar alındığında sayısı artar)',
+        apply: (stats) => { 
+            // Eğer daha önce alınmadıysa 0 kabul et, her alışta +1 ekle
+            stats.clusterCount = (stats.clusterCount || 0) + 1; 
+        }
     },
     {
         id: 'homing',
@@ -111,8 +114,8 @@ const ALL_PERKS = [
     {
         id: 'giant_bullet',
         title: 'Gülle Atışı',
-        desc: 'Mermiler %50 büyür ve vurması kolaylaşır.',
-        apply: (stats) => { stats.shotSize *= 1.5; }
+        desc: 'Mermiler %30 büyür ve vurması kolaylaşır.',
+        apply: (stats) => { stats.shotSize *= 1.3; }
     },
     {
         id: 'shotgun',
