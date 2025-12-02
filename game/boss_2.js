@@ -2,8 +2,8 @@
 
 const BOSS_2_DATA = {
     name: 'NEXUS PRIME',
-    hp: 12000,
-    score: 25000,
+    hp: 17000,
+    score: 5000,
     colors: ['#00ffff', '#ff0055', '#ffff00']
 };
 
@@ -199,7 +199,7 @@ class Boss2 {
         }
         else if (this.currentAttack === 'VOID_ZONES') {
             this.targetPos.forEach(pos => {
-                const zone = enemyPool.get(pos.x, pos.y, ENEMY_TYPES.TANK, 5);
+                const zone = enemyPool.get(pos.x, pos.y, ENEMY_TYPES.TANK, 35);
                 zone.radius = 10;
                 zone.color = '#220033';
                 zone.vx = 0; zone.vy = 0;
@@ -262,7 +262,7 @@ class Boss2 {
         bullet.color = '#00ffff';
 
         // DÜZELTME 2: Can 999'dan 60'a düşürüldü. Artık 2-3 vuruşta ölebilirler.
-        bullet.hp = 10;
+        bullet.hp = 3;
 
         bullet.vx = vx;
         bullet.vy = vy;
@@ -320,6 +320,11 @@ class Boss2 {
         if (window.triggerHitstop) window.triggerHitstop(180);
         gameState.score += BOSS_2_DATA.score;
         gameState.bossActive = false;
+        // --- EKLENEN KISIM BAŞLANGIÇ ---
+        // Oyuncuyu ekranın tam ortasına ışınla
+        player.x = CANVAS.width / 2;
+        player.y = CANVAS.height / 2;
+        // --- EKLENEN KISIM BİTİŞ ---
         triggerLevelUp();
     }
 

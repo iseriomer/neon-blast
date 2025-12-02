@@ -1,4 +1,5 @@
 hitstop(kalkan kırıldığında yada boss öldürüldüğünde)
-elektrik mobilde çoook uzun sekiyor 1 ekranın başından sonuna sekiyor amk
+elektrik mobilde çoook uzun sekiyor 1 ekranın başından sonuna sekiyor amk(ekranın boyutuna göre elektrik perkinin sekme range'i düşürülmeli)
 oyuncu öldüğünde zaman dursun kamera yavaşca oyuncuya yaklaşsın ve sonra oyuncu parçalansın
-lazer tutunca 99999999999 gibi bişi oluyor enemy.hp texti.
+aciliyeti yok: lazer tutunca 99999999999 gibi bişi oluyor enemy.hp texti.
+yeni boss eklenecek boss_2.js scripti oluşturulup.(bu boss 30 lvlda spawn olacak 3 tane phase'i olacak)

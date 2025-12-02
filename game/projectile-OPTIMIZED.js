@@ -1,4 +1,4 @@
-// projectile-OPTIMIZED.js - Optimized Projectile System
+// projectile-OPTIMIZED.js - İyileştirilmiş Homing Mekaniği
 
 class Projectile {
     constructor() {
@@ -14,7 +14,8 @@ class Projectile {
         this.isSplit = false;
         this.screenWrap = false;
         this.hasWrapped = false;
-        this.homingCooldown = 0; // OPTIMIZATION: Don't calculate homing every frame
+        this.homingCooldown = 0;
+        this.targetEnemy = null; // Hedef düşman cache'i
     }
 
     reset(x, y, velocity, isSplit, playerStats) {
@@ -32,11 +33,10 @@ class Projectile {
         this.screenWrap = playerStats.screenWrap && !isSplit;
         this.hasWrapped = false;
         this.homingCooldown = 0;
+        this.targetEnemy = null;
     }
 
-    // OPTIMIZATION: Drawing moved to batch renderer
     draw() {
-        // Individual draw only used as fallback
         CTX.beginPath();
         CTX.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
         CTX.fillStyle = this.color;
@@ -44,45 +44,27 @@ class Projectile {
     }
 
     update(enemies, playerStats, dt = 1) {
-        // OPTIMIZATION: Only update homing every 5 frames
-        if (this.homing > 0 && enemies.length > 0 && this.homingCooldown <= 0) {
-            this.homingCooldown = 5; // Update every 5 frames
-
-            let nearestEnemy = null;
-            let minDist = Infinity;
-
-            // OPTIMIZATION: Check max 10 closest enemies for homing
-            const maxCheck = Math.min(enemies.length, 10);
-            for (let i = 0; i < maxCheck; i++) {
-                const enemy = enemies[i];
-                const dx = enemy.x - this.x;
-                const dy = enemy.y - this.y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-
-                if (dist < minDist && dist < 400) {
-                    minDist = dist;
-                    nearestEnemy = enemy;
-                }
-            }
-
-            if (nearestEnemy) {
-                const angle = Math.atan2(nearestEnemy.y - this.y, nearestEnemy.x - this.x);
-                const targetVx = Math.cos(angle) * playerStats.shotSpeed;
-                const targetVy = Math.sin(angle) * playerStats.shotSpeed;
-
-                this.velocity.x += (targetVx - this.velocity.x) * this.homing * dt;
-                this.velocity.y += (targetVy - this.velocity.y) * this.homing * dt;
-
-                const currentSpeed = Math.hypot(this.velocity.x, this.velocity.y);
-                if (currentSpeed > 0) {
-                    this.velocity.x = (this.velocity.x / currentSpeed) * playerStats.shotSpeed;
-                    this.velocity.y = (this.velocity.y / currentSpeed) * playerStats.shotSpeed;
-                }
-            }
-        } else {
+        // HOMING MEKANİĞİ - Optimize ve Smooth
+        if (this.homing > 0 && enemies.length > 0) {
             this.homingCooldown -= dt;
+
+            // Her 5 frame'de bir hedef güncelle veya hedef yoksa/ölmüşse
+            const shouldUpdateTarget = this.homingCooldown <= 0 ||
+                !this.targetEnemy ||
+                this.targetEnemy.hp <= 0;
+
+            if (shouldUpdateTarget) {
+                this.homingCooldown = 5;
+                this.targetEnemy = this.findNearestEnemy(enemies);
+            }
+
+            // Hedef varsa sürekli takip et (sadece 5 frame'de bir hedef değiştir)
+            if (this.targetEnemy && this.targetEnemy.hp > 0) {
+                this.applyHoming(this.targetEnemy, playerStats.shotSpeed, dt);
+            }
         }
 
+        // Pozisyon güncelleme
         this.x += this.velocity.x * dt;
         this.y += this.velocity.y * dt;
 
@@ -108,16 +90,77 @@ class Projectile {
             if (this.x - this.radius < 0 || this.x + this.radius > CANVAS.width) {
                 this.velocity.x = -this.velocity.x;
                 this.ricochetCount--;
+                this.targetEnemy = null; // Hedefi sıfırla
             }
             if (this.y - this.radius < 0 || this.y + this.radius > CANVAS.height) {
                 this.velocity.y = -this.velocity.y;
                 this.ricochetCount--;
+                this.targetEnemy = null; // Hedefi sıfırla
             }
         }
 
-        // Return true if projectile should be removed
+        // Ekran dışı kontrolü
         return (this.x < -50 || this.x > CANVAS.width + 50 ||
             this.y < -50 || this.y > CANVAS.height + 50);
+    }
+
+    // En yakın düşmanı bul (SPATIAL GRID ile optimize edilebilir!)
+    findNearestEnemy(enemies) {
+        const homingRange = 400 * GAME_SCALE; // Ölçeklenmiş menzil
+        let nearestEnemy = null;
+        let minDistSq = homingRange * homingRange; // Squared distance karşılaştırması (sqrt yok!)
+
+        // Spatial grid varsa onu kullan, yoksa brute force
+        const searchList = typeof enemySpatialGrid !== 'undefined'
+            ? enemySpatialGrid.query(this.x, this.y, homingRange)
+            : enemies;
+
+        for (let i = 0; i < searchList.length; i++) {
+            const enemy = searchList[i];
+
+            // Zaten vurduğumuz düşmanları atla
+            if (this.hitList.includes(enemy.id)) continue;
+
+            const dx = enemy.x - this.x;
+            const dy = enemy.y - this.y;
+            const distSq = dx * dx + dy * dy;
+
+            if (distSq < minDistSq) {
+                minDistSq = distSq;
+                nearestEnemy = enemy;
+            }
+        }
+
+        return nearestEnemy;
+    }
+
+    // Homing uygulaması - Smooth interpolation
+    applyHoming(target, shotSpeed, dt) {
+        const dx = target.x - this.x;
+        const dy = target.y - this.y;
+        const angle = Math.atan2(dy, dx);
+
+        const targetVx = Math.cos(angle) * shotSpeed;
+        const targetVy = Math.sin(angle) * shotSpeed;
+
+        // Lerp interpolation (daha smooth)
+        const homingStrength = this.homing * dt; // dt ile çarp ki frame rate bağımsız olsun
+        this.velocity.x += (targetVx - this.velocity.x) * homingStrength;
+        this.velocity.y += (targetVy - this.velocity.y) * homingStrength;
+
+        // Hız normalizasyonu - sadece çok sapma olursa
+        const currentSpeedSq = this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y;
+        const targetSpeedSq = shotSpeed * shotSpeed;
+
+        // %10'dan fazla sapma varsa normalize et
+        if (Math.abs(currentSpeedSq - targetSpeedSq) > targetSpeedSq * 0.1) {
+            const currentSpeed = Math.sqrt(currentSpeedSq);
+            if (currentSpeed > 0) {
+                const scale = shotSpeed / currentSpeed;
+                this.velocity.x *= scale;
+                this.velocity.y *= scale;
+            }
+        }
     }
 }
 

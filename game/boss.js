@@ -100,18 +100,18 @@ class Boss {
         if (this.phase === 1) {
             if (this.cooldowns.minion <= 0) {
                 this.spawnMinions();
-                this.cooldowns.minion = 180;
+                this.cooldowns.minion = 120;
             }
             if (this.cooldowns.missile <= 0) {
                 this.shootHomingMissile(player);
-                this.cooldowns.missile = 120;
+                this.cooldowns.missile = 80;
             }
         }
         else {
             // Phase 2: Spiral Bullet Hell
             if (this.cooldowns.spiral <= 0) {
                 this.spiralShoot();
-                this.cooldowns.spiral = 40; // Daha sık
+                this.cooldowns.spiral = 15; // Daha sık
             }
         }
     }

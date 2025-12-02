@@ -15,6 +15,8 @@ class Enemy {
         this.spawnTimer = 0;
         this.spawnCooldown = 180;
         this.freezeTimer = 0;
+        this.shieldAura = false; // Kalkan aura aktif mi?
+        this.shieldPulse = 0;
     }
 
     reset(x, y, type, difficultyMultiplier) {
@@ -36,12 +38,47 @@ class Enemy {
         this.spawnTimer = 0;
         this.spawnCooldown = 180;
         this.freezeTimer = 0;
+        this.shieldAura = false; // Kalkan aura aktif mi?
+        this.shieldPulse = 0;
     }
 
     draw() {
         CTX.beginPath();
+        if (this.type.name === 'Shielder') {
+            // Core (Merkez küre)
+            CTX.arc(this.x, this.y, this.radius * 0.6, 0, Math.PI * 2);
+            CTX.fillStyle = this.color;
+            CTX.fill();
 
-        if (this.type.name === 'Speedster') {
+            // Dönen kalkan halkaları
+            const rings = 3;
+            for (let i = 0; i < rings; i++) {
+                const ringRadius = this.radius + 10 + (i * 8);
+                const offset = (this.shieldPulse + i * (Math.PI * 2 / rings));
+
+                CTX.save();
+                CTX.translate(this.x, this.y);
+                CTX.rotate(offset);
+
+                CTX.strokeStyle = `rgba(100, 200, 255, ${0.6 - i * 0.15})`;
+                CTX.lineWidth = 3;
+                CTX.setLineDash([15, 10]);
+                CTX.beginPath();
+                CTX.arc(0, 0, ringRadius, 0, Math.PI * 2);
+                CTX.stroke();
+                CTX.setLineDash([]);
+
+                CTX.restore();
+            }
+
+            // Aura efekti
+            CTX.beginPath();
+            CTX.arc(this.x, this.y, this.radius + 30 + Math.sin(this.shieldPulse * 2) * 5, 0, Math.PI * 2);
+            CTX.strokeStyle = 'rgba(100, 200, 255, 0.2)';
+            CTX.lineWidth = 2;
+            CTX.stroke();
+        }
+        else if (this.type.name === 'Speedster') {
             CTX.moveTo(this.x + this.radius, this.y);
             CTX.lineTo(this.x - this.radius, this.y + this.radius);
             CTX.lineTo(this.x - this.radius, this.y - this.radius);
@@ -101,8 +138,28 @@ class Enemy {
             currentSpeed *= 0.5;
             this.freezeTimer -= dt;
         }
+        // SHIELDER Mekaniği
+        if (this.type.name === 'Shielder') {
+            this.shieldPulse += 0.05 * dt;
 
-        if (this.type.name === 'Spawner') {
+            // Yavaş hareket et ve mesafe koru
+            const distToPlayer = Math.hypot(player.x - this.x, player.y - this.y);
+            const idealDist = 250; // Oyuncudan uzak dur
+
+            if (distToPlayer < idealDist) {
+                // Geri çekil
+                this.x -= Math.cos(angle) * currentSpeed * dt;
+                this.y -= Math.sin(angle) * currentSpeed * dt;
+            } else {
+                // Hafif yaklaş
+                this.x += Math.cos(angle) * (currentSpeed * 0.3) * dt;
+                this.y += Math.sin(angle) * (currentSpeed * 0.3) * dt;
+            }
+
+            // Etraftaki düşmanlara kalkan ver
+            this.shieldAura = true;
+        }
+        else if (this.type.name === 'Spawner') {
             this.spawnTimer += dt;
             if (this.spawnTimer >= this.spawnCooldown && this.freezeTimer <= 0) {
                 this.spawnTimer = 0;

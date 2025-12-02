@@ -56,7 +56,8 @@ function spawnEnemies() {
         let type = ENEMY_TYPES.BASIC;
         const rand = Math.random();
 
-        if (gameState.difficultyMultiplier > 4 && rand < 0.15) type = ENEMY_TYPES.SPAWNER;
+        if (gameState.difficultyMultiplier > 5 && rand < 0.12) type = ENEMY_TYPES.SHIELDER; // EKLE!
+        else if (gameState.difficultyMultiplier > 4 && rand < 0.15) type = ENEMY_TYPES.SPAWNER;
         else if (gameState.difficultyMultiplier > 3 && rand < 0.25) type = ENEMY_TYPES.SPLITTER;
         else if (gameState.difficultyMultiplier > 2 && rand < 0.35) type = ENEMY_TYPES.TANK;
         else if (gameState.difficultyMultiplier > 3 && rand < 0.5) type = ENEMY_TYPES.DASHER;
@@ -85,6 +86,10 @@ function triggerLevelUp() {
     // --- BOSS 2 CHECK (YENİ) ---
     if (gameState.level === 29 && !gameState.bossActive) {
         startBossFight(2); // Boss ID 2
+        return;
+    }
+    if (gameState.level === 44 && !gameState.bossActive) {
+        startBossFight(3);
         return;
     }
     gameState.isPaused = true;
@@ -127,7 +132,8 @@ function startBossFight(bossId = 1) {
     gameState.level++; // 15 veya 30 olur
 
     // Boss tipine göre etiket
-    const bossLabel = bossId === 2 ? "BOSS: NEXUS" : "BOSS: OMEGA";
+    let bossLabel = bossId === 2 ? "BOSS: NEXUS" : "BOSS: OMEGA";
+    if (bossId === 3) bossLabel = "BOSS: ARCHITECT";
     updateLevelIndicator(bossLabel);
 
     clearInterval(gameState.spawnInterval);
@@ -142,6 +148,8 @@ function startBossFight(bossId = 1) {
         boss.spawn(CANVAS.width / 2, -100);
     } else if (bossId === 2) {
         boss2.spawn(CANVAS.width / 2, -100); // Boss 2 Çağır
+    } else if (bossId === 3) {
+        boss3.spawn(CANVAS.width / 2, -100);
     }
 }
 
@@ -156,34 +164,38 @@ function selectPerk(perk) {
     updateShieldIndicator(gameState.playerStats.shield);
     updateProgressBar(gameState.score, gameState.nextLevelThreshold);
     levelUpScreen.classList.add('hidden');
-
     gameState.isPaused = false;
     spawnEnemies();
     requestAnimationFrame(animate);
 }
 
-// OPTIMIZED: Collision Detection with Spatial Grid
+// OPTIMIZED: Collision Detection with Better Logic Flow
 function checkCollisions() {
     profiler.start('collisions');
 
     const enemies = enemyPool.getActive();
+    const projectiles = projectilePool.getActive();
 
-    // DÜZELTME 1: Sadece düşman yoksa çık. Mermi yoksa bile oyuncu çarpışmasını kontrol etmeliyiz.
-    if (enemies.length === 0) {
+    // Early exit: If no enemies AND no boss, nothing to collide with
+    if (enemies.length === 0 && !gameState.bossActive) {
         profiler.end('collisions');
         return;
     }
 
-    profiler.start('spatial-grid-build');
-    // Build spatial grid for enemies
-    enemySpatialGrid.clear();
-    for (const enemy of enemies) {
-        enemySpatialGrid.insert(enemy);
+    // Build spatial grid (only if we have enemies)
+    if (enemies.length > 0) {
+        profiler.start('spatial-grid-build');
+        enemySpatialGrid.clear();
+        for (const enemy of enemies) {
+            enemySpatialGrid.insert(enemy);
+        }
+        profiler.end('spatial-grid-build');
     }
-    profiler.end('spatial-grid-build');
 
+    // ═══════════════════════════════════════════════════════
+    // PLAYER COLLISION (Always check, even with no projectiles)
+    // ═══════════════════════════════════════════════════════
     profiler.start('player-collision');
-    // Check enemy-player collisions
     for (let i = enemies.length - 1; i >= 0; i--) {
         const enemy = enemies[i];
         const distPlayer = Math.hypot(player.x - enemy.x, player.y - enemy.y);
@@ -202,7 +214,7 @@ function checkCollisions() {
                 enemies.forEach(e => spawnParticles(e.x, e.y, 20, 5, '#00ffff'));
                 enemyPool.releaseAll();
                 playSound('levelup');
-                if (window.triggerHitstop) window.triggerHitstop(10); // 10 frame (yaklaşık 160ms) donma
+                if (window.triggerHitstop) window.triggerHitstop(10);
                 break;
             } else {
                 startDeathSequence();
@@ -214,59 +226,149 @@ function checkCollisions() {
     }
     profiler.end('player-collision');
 
-    // DÜZELTME 2: Mermi kontrolünü buraya aldık.
-    // Eğer mermi yoksa, aşağıdaki mermi-düşman hesaplamalarına girmeden çıkabiliriz.
-    const projectiles = projectilePool.getActive();
+    // ═══════════════════════════════════════════════════════
+    // SHIELDER AURA SYSTEM (Only if we have Shielders)
+    // ═══════════════════════════════════════════════════════
+    profiler.start('shielder-aura');
+    const shielders = enemies.filter(e => e.type.name === 'Shielder');
+
+    if (shielders.length > 0) {
+        // Reset all shield auras first
+        enemies.forEach(e => e.shieldAura = false);
+
+        for (const shielder of shielders) {
+            const nearbyEnemies = enemySpatialGrid.query(shielder.x, shielder.y, 200);
+
+            for (const enemy of nearbyEnemies) {
+                if (enemy.id === shielder.id) continue;
+                enemy.shieldAura = true;
+
+                // Visual effect (every ~30 frames at 60fps)
+                if (Math.random() < 0.05) {
+                    const angle = Math.atan2(enemy.y - shielder.y, enemy.x - shielder.x);
+                    const midX = shielder.x + Math.cos(angle) * 100;
+                    const midY = shielder.y + Math.sin(angle) * 100;
+                    spawnParticles(midX, midY, 1, 2, '#64c8ff', 0.5);
+                }
+            }
+        }
+    }
+    profiler.end('shielder-aura');
+
+    // ═══════════════════════════════════════════════════════
+    // PROJECTILE COLLISION (Only if we have projectiles)
+    // ═══════════════════════════════════════════════════════
     if (projectiles.length === 0) {
         profiler.end('collisions');
         return;
     }
 
     profiler.start('projectile-collision');
-    // OPTIMIZED: Use spatial grid for projectile-enemy collisions
+
     for (let j = projectiles.length - 1; j >= 0; j--) {
         const projectile = projectiles[j];
+        let projectileDestroyed = false;
 
-        // BOSS 1 COLLISION
-        if (gameState.bossActive && boss.active) {
-            const dx = projectile.x - boss.x;
-            const dy = projectile.y - boss.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
+        // ─────────────────────────────────────────────────────
+        // BOSS COLLISION CHECKS
+        // ─────────────────────────────────────────────────────
+        if (gameState.bossActive) {
+            // Boss 1
+            if (boss.active && !projectileDestroyed) {
+                const dx = projectile.x - boss.x;
+                const dy = projectile.y - boss.y;
+                const distSq = dx * dx + dy * dy; // Avoid sqrt for performance
+                const minDist = boss.radius + projectile.radius;
 
-            if (dist < boss.radius + projectile.radius) {
-                // Hasar ver
-                let damage = 20; // Baz hasar
-                if (projectile.isSplit) damage = 10;
-                if (gameState.playerStats.sniper) damage *= 2;
+                if (distSq < minDist * minDist) {
+                    let damage = 20;
+                    if (projectile.isSplit) damage = 10;
+                    if (gameState.playerStats.sniper) damage *= 2;
 
-                boss.takeDamage(damage);
-                spawnParticles(projectile.x, projectile.y, 5, 3, '#8a2be2');
-                playSound('hit');
+                    boss.takeDamage(damage);
+                    spawnParticles(projectile.x, projectile.y, 5, 3, '#8a2be2');
+                    playSound('hit');
+                    projectilePool.release(projectile);
+                    projectileDestroyed = true;
+                }
+            }
 
-                // Mermiyi yok et
-                projectilePool.release(projectile);
-                continue;
+            // Boss 2
+            if (boss2.active && !projectileDestroyed) {
+                const dx = projectile.x - boss2.x;
+                const dy = projectile.y - boss2.y;
+                const distSq = dx * dx + dy * dy;
+                const minDist = boss2.radius + projectile.radius;
+
+                if (distSq < minDist * minDist) {
+                    let damage = 20;
+                    if (projectile.isSplit) damage = 10;
+                    if (gameState.playerStats.sniper) damage *= 2;
+
+                    boss2.takeDamage(damage);
+                    spawnParticles(projectile.x, projectile.y, 5, 3, '#00ffff');
+                    playSound('hit');
+                    projectilePool.release(projectile);
+                    projectileDestroyed = true;
+                }
+            }
+
+            // Boss 3
+            if (boss3.active && !projectileDestroyed) {
+                const dx = projectile.x - boss3.x;
+                const dy = projectile.y - boss3.y;
+                const distSq = dx * dx + dy * dy;
+                const minDist = boss3.radius + projectile.radius;
+
+                if (distSq < minDist * minDist) {
+                    let damage = 20;
+                    if (projectile.isSplit) damage = 10;
+                    if (gameState.playerStats.sniper) damage *= 2;
+
+                    boss3.takeDamage(damage);
+                    spawnParticles(projectile.x, projectile.y, 5, 3, '#00ff88');
+                    playSound('hit');
+                    projectilePool.release(projectile);
+                    projectileDestroyed = true;
+                }
+
+                // Boss 3 shapes
+                if (!projectileDestroyed) {
+                    const activeShapes = bossShapePool.getActive();
+                    for (let s = activeShapes.length - 1; s >= 0; s--) {
+                        const shape = activeShapes[s];
+                        if (shape.hp === undefined || shape.hp <= 0) continue;
+
+                        const shapeDx = projectile.x - shape.x;
+                        const shapeDy = projectile.y - shape.y;
+                        const shapeDistSq = shapeDx * shapeDx + shapeDy * shapeDy;
+                        const shapeMinDist = shape.size / 2 + projectile.radius;
+
+                        if (shapeDistSq < shapeMinDist * shapeMinDist) {
+                            let shapeDamage = 1;
+                            if (gameState.playerStats.sniper) shapeDamage = 2;
+
+                            shape.hp -= shapeDamage;
+                            spawnParticles(shape.x, shape.y, 3, 2, '#00ff88');
+                            playSound('hit');
+
+                            projectile.penetration--;
+                            if (projectile.penetration <= 0) {
+                                projectilePool.release(projectile);
+                                projectileDestroyed = true;
+                                break;
+                            }
+                        }
+                    }
+                }
             }
         }
-        // --- BOSS 2 COLLISION (YENİ) ---
-        if (gameState.bossActive && boss2.active) {
-            const dx = projectile.x - boss2.x;
-            const dy = projectile.y - boss2.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
 
-            if (dist < boss2.radius + projectile.radius) {
-                let damage = 20;
-                if (projectile.isSplit) damage = 10;
-                if (gameState.playerStats.sniper) damage *= 2;
+        if (projectileDestroyed) continue;
 
-                boss2.takeDamage(damage); // Boss 2 hasar alır
-                spawnParticles(projectile.x, projectile.y, 5, 3, '#00ffff');
-                playSound('hit');
-
-                projectilePool.release(projectile);
-                continue; // Sonraki mermiye geç
-            }
-        }
+        // ─────────────────────────────────────────────────────
+        // ENEMY COLLISION (Use spatial grid)
+        // ─────────────────────────────────────────────────────
         const nearbyEnemies = enemySpatialGrid.getNearby(projectile);
 
         for (const enemy of nearbyEnemies) {
@@ -274,12 +376,20 @@ function checkCollisions() {
 
             const dx = projectile.x - enemy.x;
             const dy = projectile.y - enemy.y;
-            const distProj = Math.sqrt(dx * dx + dy * dy);
+            const distSq = dx * dx + dy * dy;
+            const minDist = enemy.radius + projectile.radius;
 
-            if (distProj - enemy.radius - projectile.radius < 1) {
-                // ... (Mermi çarpışma mantığının geri kalanı aynı) ...
+            if (distSq < minDist * minDist) {
                 projectile.hitList.push(enemy.id);
                 projectile.penetration--;
+
+                // Shield Aura Check
+                if (enemy.shieldAura && enemy.type.name !== 'Shielder') {
+                    projectile.penetration -= 0.5;
+                    spawnParticles(projectile.x, projectile.y, 5, 2, '#64c8ff', 2);
+                    enemy.shieldAura = false;
+                    enemy.hp -= 0.5;
+                }
 
                 let damage = 1;
                 if (gameState.playerStats.execute && enemy.hp / enemy.maxHp < 0.3) {
@@ -322,18 +432,16 @@ function checkCollisions() {
 
                 if (projectile.penetration <= 0) {
                     projectilePool.release(projectile);
+                    projectileDestroyed = true;
                 }
 
                 if (gameState.playerStats.chainLightning > 0) {
-                    // DÜZELTME: "nearbyEnemies" yerine "enemySpatialGrid.query" kullanıyoruz.
-                    // Merminin olduğu yeri değil, VURULAN DÜŞMANIN etrafını (400px) tarıyoruz.
-                    // OPTİMİZASYON: Mobilde ekran genişliğinin %40'ı ile sınırla
                     const lightningRange = Math.min(400, CANVAS.width * 0.4);
                     const potentialTargets = enemySpatialGrid.query(enemy.x, enemy.y, lightningRange);
 
                     let chainTargets = [];
                     for (const t of potentialTargets) {
-                        if (t.id !== enemy.id && t.hp > 0) { // Canlı ve kendisi değilse
+                        if (t.id !== enemy.id && t.hp > 0) {
                             const dist = Math.hypot(t.x - enemy.x, t.y - enemy.y);
                             if (dist < lightningRange) {
                                 chainTargets.push({ enemy: t, dist: dist });
@@ -348,11 +456,9 @@ function checkCollisions() {
                         const target = chainTargets[c].enemy;
                         target.hp -= 3;
 
-                        // Görsel oluştur
                         spawnChainLightning(enemy.x, enemy.y, target.x, target.y);
-                        spawnParticles(target.x, target.y, 5, 2, '#00ffff'); // Mavi partikül
+                        spawnParticles(target.x, target.y, 5, 2, '#00ffff');
 
-                        // Yıldırımla ölürse
                         if (target.hp <= 0) {
                             handleEnemyDeath(target);
                         }
@@ -362,9 +468,12 @@ function checkCollisions() {
                 if (enemy.hp <= 0) {
                     handleEnemyDeath(enemy);
                 }
+
+                if (projectileDestroyed) break;
             }
         }
     }
+
     profiler.end('projectile-collision');
     profiler.end('collisions');
 }
@@ -615,7 +724,24 @@ function animate(timestamp) {
             }
         }
     }
+    // --- BOSS 3 UPDATE & DRAW ---
+    if (gameState.bossActive && boss3.active) {
+        boss3.update(player, dt);
+        boss3.draw();
 
+        const dist = Math.hypot(boss3.x - player.x, boss3.y - player.y);
+        if (dist < boss3.radius + player.radius) {
+            if (gameState.playerStats.shield > 0) {
+                gameState.playerStats.shield--;
+                updateShieldIndicator(gameState.playerStats.shield);
+                const angle = Math.atan2(player.y - boss3.y, player.x - boss3.x);
+                player.x += Math.cos(angle) * 250;
+                player.y += Math.sin(angle) * 250;
+            } else {
+                startDeathSequence();
+            }
+        }
+    }
 
     profiler.start('draw-player');
     drawPlayer(gameState.playerStats, gameState.lastShotTime);
@@ -726,7 +852,7 @@ function animate(timestamp) {
 
     profiler.start('update-projectiles');
     projectilePool.update(projectile => {
-        return projectile.update(enemyPool.getActive(), gameState.playerStats, dt);
+        return projectile.update(enemyPool.getActive(), gameState.playerStats, dt, enemySpatialGrid);
     });
     profiler.end('update-projectiles');
 

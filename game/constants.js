@@ -75,6 +75,14 @@ const ENEMY_TYPES = {
         hp: 4,
         score: 250,
         name: 'Spawner'
+    },
+    SHIELDER: {
+        radius: 25,
+        color: 'hsl(200, 80%, 60%)', // Açık mavi
+        speed: 0.5,
+        hp: 4,
+        score: 300,
+        name: 'Shielder'
     }
 };
 

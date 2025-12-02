@@ -11,38 +11,38 @@ const ALL_PERKS = [
         id: 'machine_gun',
         title: 'Makineli Tüfek',
         desc: 'Atış hızı ÇOK artar ama isabet azalır.',
-        apply: (stats) => { 
-            stats.fireRate *= 0.5; 
-            stats.spread += 0.2; 
-            stats.color = '#ff00ff'; 
+        apply: (stats) => {
+            stats.fireRate *= 0.5;
+            stats.spread += 0.2;
+            stats.color = '#ff00ff';
         }
     },
     {
         id: 'sniper',
         title: 'Mermi Manyağı',
         desc: 'Mermi hızı ve hasarı artar, atış hızı düşer.',
-        apply: (stats) => { 
-            stats.shotSpeed *= 1.5; 
-            stats.piercing += 2; 
-            stats.fireRate *= 1.3; 
+        apply: (stats) => {
+            stats.shotSpeed *= 1.5;
+            stats.piercing += 2;
+            stats.fireRate *= 1.3;
         }
     },
     {
         id: 'double_shot',
         title: 'Çift Namlu',
         desc: 'Tek tıklamada +1 fazla mermi atarsın.',
-        apply: (stats) => { 
-            stats.shotCount += 1; 
-            stats.spread += 0.05; 
+        apply: (stats) => {
+            stats.shotCount += 1;
+            stats.spread += 0.05;
         }
     },
     {
         id: 'freeze',
         title: 'Buz Mermisi',
         desc: 'Vurulan düşmanlar kısa süre yavaşlar.',
-        apply: (stats) => { 
-            stats.freeze += 60; 
-            stats.color = '#00ffff'; 
+        apply: (stats) => {
+            stats.freeze += 60;
+            stats.color = '#00ffff';
         }
     },
     {
@@ -79,18 +79,18 @@ const ALL_PERKS = [
         id: 'cluster',
         title: 'Misket Bombası',
         desc: 'Vuruş noktasında patlayan mayınlar bırakır. (Tekrar alındığında sayısı artar)',
-        apply: (stats) => { 
+        apply: (stats) => {
             // Eğer daha önce alınmadıysa 0 kabul et, her alışta +1 ekle
-            stats.clusterCount = (stats.clusterCount || 0) + 1; 
+            stats.clusterCount = (stats.clusterCount || 0) + 1;
         }
     },
     {
         id: 'homing',
         title: 'Güdümlü Mermi',
         desc: 'Mermilerin düşmanlara doğru kavis çizer.',
-        apply: (stats) => { 
-            stats.homing += 0.05; 
-            stats.color = '#0f0'; 
+        apply: (stats) => {
+            stats.homing += 0.1;
+            stats.color = '#0f0';
         }
     },
     {
@@ -121,27 +121,27 @@ const ALL_PERKS = [
         id: 'shotgun',
         title: 'Pompalı',
         desc: 'Mermi sayısı +2 artar ama saçılma çok artar.',
-        apply: (stats) => { 
-            stats.shotCount += 2; 
-            stats.spread += 0.15; 
+        apply: (stats) => {
+            stats.shotCount += 2;
+            stats.spread += 0.15;
         }
     },
     {
         id: 'chain_lightning',
         title: 'Yıldırım Zinciri',
         desc: 'Vuruş sonrası yakındaki 2 düşmana elektrik zıplar.',
-        apply: (stats) => { 
-            stats.chainLightning += 2; 
-            stats.color = '#ffff00'; 
+        apply: (stats) => {
+            stats.chainLightning += 2;
+            stats.color = '#ffff00';
         }
     },
     {
         id: 'explosive_shot',
         title: 'Patlayıcı Mermi',
         desc: 'Düşman öldürünce alan hasarı verir.',
-        apply: (stats) => { 
-            stats.explosiveRadius += 80; 
-            stats.color = '#ff6600'; 
+        apply: (stats) => {
+            stats.explosiveRadius += 80;
+            stats.color = '#ff6600';
         }
     },
     {
@@ -158,9 +158,9 @@ const ALL_PERKS = [
         id: 'laser_beam',
         title: 'Lazer Işını',
         desc: 'Sürekli hasar veren bir lazer ışını ekler.',
-        apply: (stats) => { 
-            stats.laserBeam = true; 
-            stats.color = '#ff0000'; 
+        apply: (stats) => {
+            stats.laserBeam = true;
+            stats.color = '#ff0000';
         }
     },
     {
