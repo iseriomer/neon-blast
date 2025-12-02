@@ -12,7 +12,7 @@ let lastTime = 0; // Delta time için zaman takibi
 
 // OPTIMIZATION: Projectile cap to prevent FPS death
 const MAX_PROJECTILES = 250; // Cap at 250 for performance
-
+const MAX_PARTICLES = 800; // ADD THIS - Prevent particle explosion
 // Game State
 const gameState = {
     animationId: null,
@@ -82,6 +82,11 @@ function triggerLevelUp() {
         startBossFight();
         return; // Normal level up ekranını açma
     }
+    // --- BOSS 2 CHECK (YENİ) ---
+    if (gameState.level === 29 && !gameState.bossActive) {
+        startBossFight(2); // Boss ID 2
+        return;
+    }
     gameState.isPaused = true;
     clearInterval(gameState.spawnInterval);
     playSound('levelup');
@@ -117,22 +122,27 @@ window.triggerHitstop = function (duration) {
 }
 
 // Boss Functions
-function startBossFight() {
+function startBossFight(bossId = 1) {
     gameState.bossActive = true;
-    gameState.level = 15;
-    updateLevelIndicator("BOSS");
+    gameState.level++; // 15 veya 30 olur
 
-    // Normal spawn'ı durdur
+    // Boss tipine göre etiket
+    const bossLabel = bossId === 2 ? "BOSS: NEXUS" : "BOSS: OMEGA";
+    updateLevelIndicator(bossLabel);
+
     clearInterval(gameState.spawnInterval);
 
-    // Varolan tüm düşmanları öldür (Sahne temizliği)
+    // Sahne temizliği
     enemyPool.getActive().forEach(e => {
         createExplosion(e.x, e.y, 50, 0);
         enemyPool.release(e);
     });
 
-    // Boss'u çağır
-    boss.spawn(CANVAS.width / 2, -100);
+    if (bossId === 1) {
+        boss.spawn(CANVAS.width / 2, -100);
+    } else if (bossId === 2) {
+        boss2.spawn(CANVAS.width / 2, -100); // Boss 2 Çağır
+    }
 }
 
 function selectPerk(perk) {
@@ -238,7 +248,25 @@ function checkCollisions() {
                 continue;
             }
         }
+        // --- BOSS 2 COLLISION (YENİ) ---
+        if (gameState.bossActive && boss2.active) {
+            const dx = projectile.x - boss2.x;
+            const dy = projectile.y - boss2.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
 
+            if (dist < boss2.radius + projectile.radius) {
+                let damage = 20;
+                if (projectile.isSplit) damage = 10;
+                if (gameState.playerStats.sniper) damage *= 2;
+
+                boss2.takeDamage(damage); // Boss 2 hasar alır
+                spawnParticles(projectile.x, projectile.y, 5, 3, '#00ffff');
+                playSound('hit');
+
+                projectilePool.release(projectile);
+                continue; // Sonraki mermiye geç
+            }
+        }
         const nearbyEnemies = enemySpatialGrid.getNearby(projectile);
 
         for (const enemy of nearbyEnemies) {
@@ -567,7 +595,26 @@ function animate(timestamp) {
             }
         }
     }
+    // --- BOSS 2 UPDATE & DRAW (YENİ) ---
+    if (gameState.bossActive && boss2.active) {
+        boss2.update(player, dt);
+        boss2.draw();
 
+        // Boss 2 Fiziksel Çarpışma
+        const dist = Math.hypot(boss2.x - player.x, boss2.y - player.y);
+        if (dist < boss2.radius + player.radius) {
+            if (gameState.playerStats.shield > 0) {
+                gameState.playerStats.shield--;
+                updateShieldIndicator(gameState.playerStats.shield);
+                // Oyuncuyu it (Çok sert it çünkü bu boss tehlikeli)
+                const angle = Math.atan2(player.y - boss2.y, player.x - boss2.x);
+                player.x += Math.cos(angle) * 300;
+                player.y += Math.sin(angle) * 300;
+            } else {
+                startDeathSequence();
+            }
+        }
+    }
 
 
     profiler.start('draw-player');

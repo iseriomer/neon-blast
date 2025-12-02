@@ -30,8 +30,13 @@ class Particle {
         this.velocity.y *= Math.pow(FRICTION, dt);
         this.x += this.velocity.x * dt;
         this.y += this.velocity.y * dt;
-        this.alpha -= 0.015 * dt;
-
+        this.alpha -= 0.03 * dt;
+        // ADD: Cull off-screen particles (saves draw calls)
+        const margin = 100;
+        if (this.x < -margin || this.x > CANVAS.width + margin ||
+            this.y < -margin || this.y > CANVAS.height + margin) {
+            return true; // Remove
+        }
         // Return true if particle should be removed
         return this.alpha <= 0;
     }
@@ -47,7 +52,17 @@ const particlePool = new ObjectPool(
 );
 
 // Helper function (Aynen kalıyor)
+// Add particle cap to spawn function
 function spawnParticles(x, y, count, radius, color, velocityMultiplier = 1) {
+    // ADD THIS CHECK
+    if (particlePool.getActiveCount() >= MAX_PARTICLES) {
+        return; // Don't spawn if at cap
+    }
+
+    // Reduce actual spawn count if near cap
+    const remaining = MAX_PARTICLES - particlePool.getActiveCount();
+    count = Math.min(count, remaining);
+
     for (let i = 0; i < count; i++) {
         particlePool.get(
             x, y,

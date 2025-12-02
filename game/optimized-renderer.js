@@ -5,14 +5,14 @@ const RenderOptimizer = {
     // Settings
     useShadows: false, // Shadows are EXPENSIVE - disable in late game
     batchRendering: true,
-    
+
     // Toggle shadows based on object count
     autoAdjustQuality() {
-        const totalObjects = 
+        const totalObjects =
             (projectilePool?.getActiveCount() || 0) +
             (enemyPool?.getActiveCount() || 0) +
             (particlePool?.getActiveCount() || 0);
-        
+
         // Disable shadows when > 200 objects
         this.useShadows = totalObjects < 200;
     },
@@ -31,20 +31,20 @@ const RenderOptimizer = {
         // Draw each color group in ONE path
         for (const color in byColor) {
             const group = byColor[color];
-            
+
             CTX.beginPath();
             for (const proj of group) {
                 CTX.moveTo(proj.x + proj.radius, proj.y);
                 CTX.arc(proj.x, proj.y, proj.radius, 0, Math.PI * 2);
             }
-            
+
             CTX.fillStyle = color;
-            
+
             if (this.useShadows && group.length < 50) {
                 CTX.shadowBlur = 5;
                 CTX.shadowColor = color;
             }
-            
+
             CTX.fill();
             CTX.shadowBlur = 0;
         }
@@ -54,64 +54,52 @@ const RenderOptimizer = {
     drawParticlesBatched(particles) {
         if (!this.batchRendering || particles.length === 0) return;
 
-        // 1. Gruplama: Önce Renge Göre
         const byColor = {};
-        
+
         for (let i = 0; i < particles.length; i++) {
             const p = particles[i];
             if (!byColor[p.color]) byColor[p.color] = [];
             byColor[p.color].push(p);
         }
 
-        // Çizim Döngüsü
         for (const color in byColor) {
             const group = byColor[color];
-            
-            // 2. Gruplama: Alpha (Saydamlık) Seviyesine Göre
-            // Partikülleri 0.1'lik dilimlere ayırıyoruz (0.9, 0.8, 0.7...)
-            // Böylece 1000 draw call yerine maksimum 10 draw call yaparız.
+
+            // CHANGE: Reduce alpha buckets from 10 to 4 (fewer draw calls)
             const alphaBuckets = {};
-            
+
             for (let i = 0; i < group.length; i++) {
                 const p = group[i];
-                // Alpha'yı 1 ondalık basamağa yuvarla (örn: 0.87 -> 0.9)
-                const alphaKey = Math.max(0.1, Math.round(p.alpha * 10) / 10);
+                // CHANGE: 0.25 increments instead of 0.1 (fewer buckets)
+                const alphaKey = Math.max(0.25, Math.round(p.alpha * 4) / 4);
                 if (!alphaBuckets[alphaKey]) alphaBuckets[alphaKey] = [];
                 alphaBuckets[alphaKey].push(p);
             }
 
-            // Her Alpha grubu için tek bir çizim komutu
             CTX.fillStyle = color;
-            
+
             for (const alpha in alphaBuckets) {
                 CTX.globalAlpha = parseFloat(alpha);
                 CTX.beginPath();
-                
+
                 const bucket = alphaBuckets[alpha];
                 for (let i = 0; i < bucket.length; i++) {
                     const p = bucket[i];
-                    // OPTİMİZASYON: Küçük partiküller için kare çiz (Çok daha hızlı)
-                    if (p.radius < 3) {
-                        CTX.rect(p.x - p.radius, p.y - p.radius, p.radius * 2, p.radius * 2);
-                    } else {
-                        // Büyükler için daire devam
-                        CTX.moveTo(p.x + p.radius, p.y);
-                        CTX.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                    }
+                    // ALL particles use rectangles (faster than arcs)
+                    CTX.rect(p.x - p.radius, p.y - p.radius, p.radius * 2, p.radius * 2);
                 }
-                
-                CTX.fill(); // Bu gruptaki TÜM partikülleri tek seferde boya!
+
+                CTX.fill();
             }
         }
-        
-        // Alpha'yı sıfırla
+
         CTX.globalAlpha = 1;
     },
 
     // Optimized enemy rendering (keep individual for variety)
     drawEnemy(enemy) {
         CTX.beginPath();
-        
+
         // Use simpler shapes in late game
         if (enemyPool.getActiveCount() > 30) {
             CTX.arc(enemy.x, enemy.y, enemy.radius, 0, Math.PI * 2);
@@ -130,12 +118,12 @@ const RenderOptimizer = {
         }
 
         CTX.fillStyle = enemy.freezeTimer > 0 ? '#00ffff' : enemy.color;
-        
+
         if (this.useShadows && enemyPool.getActiveCount() < 20) {
             CTX.shadowBlur = 10;
             CTX.shadowColor = enemy.color;
         }
-        
+
         CTX.fill();
         CTX.shadowBlur = 0;
 
