@@ -178,6 +178,9 @@ class Boss {
         // Final Patlaması
         createExplosion(this.x, this.y, 1000, 9999);
 
+        // Hitstop efekti
+        if (window.triggerHitstop) window.triggerHitstop(60); // 1 saniye donma
+
         // Ödül ve Level Up
         gameState.score += BOSS_TYPES.OMEGA.score;
         triggerLevelUp();

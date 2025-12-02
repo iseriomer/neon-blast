@@ -89,7 +89,7 @@ class Enemy {
         if (this.hp > 1) {
             CTX.fillStyle = 'white';
             CTX.font = '10px Arial';
-            CTX.fillText(this.hp, this.x - 3, this.y + 4);
+            CTX.fillText(Math.ceil(this.hp), this.x - 3, this.y + 4);
         }
     }
 

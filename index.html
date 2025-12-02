@@ -44,11 +44,12 @@
     <div id="game-over-screen" class="hidden">
         <h1 style="color: #ff0055; -webkit-text-fill-color: #ff0055;">OYUN BİTTİ</h1>
         <p id="final-score">Skorun: 0</p>
-        
+
         <div id="leaderboard-section">
             <input type="text" id="player-name-input" placeholder="İsmini Gir" maxlength="20">
-            <button class="main-btn" id="submit-score-btn" style="padding: 10px 30px; font-size: 1rem;">SKORU KAYDET</button>
-            
+            <button class="main-btn" id="submit-score-btn" style="padding: 10px 30px; font-size: 1rem;">SKORU
+                KAYDET</button>
+
             <div class="leaderboard-container">
                 <h3>🏆 EN İYİ 5 OYUNCU 🏆</h3>
                 <ul id="leaderboard-list">
@@ -98,32 +99,33 @@
     <!-- 1. Constants and utilities first -->
     <script src="game/constants.js"></script>
     <script src="game/audio.js"></script>
-    
+
     <!-- 2. NEW: Performance profiler -->
     <script src="game/performance-profiler.js"></script>
-    
+
     <!-- 3. NEW: Spatial grid for collision optimization -->
     <script src="game/spatial-grid.js"></script>
-    
+
     <!-- 4. NEW: Batch renderer -->
     <script src="game/optimized-renderer.js"></script>
-    
+
     <!-- 5. Core systems -->
     <script src="game/objectPool.js"></script>
     <script src="game/particle.js"></script>
-    
+
     <!-- 6. REPLACE: Optimized projectile system -->
     <script src="game/projectile-OPTIMIZED.js"></script>
-    
+
     <!-- 7. Original systems -->
     <script src="game/enemy.js"></script>
-    
+
     <!-- 8. REPLACE: Optimized player -->
     <script src="game/player-OPTIMIZED.js"></script>
-    
+
     <script src="game/perks.js"></script>
     <script src="game/ui.js"></script>
-    <script src="game/boss.js"></script> 
+    <script src="game/boss.js"></script>
+    <script src="game/boss_2.js"></script>
     <!-- 9. REPLACE: Main game loop with all optimizations -->
     <script src="game/game-OPTIMIZED.js"></script>
     <script src="game/background.js"></script>
@@ -132,7 +134,7 @@
     <script>
         // Initialize systems
         initAdminPanel();
-        
+
         // Show optimization tips on load
         console.log('%c⚡ PERFORMANCE OPTIMIZATIONS ACTIVE ⚡', 'color: #0f0; font-size: 16px; font-weight: bold;');
         console.log('%cPress "P" to toggle Performance Profiler', 'color: #0ff;');
