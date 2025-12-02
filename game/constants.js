@@ -20,61 +20,61 @@ const POOL_SIZES = {
 
 // Enemy Types Configuration
 const ENEMY_TYPES = {
-    BASIC: { 
-        radius: 20, 
-        color: 'hsl(0, 70%, 50%)', 
-        speed: 1, 
-        hp: 1, 
-        score: 50, 
-        name: 'Basic' 
+    BASIC: {
+        radius: 20,
+        color: 'hsl(0, 70%, 50%)',
+        speed: 1,
+        hp: 1,
+        score: 50,
+        name: 'Basic'
     },
-    SPEEDSTER: { 
-        radius: 12, 
-        color: 'hsl(60, 90%, 60%)', 
-        speed: 2.2, 
-        hp: 1, 
-        score: 100, 
-        name: 'Speedster' 
+    SPEEDSTER: {
+        radius: 12,
+        color: 'hsl(60, 90%, 60%)',
+        speed: 2.2,
+        hp: 1,
+        score: 100,
+        name: 'Speedster'
     },
-    TANK: { 
-        radius: 35, 
-        color: 'hsl(240, 70%, 50%)', 
-        speed: 0.6, 
-        hp: 5, 
-        score: 200, 
-        name: 'Tank' 
+    TANK: {
+        radius: 35,
+        color: 'hsl(240, 70%, 50%)',
+        speed: 0.6,
+        hp: 5,
+        score: 200,
+        name: 'Tank'
     },
-    DASHER: { 
-        radius: 15, 
-        color: 'hsl(300, 80%, 50%)', 
-        speed: 1.5, 
-        hp: 2, 
-        score: 150, 
-        name: 'Dasher' 
+    DASHER: {
+        radius: 15,
+        color: 'hsl(300, 80%, 50%)',
+        speed: 1.5,
+        hp: 2,
+        score: 150,
+        name: 'Dasher'
     },
-    SPLITTER: { 
-        radius: 25, 
-        color: 'hsl(120, 70%, 50%)', 
-        speed: 0.8, 
-        hp: 3, 
-        score: 180, 
-        name: 'Splitter' 
+    SPLITTER: {
+        radius: 25,
+        color: 'hsl(120, 70%, 50%)',
+        speed: 0.8,
+        hp: 3,
+        score: 180,
+        name: 'Splitter'
     },
-    MINI_SPLITTER: { 
-        radius: 10, 
-        color: 'hsl(120, 70%, 40%)', 
-        speed: 1.5, 
-        hp: 1, 
-        score: 30, 
-        name: 'MiniSplitter' 
+    MINI_SPLITTER: {
+        radius: 10,
+        color: 'hsl(120, 70%, 40%)',
+        speed: 1.5,
+        hp: 1,
+        score: 30,
+        name: 'MiniSplitter'
     },
-    SPAWNER: { 
-        radius: 30, 
-        color: 'hsl(180, 70%, 50%)', 
-        speed: 0.4, 
-        hp: 4, 
-        score: 250, 
-        name: 'Spawner' 
+    SPAWNER: {
+        radius: 30,
+        color: 'hsl(180, 70%, 50%)',
+        speed: 0.4,
+        hp: 4,
+        score: 250,
+        name: 'Spawner'
     }
 };
 
@@ -84,7 +84,7 @@ const FRICTION = 0.97;
 // Default Player Stats
 const DEFAULT_PLAYER_STATS = {
     shotCount: 1,
-    shotSpeed: 10,
+    shotSpeed: 20,
     shotSize: 5,
     piercing: 1,
     fireRate: 400,

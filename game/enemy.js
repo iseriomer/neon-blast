@@ -21,13 +21,13 @@ class Enemy {
         this.x = x;
         this.y = y;
         this.type = type;
-        
+
         // YARIÇAP ve HIZ ölçekleniyor
-        this.radius = type.radius * GAME_SCALE; 
-        
+        this.radius = type.radius * GAME_SCALE;
+
         // Hız hesaplamasına GAME_SCALE eklendi
         this.speed = (type.speed * (1 + (difficultyMultiplier * 0.1))) * GAME_SCALE;
-        
+
         this.color = type.color;
         this.hp = type.hp + Math.floor(difficultyMultiplier / 2);
         this.maxHp = this.hp;
@@ -40,7 +40,7 @@ class Enemy {
 
     draw() {
         CTX.beginPath();
-        
+
         if (this.type.name === 'Speedster') {
             CTX.moveTo(this.x + this.radius, this.y);
             CTX.lineTo(this.x - this.radius, this.y + this.radius);
@@ -93,17 +93,17 @@ class Enemy {
         }
     }
 
-    update(player) {
+    update(player, dt = 1) {
         const angle = Math.atan2(player.y - this.y, player.x - this.x);
 
         let currentSpeed = this.speed;
         if (this.freezeTimer > 0) {
             currentSpeed *= 0.5;
-            this.freezeTimer--;
+            this.freezeTimer -= dt;
         }
 
         if (this.type.name === 'Spawner') {
-            this.spawnTimer++;
+            this.spawnTimer += dt;
             if (this.spawnTimer >= this.spawnCooldown && this.freezeTimer <= 0) {
                 this.spawnTimer = 0;
                 const spawnCount = 2;
@@ -116,22 +116,22 @@ class Enemy {
                 }
                 spawnParticles(this.x, this.y, 15, 3, this.color);
             }
-            this.x += Math.cos(angle) * currentSpeed * 0.5;
-            this.y += Math.sin(angle) * currentSpeed * 0.5;
+            this.x += Math.cos(angle) * currentSpeed * 0.5 * dt;
+            this.y += Math.sin(angle) * currentSpeed * 0.5 * dt;
         }
         else if (this.type.name === 'Dasher') {
-            this.dashCooldown--;
+            this.dashCooldown -= dt;
             if (this.dashCooldown <= 0 && this.freezeTimer <= 0) {
-                this.x += Math.cos(angle) * currentSpeed * 10;
-                this.y += Math.sin(angle) * currentSpeed * 10;
+                this.x += Math.cos(angle) * currentSpeed * 10 * dt;
+                this.y += Math.sin(angle) * currentSpeed * 10 * dt;
                 this.dashCooldown = 100 + Math.random() * 100;
             } else {
-                this.x += Math.cos(angle) * (currentSpeed * 0.5);
-                this.y += Math.sin(angle) * (currentSpeed * 0.5);
+                this.x += Math.cos(angle) * (currentSpeed * 0.5) * dt;
+                this.y += Math.sin(angle) * (currentSpeed * 0.5) * dt;
             }
         } else {
-            this.x += Math.cos(angle) * currentSpeed;
-            this.y += Math.sin(angle) * currentSpeed;
+            this.x += Math.cos(angle) * currentSpeed * dt;
+            this.y += Math.sin(angle) * currentSpeed * dt;
         }
 
         this.draw();

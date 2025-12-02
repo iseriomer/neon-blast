@@ -22,15 +22,15 @@ class Particle {
     // draw() METODUNU SİLDİK! 
     // Çizim işlemi artık tamamen RenderOptimizer'da yapılacak.
 
-    update() {
+    update(dt = 1) {
         // Gereksiz draw() çağrısı kaldırıldı.
         // Sadece fizik hesaplamaları kaldı.
-        
-        this.velocity.x *= FRICTION;
-        this.velocity.y *= FRICTION;
-        this.x += this.velocity.x;
-        this.y += this.velocity.y;
-        this.alpha -= 0.015;
+
+        this.velocity.x *= Math.pow(FRICTION, dt);
+        this.velocity.y *= Math.pow(FRICTION, dt);
+        this.x += this.velocity.x * dt;
+        this.y += this.velocity.y * dt;
+        this.alpha -= 0.015 * dt;
 
         // Return true if particle should be removed
         return this.alpha <= 0;

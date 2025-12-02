@@ -2,7 +2,7 @@
 const BackgroundManager = {
     activeType: 'nebula', // Varsayılan
     elements: [],
-    
+
     // Her modun renk paletleri ve ayarları
     configs: {
         nebula: {
@@ -37,14 +37,14 @@ const BackgroundManager = {
 
     init() {
         this.setEffect(this.activeType);
-        
+
         // Menü değişikliğini dinle
         const selector = document.getElementById('bg-select');
-        if(selector) {
+        if (selector) {
             selector.addEventListener('change', (e) => {
                 this.setEffect(e.target.value);
                 // Oyunu odaktan kaybetmemek için canvas'a geri odaklan
-                CANVAS.focus(); 
+                CANVAS.focus();
             });
         }
     },
@@ -53,8 +53,8 @@ const BackgroundManager = {
         this.activeType = type;
         this.elements = [];
         const config = this.configs[type];
-        
-        for(let i = 0; i < config.count; i++) {
+
+        for (let i = 0; i < config.count; i++) {
             this.elements.push({
                 x: Math.random() * CANVAS.width,
                 y: Math.random() * CANVAS.height,
@@ -68,7 +68,7 @@ const BackgroundManager = {
         }
     },
 
-    updateAndDraw() {
+    updateAndDraw(dt = 1) {
         const config = this.configs[this.activeType];
 
         // 1. Zemin Rengi
@@ -77,13 +77,13 @@ const BackgroundManager = {
 
         // 2. Elementleri Çiz
         CTX.globalCompositeOperation = config.blendMode;
-        
+
         const time = Date.now() / 2000;
 
         for (let el of this.elements) {
             // Hareket
-            el.x += el.vx;
-            el.y += el.vy;
+            el.x += el.vx * dt;
+            el.y += el.vy * dt;
 
             // Kenarlardan taşma (Wrap)
             const margin = 200;
@@ -105,11 +105,11 @@ const BackgroundManager = {
                 // Nebula/Gaz stili: Gradyanlı yumuşak geçişler
                 const pulse = Math.sin(time + el.pulseOffset) * 20;
                 const r = Math.max(0, el.radius + pulse);
-                
+
                 const gradient = CTX.createRadialGradient(el.x, el.y, 0, el.x, el.y, r);
                 gradient.addColorStop(0, el.color);
                 gradient.addColorStop(1, 'transparent');
-                
+
                 CTX.fillStyle = gradient;
                 CTX.arc(el.x, el.y, r, 0, Math.PI * 2);
                 CTX.fill();
@@ -124,7 +124,7 @@ const BackgroundManager = {
         );
         vignette.addColorStop(0, 'transparent');
         vignette.addColorStop(1, 'rgba(0,0,0,0.8)');
-        
+
         CTX.fillStyle = vignette;
         CTX.fillRect(0, 0, CANVAS.width, CANVAS.height);
     }

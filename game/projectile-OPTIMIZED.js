@@ -43,11 +43,11 @@ class Projectile {
         CTX.fill();
     }
 
-    update(enemies, playerStats) {
+    update(enemies, playerStats, dt = 1) {
         // OPTIMIZATION: Only update homing every 5 frames
         if (this.homing > 0 && enemies.length > 0 && this.homingCooldown <= 0) {
             this.homingCooldown = 5; // Update every 5 frames
-            
+
             let nearestEnemy = null;
             let minDist = Infinity;
 
@@ -58,7 +58,7 @@ class Projectile {
                 const dx = enemy.x - this.x;
                 const dy = enemy.y - this.y;
                 const dist = Math.sqrt(dx * dx + dy * dy);
-                
+
                 if (dist < minDist && dist < 400) {
                     minDist = dist;
                     nearestEnemy = enemy;
@@ -70,8 +70,8 @@ class Projectile {
                 const targetVx = Math.cos(angle) * playerStats.shotSpeed;
                 const targetVy = Math.sin(angle) * playerStats.shotSpeed;
 
-                this.velocity.x += (targetVx - this.velocity.x) * this.homing;
-                this.velocity.y += (targetVy - this.velocity.y) * this.homing;
+                this.velocity.x += (targetVx - this.velocity.x) * this.homing * dt;
+                this.velocity.y += (targetVy - this.velocity.y) * this.homing * dt;
 
                 const currentSpeed = Math.hypot(this.velocity.x, this.velocity.y);
                 if (currentSpeed > 0) {
@@ -80,26 +80,26 @@ class Projectile {
                 }
             }
         } else {
-            this.homingCooldown--;
+            this.homingCooldown -= dt;
         }
 
-        this.x += this.velocity.x;
-        this.y += this.velocity.y;
+        this.x += this.velocity.x * dt;
+        this.y += this.velocity.y * dt;
 
         // Screen Wrap Logic
         if (this.screenWrap && !this.hasWrapped) {
-            if (this.x < 0) { 
-                this.x = CANVAS.width; 
-                this.hasWrapped = true; 
-            } else if (this.x > CANVAS.width) { 
-                this.x = 0; 
-                this.hasWrapped = true; 
-            } else if (this.y < 0) { 
-                this.y = CANVAS.height; 
-                this.hasWrapped = true; 
-            } else if (this.y > CANVAS.height) { 
-                this.y = 0; 
-                this.hasWrapped = true; 
+            if (this.x < 0) {
+                this.x = CANVAS.width;
+                this.hasWrapped = true;
+            } else if (this.x > CANVAS.width) {
+                this.x = 0;
+                this.hasWrapped = true;
+            } else if (this.y < 0) {
+                this.y = CANVAS.height;
+                this.hasWrapped = true;
+            } else if (this.y > CANVAS.height) {
+                this.y = 0;
+                this.hasWrapped = true;
             }
         }
 
@@ -116,8 +116,8 @@ class Projectile {
         }
 
         // Return true if projectile should be removed
-        return (this.x < -50 || this.x > CANVAS.width + 50 || 
-                this.y < -50 || this.y > CANVAS.height + 50);
+        return (this.x < -50 || this.x > CANVAS.width + 50 ||
+            this.y < -50 || this.y > CANVAS.height + 50);
     }
 }
 

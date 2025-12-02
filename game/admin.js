@@ -64,7 +64,7 @@ function initAdminPanel() {
 function adminGodMode() {
     gameState.godMode = !gameState.godMode;
     const btn = document.getElementById('btn-godmode');
-    
+
     if (gameState.godMode) {
         btn.innerText = "🛡️ God Mode: AÇIK";
         btn.style.background = "#00ff00";
@@ -101,7 +101,7 @@ function adminAddScore() {
 }
 
 function adminMaxFireRate() {
-    gameState.playerStats.fireRate = 50; 
+    gameState.playerStats.fireRate = 50;
     gameState.playerStats.spread = 0.05;
 }
 

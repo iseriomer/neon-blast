@@ -11,6 +11,7 @@
 // ... geri kalan kodlar ...
 let mines = [];
 let lightnings = [];
+let lastTime = 0; // Delta time için zaman takibi
 
 // OPTIMIZATION: Projectile cap to prevent FPS death
 const MAX_PROJECTILES = 250; // Cap at 250 for performance
@@ -22,6 +23,7 @@ const gameState = {
     level: 1,
     nextLevelThreshold: 600,
     currentLevelStep: 600, // <-- YENİ: Başlangıç artış miktarı
+    bossActive: false, // YENİ
     gameActive: false,
     isPaused: false,
     spawnInterval: null,
@@ -74,6 +76,10 @@ function spawnEnemies() {
 
 // Level Up System
 function triggerLevelUp() {
+    if (gameState.level === 14 && !gameState.bossActive) {
+        startBossFight();
+        return; // Normal level up ekranını açma
+    }
     gameState.isPaused = true;
     clearInterval(gameState.spawnInterval);
     playSound('levelup');
@@ -102,6 +108,24 @@ function triggerLevelUp() {
         levelUpScreen.classList.remove('hidden');
     }, 1200);
 }
+// YENİ FONKSİYON
+function startBossFight() {
+    gameState.bossActive = true;
+    gameState.level = 15;
+    updateLevelIndicator("BOSS");
+
+    // Normal spawn'ı durdur
+    clearInterval(gameState.spawnInterval);
+
+    // Varolan tüm düşmanları öldür (Sahne temizliği)
+    enemyPool.getActive().forEach(e => {
+        createExplosion(e.x, e.y, 50, 0);
+        enemyPool.release(e);
+    });
+
+    // Boss'u çağır
+    boss.spawn(CANVAS.width / 2, -100);
+}
 
 function selectPerk(perk) {
     perk.apply(gameState.playerStats);
@@ -123,9 +147,9 @@ function selectPerk(perk) {
 // OPTIMIZED: Collision Detection with Spatial Grid
 function checkCollisions() {
     profiler.start('collisions');
-    
+
     const enemies = enemyPool.getActive();
-    
+
     // DÜZELTME 1: Sadece düşman yoksa çık. Mermi yoksa bile oyuncu çarpışmasını kontrol etmeliyiz.
     if (enemies.length === 0) {
         profiler.end('collisions');
@@ -145,7 +169,7 @@ function checkCollisions() {
     for (let i = enemies.length - 1; i >= 0; i--) {
         const enemy = enemies[i];
         const distPlayer = Math.hypot(player.x - enemy.x, player.y - enemy.y);
-        
+
         if (distPlayer - enemy.radius - player.radius < 1) {
             if (gameState.godMode) {
                 enemyPool.release(enemy);
@@ -160,7 +184,7 @@ function checkCollisions() {
                 enemies.forEach(e => spawnParticles(e.x, e.y, 20, 5, '#00ffff'));
                 enemyPool.releaseAll();
                 playSound('levelup');
-                break; 
+                break;
             } else {
                 gameOver();
                 profiler.end('player-collision');
@@ -183,10 +207,30 @@ function checkCollisions() {
     // OPTIMIZED: Use spatial grid for projectile-enemy collisions
     for (let j = projectiles.length - 1; j >= 0; j--) {
         const projectile = projectiles[j];
-        
+        // BOSS ÇARPIŞMASI (YENİ)
+        if (gameState.bossActive && boss.active) {
+            const dx = projectile.x - boss.x;
+            const dy = projectile.y - boss.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (dist < boss.radius + projectile.radius) {
+                // Hasar ver
+                let damage = 20; // Baz hasar
+                if (projectile.isSplit) damage = 10;
+                if (gameState.playerStats.sniper) damage *= 2;
+
+                boss.takeDamage(damage);
+                spawnParticles(projectile.x, projectile.y, 5, 3, '#8a2be2');
+                playSound('hit');
+
+                // Mermiyi yok et
+                projectilePool.release(projectile);
+                continue; // Diğer düşmanları kontrol etmeye gerek yok
+            }
+        }
         // OPTIMIZATION: Only check nearby enemies using spatial grid!
         const nearbyEnemies = enemySpatialGrid.getNearby(projectile);
-        
+
         for (const enemy of nearbyEnemies) {
             if (projectile.hitList.includes(enemy.id)) continue;
 
@@ -217,12 +261,12 @@ function checkCollisions() {
                 }
 
                 playSound('hit');
-                
+
                 const particleCount = Math.min(enemy.radius * 0.3, 10);
                 spawnParticles(projectile.x, projectile.y, particleCount, 3, enemy.color);
 
                 if (gameState.playerStats.clusterCount > 0 && !projectile.isSplit) {
-                    for(let c = 0; c < gameState.playerStats.clusterCount; c++) {
+                    for (let c = 0; c < gameState.playerStats.clusterCount; c++) {
                         spawnClusterMine(projectile.x, projectile.y);
                     }
                 }
@@ -247,7 +291,7 @@ function checkCollisions() {
                     // Merminin olduğu yeri değil, VURULAN DÜŞMANIN etrafını (400px) tarıyoruz.
                     const lightningRange = 400;
                     const potentialTargets = enemySpatialGrid.query(enemy.x, enemy.y, lightningRange);
-                    
+
                     let chainTargets = [];
                     for (const t of potentialTargets) {
                         if (t.id !== enemy.id && t.hp > 0) { // Canlı ve kendisi değilse
@@ -264,7 +308,7 @@ function checkCollisions() {
                     for (let c = 0; c < chainCount; c++) {
                         const target = chainTargets[c].enemy;
                         target.hp -= 3; // Yıldırım hasarı (biraz artırdım)
-                        
+
                         // Görsel oluştur
                         spawnChainLightning(enemy.x, enemy.y, target.x, target.y);
                         spawnParticles(target.x, target.y, 5, 2, '#00ffff'); // Mavi partikül
@@ -290,27 +334,8 @@ function checkCollisions() {
                     }
 
                     if (gameState.playerStats.explosiveRadius > 0) {
-                        const radius = gameState.playerStats.explosiveRadius;
-                        const explosionDamage = 7;
-                        CTX.beginPath();
-                        CTX.arc(enemy.x, enemy.y, radius, 0, Math.PI * 2);
-                        CTX.fillStyle = 'rgba(255, 100, 0, 0.1)';
-                        CTX.fill();
-                        CTX.strokeStyle = '#ff4400';
-                        CTX.lineWidth = 2;
-                        CTX.stroke();
-                        const nearbyForExplosion = enemySpatialGrid.query(enemy.x, enemy.y, radius);
-                        for (const e of nearbyForExplosion) {
-                            if (e.id !== enemy.id) {
-                                const dist = Math.hypot(e.x - enemy.x, e.y - enemy.y);
-                                if (dist < radius + e.radius) {
-                                    e.hp -= explosionDamage;
-                                    spawnParticles(e.x, e.y, 2, 2, '#ffffff', 2);
-                                }
-                            }
-                        }
-                        const explosionParticles = Math.min(Math.floor(radius / 5), 15);
-                        spawnParticles(enemy.x, enemy.y, explosionParticles, 4, '#ff6600', 2);
+                        // Dosyanın altındaki hazır ve düzgün fonksiyonu çağırıyoruz
+                        createExplosion(enemy.x, enemy.y, gameState.playerStats.explosiveRadius, 7);
                     }
 
                     enemyPool.release(enemy);
@@ -318,7 +343,7 @@ function checkCollisions() {
                 }
 
                 updateProgressBar(gameState.score, gameState.nextLevelThreshold);
-                if (gameState.score >= gameState.nextLevelThreshold) {
+                if (gameState.score >= gameState.nextLevelThreshold && !gameState.bossActive) {
                     triggerLevelUp();
                 }
             }
@@ -329,14 +354,25 @@ function checkCollisions() {
 }
 
 // OPTIMIZED: Main Animation Loop
-function animate() {
-    if (!gameState.gameActive || gameState.isPaused) return;
-    
+function animate(timestamp) {
+    if (!gameState.gameActive || gameState.isPaused) {
+        lastTime = 0; // Pause sonrası zıplamayı önle
+        return;
+    }
+
+    if (!lastTime) lastTime = timestamp;
+    const deltaTime = timestamp - lastTime;
+    lastTime = timestamp;
+
+    // Normalize dt: 1.0 at 60 FPS (16.67ms)
+    // Eğer çok düşük fps varsa (örn tab değişimi) dt'yi sınırla (max 3 frame atlama)
+    const dt = Math.min(deltaTime / (1000 / 60), 3);
+
     profiler.start('frame');
     gameState.animationId = requestAnimationFrame(animate);
 
     updateFPS();
-    
+
     // OPTIMIZATION: Auto-adjust quality based on object count
     profiler.start('quality-adjust');
     RenderOptimizer.autoAdjustQuality();
@@ -347,6 +383,27 @@ function animate() {
     CTX.fillRect(0, 0, CANVAS.width, CANVAS.height);
     profiler.end('clear-screen');
     /* BackgroundManager.updateAndDraw(); // <-- BURAYA *///burası backgroundeffectyeri
+    // BOSS GÜNCELLEME VE ÇİZİM
+    if (gameState.bossActive) {
+        boss.update(player, dt);
+        boss.draw();
+
+        // Boss oyuncuya çarparsa (Basit çarpışma)
+        const dist = Math.hypot(boss.x - player.x, boss.y - player.y);
+        if (dist < boss.radius + player.radius) {
+            if (gameState.playerStats.shield > 0) {
+                // Kalkan varsa kalkanı kır ama ölme
+                gameState.playerStats.shield--;
+                updateShieldIndicator(gameState.playerStats.shield);
+                // Oyuncuyu it
+                const angle = Math.atan2(player.y - boss.y, player.x - boss.x);
+                player.x += Math.cos(angle) * 200;
+                player.y += Math.sin(angle) * 200;
+            } else {
+                gameOver(); // Shield yoksa ölürsün
+            }
+        }
+    }
     profiler.start('draw-player');
     drawPlayer(gameState.playerStats, gameState.lastShotTime);
     profiler.end('draw-player');
@@ -371,14 +428,15 @@ function animate() {
 
         enemyPool.getActive().forEach(enemy => {
             const distToLine = Math.abs(
-                (laserEndY - player.y) * enemy.x - 
-                (laserEndX - player.x) * enemy.y + 
+                (laserEndY - player.y) * enemy.x -
+                (laserEndX - player.x) * enemy.y +
                 laserEndX * player.y - laserEndY * player.x
             ) / Math.hypot(laserEndY - player.y, laserEndX - player.x);
             const distToPlayer = Math.hypot(enemy.x - player.x, enemy.y - player.y);
 
             if (distToLine < enemy.radius + 10 && distToPlayer < 2000) {
                 enemy.hp -= 0.02;
+
                 if (enemy.hp <= 0) {
                     gameState.score += enemy.type.score;
                     enemyPool.release(enemy);
@@ -390,13 +448,25 @@ function animate() {
     }
 
     // Nuclear Bomb
+    // Nuclear Bomb Fix
     if (gameState.playerStats.nuclearBomb) {
-        gameState.nuclearBombTimer++;
+        gameState.nuclearBombTimer += dt;
         if (gameState.nuclearBombTimer >= 600) {
             gameState.nuclearBombTimer = 0;
+            // Görsel efekt
             spawnParticles(player.x, player.y, 50, 8, '#ff6600', 3);
-            enemyPool.getActive().forEach(enemy => { enemy.hp -= 3; });
             playSound('hit');
+
+            // KRİTİK DÜZELTME: Tersten döngü ile can azalt ve ölenleri yok et
+            const enemies = enemyPool.getActive();
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                const enemy = enemies[i];
+                enemy.hp -= 10; // 10 Hasar vur
+
+                if (enemy.hp <= 0) {
+                    handleEnemyDeath(enemy); // Merkezi ölüm fonksiyonunu çağır
+                }
+            }
         }
     }
 
@@ -430,7 +500,7 @@ function animate() {
     }
 
     profiler.start('update-particles');
-    particlePool.update(particle => particle.update());
+    particlePool.update(particle => particle.update(dt));
     profiler.end('update-particles');
 
     profiler.start('draw-particles');
@@ -438,16 +508,16 @@ function animate() {
     profiler.end('draw-particles');
 
     profiler.start('update-mines');
-    updateAndDrawMines();
+    updateAndDrawMines(dt);
     profiler.end('update-mines');
 
     profiler.start('update-lightnings');
-    updateAndDrawLightnings();
+    updateAndDrawLightnings(dt);
     profiler.end('update-lightnings');
 
     profiler.start('update-projectiles');
     projectilePool.update(projectile => {
-        return projectile.update(enemyPool.getActive(), gameState.playerStats);
+        return projectile.update(enemyPool.getActive(), gameState.playerStats, dt);
     });
     profiler.end('update-projectiles');
 
@@ -457,7 +527,7 @@ function animate() {
     profiler.end('draw-projectiles');
 
     profiler.start('update-enemies');
-    enemyPool.getActive().forEach(enemy => enemy.update(player));
+    enemyPool.getActive().forEach(enemy => enemy.update(player, dt));
     profiler.end('update-enemies');
 
     profiler.start('draw-enemies');
@@ -475,6 +545,7 @@ function initGame() {
     gameState.score = 0;
     gameState.level = 1;
     gameState.nextLevelThreshold = 600;
+    gameState.currentLevelStep = 600;
     gameState.difficultyMultiplier = 0;
     gameState.nuclearBombTimer = 0;
     mines = [];
@@ -494,7 +565,8 @@ function initGame() {
     startScreen.classList.add('hidden');
     gameOverScreen.classList.add('hidden');
 
-    animate();
+    lastTime = 0; // Reset time
+    requestAnimationFrame(animate);
     spawnEnemies();
 }
 
@@ -502,20 +574,20 @@ function gameOver() {
     gameState.gameActive = false;
     gameState.isPaused = true;
     clearInterval(gameState.spawnInterval);
-    
+
     finalScoreEl.innerText = `Toplam Skor: ${gameState.score} - Seviye: ${gameState.level}`;
     window.lastGameScore = gameState.score;
     window.lastGameLevel = gameState.level;
-    
+
     document.getElementById('submit-score-btn').style.display = 'inline-block';
     document.getElementById('submit-score-btn').disabled = false;
     document.getElementById('submit-score-btn').innerText = 'SKORU KAYDET';
     document.getElementById('player-name-input').style.display = 'inline-block';
-    
+
     if (window.fetchLeaderboard) {
         window.fetchLeaderboard();
     }
-    
+
     gameOverScreen.classList.remove('hidden');
 }
 
@@ -585,7 +657,7 @@ function spawnClusterMine(x, y) {
     });
 }
 
-function updateAndDrawMines() {
+function updateAndDrawMines(dt) {
     for (let i = mines.length - 1; i >= 0; i--) {
         const mine = mines[i];
         const pulse = Math.sin(Date.now() / 100) * 3;
@@ -597,7 +669,7 @@ function updateAndDrawMines() {
         CTX.lineWidth = 2;
         CTX.stroke();
 
-        mine.timer--;
+        mine.timer -= dt;
         let shouldExplode = mine.timer <= 0;
 
         if (!shouldExplode) {
@@ -644,42 +716,42 @@ function spawnChainLightning(x1, y1, x2, y2) {
     });
 }
 
-function updateAndDrawLightnings() {
+function updateAndDrawLightnings(dt) {
     // Bloom efekti için ayar (performanslı olması için batch'lemesiz)
     CTX.lineCap = 'round';
     CTX.lineJoin = 'round';
 
     for (let i = lightnings.length - 1; i >= 0; i--) {
         const bolt = lightnings[i];
-        
+
         // Segmentleri sadece ilk karede oluştur (Fractal yapısı)
         if (bolt.segments.length === 0) {
             const dist = Math.hypot(bolt.x2 - bolt.x1, bolt.y2 - bolt.y1);
             const steps = Math.max(3, Math.floor(dist / 40)); // Adım sayısı
-            
+
             let currX = bolt.x1;
             let currY = bolt.y1;
-            bolt.segments.push({x: currX, y: currY});
+            bolt.segments.push({ x: currX, y: currY });
 
             for (let s = 1; s < steps; s++) {
                 // Doğrusal interpolasyon
                 const t = s / steps;
                 let tx = bolt.x1 + (bolt.x2 - bolt.x1) * t;
                 let ty = bolt.y1 + (bolt.y2 - bolt.y1) * t;
-                
+
                 // Jitter (Rastgele sapma)
-                const jitter = (Math.random() - 0.5) * 60; 
+                const jitter = (Math.random() - 0.5) * 60;
                 tx += jitter;
                 ty += jitter;
-                
-                bolt.segments.push({x: tx, y: ty});
+
+                bolt.segments.push({ x: tx, y: ty });
             }
-            bolt.segments.push({x: bolt.x2, y: bolt.y2});
+            bolt.segments.push({ x: bolt.x2, y: bolt.y2 });
         }
 
         // ÇİZİM - İki katmanlı (Glow + Core)
         const alpha = bolt.life / 15;
-        
+
         // 1. Katman: Geniş, renkli dış ışıltı (Glow)
         CTX.beginPath();
         CTX.moveTo(bolt.segments[0].x, bolt.segments[0].y);
@@ -689,7 +761,7 @@ function updateAndDrawLightnings() {
         CTX.strokeStyle = `rgba(0, 255, 255, ${alpha * 0.6})`; // Cyan Glow
         CTX.lineWidth = 8;
         // ShadowBlur pahalıdır ama sadece yıldırım için değer
-        if (lightnings.length < 10) { 
+        if (lightnings.length < 10) {
             CTX.shadowBlur = 15;
             CTX.shadowColor = '#00ffff';
         }
@@ -705,8 +777,8 @@ function updateAndDrawLightnings() {
         CTX.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
         CTX.lineWidth = 2;
         CTX.stroke();
-        
-        bolt.life--;
+
+        bolt.life -= dt;
         if (bolt.life <= 0) {
             lightnings.splice(i, 1);
         }
@@ -720,8 +792,9 @@ function handleEnemyDeath(enemy) {
     // Eğer zaten öldüyse veya havuzda değilse işlem yapma
     if (enemy.hp > 0 && !enemyPool.active.includes(enemy)) return;
 
-    gameState.score += enemy.type.score;
-
+    if (!gameState.bossActive) {
+        gameState.score += enemy.type.score;
+    }
     // Splitter Mantığı
     if (enemy.type.name === 'Splitter') {
         const splitCount = 2 + Math.floor(Math.random() * 2);
@@ -740,10 +813,10 @@ function handleEnemyDeath(enemy) {
 
     enemyPool.release(enemy);
     spawnParticles(enemy.x, enemy.y, 8, 5, enemy.color, 2);
-    
+
     // Level atlama kontrolü
     updateProgressBar(gameState.score, gameState.nextLevelThreshold);
-    if (gameState.score >= gameState.nextLevelThreshold) {
+    if (gameState.score >= gameState.nextLevelThreshold && !gameState.bossActive) {
         triggerLevelUp();
     }
 }
@@ -759,19 +832,19 @@ function createExplosion(x, y, radius, damage) {
     /* backgroundEffect.applyForce(x, y, 150, 300); */
     // Şok dalgası efekti
     spawnParticles(x, y, Math.min(radius / 3, 20), 4, '#ff4400', 3);
-    
+
     // Hasar Mantığı - DÜZELTME BURADA
     // Grid üzerinden geniş alan sorgusu yapıyoruz
     const nearbyTargets = enemySpatialGrid.query(x, y, radius);
-    
+
     for (const target of nearbyTargets) {
         // Kendimize hasar vermeyelim (mesafe kontrolü zaten spatial grid içinde kaba yapılıyor, burada hassas ölçüm şart)
         const dist = Math.hypot(target.x - x, target.y - y);
-        
+
         if (dist < radius + target.radius) {
             target.hp -= damage;
             spawnParticles(target.x, target.y, 2, 2, '#ffffff', 2);
-            
+
             // KRİTİK DÜZELTME: Canı bittiyse anında öldür!
             if (target.hp <= 0) {
                 // Recursive (özyinelemeli) patlama olmaması için patlamadan ölen bir daha patlamasın diyebilirsin
