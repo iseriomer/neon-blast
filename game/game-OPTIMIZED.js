@@ -128,6 +128,7 @@ function startBossFight() {
 }
 
 function selectPerk(perk) {
+    /* console.log("SelectPerk Start - Enemies:", enemyPool.getActiveCount()); */
     perk.apply(gameState.playerStats);
     gameState.level++;
     gameState.currentLevelStep += 200;
@@ -141,7 +142,7 @@ function selectPerk(perk) {
 
     gameState.isPaused = false;
     spawnEnemies();
-    animate();
+    requestAnimationFrame(animate);
 }
 
 // OPTIMIZED: Collision Detection with Spatial Grid
@@ -367,6 +368,7 @@ function animate(timestamp) {
     // Normalize dt: 1.0 at 60 FPS (16.67ms)
     // Eğer çok düşük fps varsa (örn tab değişimi) dt'yi sınırla (max 3 frame atlama)
     const dt = Math.min(deltaTime / (1000 / 60), 3);
+    /* if (Math.random() < 0.01) console.log("Animate - dt:", dt, "Enemies:", enemyPool.getActiveCount()); */
 
     profiler.start('frame');
     gameState.animationId = requestAnimationFrame(animate);
