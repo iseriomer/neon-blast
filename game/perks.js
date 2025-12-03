@@ -164,9 +164,9 @@ const ALL_PERKS = [
         }
     },
     {
-        id: 'nuclear_bomb',
-        title: 'Nükleer Bomba',
-        desc: 'Her 10 saniyede bir devasa patlama! Tüm ekrana hasar.',
-        apply: (stats) => { stats.nuclearBomb = true; }
+        id: 'singularity',
+        title: 'Singularite',
+        desc: 'Her 30 saniyede bir kara delik oluşur! Düşmanları emer ve yok eder.',
+        apply: (stats) => { stats.singularity = true; }
     }
 ];

@@ -115,6 +115,6 @@ const DEFAULT_PLAYER_STATS = {
     shield: 0,
     maxShields: 2,
     laserBeam: false,
-    nuclearBomb: false,
+    singularity: false,
     timeWarp: false
 };

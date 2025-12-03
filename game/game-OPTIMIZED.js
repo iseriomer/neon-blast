@@ -9,7 +9,7 @@
 let mines = [];
 let lightnings = [];
 let lastTime = 0; // Delta time için zaman takibi
-
+let blackHole = null; // ← BUNU EKLE
 // OPTIMIZATION: Projectile cap to prevent FPS death
 const MAX_PROJECTILES = 250; // Cap at 250 for performance
 const MAX_PARTICLES = 800; // ADD THIS - Prevent particle explosion
@@ -26,7 +26,7 @@ const gameState = {
     spawnInterval: null,
     difficultyMultiplier: 1,
     lastShotTime: 0,
-    nuclearBombTimer: 0,
+    singularityTimer: 0,
     timeWarpActive: false,
     timeWarpTimer: 0,
     lastMouseX: 0,
@@ -786,27 +786,18 @@ function animate(timestamp) {
 
     // Nuclear Bomb
     // Nuclear Bomb Fix
-    if (gameState.playerStats.nuclearBomb) {
-        gameState.nuclearBombTimer += dt;
-        if (gameState.nuclearBombTimer >= 600) {
-            gameState.nuclearBombTimer = 0;
+    if (gameState.playerStats.singularity) {
+        gameState.singularityTimer += dt;
+        if (gameState.singularityTimer >= 1800) {
+            gameState.singularityTimer = 0;
             // Görsel efekt
-            spawnParticles(player.x, player.y, 50, 8, '#ff6600', 3);
-            playSound('hit');
-
-            // KRİTİK DÜZELTME: Tersten döngü ile can azalt ve ölenleri yok et
-            const enemies = enemyPool.getActive();
-            for (let i = enemies.length - 1; i >= 0; i--) {
-                const enemy = enemies[i];
-                enemy.hp -= 10; // 10 Hasar vur
-
-                if (enemy.hp <= 0) {
-                    handleEnemyDeath(enemy); // Merkezi ölüm fonksiyonunu çağır
-                }
-            }
+            spawnBlackHole();
         }
     }
-
+    // Kara deliği güncelle ve çiz
+    if (blackHole) {
+        updateAndDrawBlackHole(dt);
+    }
     // Orbitals
     if (gameState.playerStats.orbitals > 0) {
         profiler.start('orbitals');
@@ -882,7 +873,9 @@ function initGame() {
     gameState.nextLevelThreshold = 600;
     gameState.currentLevelStep = 600;
     gameState.difficultyMultiplier = 0;
-    gameState.nuclearBombTimer = 0;
+    // Yeni:
+    gameState.singularityTimer = 0;
+    blackHole = null;
     mines = [];
     lightnings = [];
     projectilePool.releaseAll();
@@ -1209,6 +1202,207 @@ function createExplosion(x, y, radius, damage) {
         }
     }
 }
+// ===========================
+// SINGULARITY (KARA DELİK) SİSTEMİ
+// ===========================
+function spawnBlackHole() {
+    const centerX = CANVAS.width / 2;
+    const centerY = CANVAS.height / 2;
 
+    blackHole = {
+        x: centerX,
+        y: centerY,
+        radius: 20,
+        maxRadius: 250,
+        pullRadius: 600,
+        life: 300, // 5 saniye (60 fps * 5)
+        maxLife: 300,
+        rotation: 0,
+        particles: []
+    };
+
+    playSound('levelup');
+
+    // Spawn efekti için partiküller
+    spawnParticles(centerX, centerY, 30, 8, '#9400d3', 4);
+}
+
+function updateAndDrawBlackHole(dt) {
+    if (!blackHole) return;
+
+    // Yaşam süresi azalt
+    blackHole.life -= dt;
+
+    // Ölüm animasyonu
+    if (blackHole.life <= 0) {
+        // Son patlama efekti
+        const finalExplosionSize = blackHole.radius * 2;
+        spawnParticles(blackHole.x, blackHole.y, 50, 10, '#9400d3', 6);
+        createExplosion(blackHole.x, blackHole.y, finalExplosionSize, 15);
+        playSound('hit');
+        blackHole = null;
+        return;
+    }
+
+    // Animasyon fazları
+    const lifeRatio = blackHole.life / blackHole.maxLife;
+    const phase = lifeRatio > 0.8 ? 'growing' : lifeRatio > 0.2 ? 'stable' : 'shrinking';
+
+    // Yarıçap animasyonu
+    if (phase === 'growing') {
+        const growthProgress = (1 - lifeRatio) / 0.2; // 0 -> 1 (ilk %20'de)
+        blackHole.radius = 20 + (blackHole.maxRadius - 20) * easeOutCubic(growthProgress);
+    } else if (phase === 'shrinking') {
+        const shrinkProgress = lifeRatio / 0.2; // 1 -> 0 (son %20'de)
+        blackHole.radius = blackHole.maxRadius * shrinkProgress;
+    } else {
+        blackHole.radius = blackHole.maxRadius;
+    }
+
+    // Rotasyon
+    blackHole.rotation += 0.05 * dt;
+
+    // DÜŞMAN ÇEKİMİ VE HASAR
+    const enemies = enemyPool.getActive();
+    for (let i = enemies.length - 1; i >= 0; i--) {
+        const enemy = enemies[i];
+        const dx = blackHole.x - enemy.x;
+        const dy = blackHole.y - enemy.y;
+        const dist = Math.hypot(dx, dy);
+
+        // Çekim alanı içinde mi?
+        if (dist < blackHole.pullRadius) {
+            // Çekim kuvveti (yaklaştıkça güçlenir)
+            const pullStrength = (1 - dist / blackHole.pullRadius) * 8 * dt;
+            const angle = Math.atan2(dy, dx);
+
+            enemy.x += Math.cos(angle) * pullStrength;
+            enemy.y += Math.sin(angle) * pullStrength;
+
+            // Parçacık efekti (düşmandan kara deliğe doğru)
+            if (Math.random() < 0.1) {
+                const particleAngle = angle + (Math.random() - 0.5) * 0.5;
+                const px = enemy.x + Math.cos(particleAngle) * enemy.radius;
+                const py = enemy.y + Math.sin(particleAngle) * enemy.radius;
+
+                blackHole.particles.push({
+                    x: px,
+                    y: py,
+                    targetX: blackHole.x,
+                    targetY: blackHole.y,
+                    life: 20,
+                    color: enemy.color
+                });
+            }
+
+            // Merkeze çok yaklaştıysa hasarlı bölge
+            if (dist < blackHole.radius * 1.5) {
+                enemy.hp -= 0.3 * dt; // Sürekli hasar
+
+                // Spaghettification efekti (düşman çekiliyor görüntüsü)
+                if (Math.random() < 0.2) {
+                    spawnParticles(enemy.x, enemy.y, 1, 2, enemy.color, 1);
+                }
+
+                if (enemy.hp <= 0) {
+                    handleEnemyDeath(enemy);
+                }
+            }
+        }
+    }
+
+    // Partikülleri güncelle
+    for (let i = blackHole.particles.length - 1; i >= 0; i--) {
+        const p = blackHole.particles[i];
+
+        // Hedefe doğru hareket et
+        const dx = p.targetX - p.x;
+        const dy = p.targetY - p.y;
+        const dist = Math.hypot(dx, dy);
+
+        if (dist > 5) {
+            p.x += (dx / dist) * 15 * dt;
+            p.y += (dy / dist) * 15 * dt;
+        }
+
+        p.life -= dt;
+        if (p.life <= 0 || dist < 10) {
+            blackHole.particles.splice(i, 1);
+        }
+    }
+
+    // ÇİZİM
+    CTX.save();
+
+    // 1. Dış halo (glow)
+    const gradient1 = CTX.createRadialGradient(
+        blackHole.x, blackHole.y, 0,
+        blackHole.x, blackHole.y, blackHole.radius * 2
+    );
+    gradient1.addColorStop(0, 'rgba(148, 0, 211, 0)');
+    gradient1.addColorStop(0.5, 'rgba(148, 0, 211, 0.3)');
+    gradient1.addColorStop(1, 'rgba(148, 0, 211, 0)');
+
+    CTX.beginPath();
+    CTX.arc(blackHole.x, blackHole.y, blackHole.radius * 2, 0, Math.PI * 2);
+    CTX.fillStyle = gradient1;
+    CTX.fill();
+
+    // 2. Accretion disk (dönen disk)
+    CTX.save();
+    CTX.translate(blackHole.x, blackHole.y);
+    CTX.rotate(blackHole.rotation);
+
+    for (let i = 0; i < 3; i++) {
+        const diskRadius = blackHole.radius * (1.2 + i * 0.2);
+        const gradient2 = CTX.createRadialGradient(0, 0, diskRadius * 0.3, 0, 0, diskRadius);
+
+        // Renkli spiral
+        const hue1 = (270 + i * 30) % 360;
+        const hue2 = (300 + i * 30) % 360;
+        gradient2.addColorStop(0, `hsla(${hue1}, 100%, 50%, 0.8)`);
+        gradient2.addColorStop(0.5, `hsla(${hue2}, 100%, 40%, 0.5)`);
+        gradient2.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+        CTX.beginPath();
+        CTX.arc(0, 0, diskRadius, 0, Math.PI * 2);
+        CTX.fillStyle = gradient2;
+        CTX.fill();
+    }
+    CTX.restore();
+
+    // 3. Event Horizon (merkez siyah küre)
+    const gradient3 = CTX.createRadialGradient(
+        blackHole.x, blackHole.y, 0,
+        blackHole.x, blackHole.y, blackHole.radius * 0.8
+    );
+    gradient3.addColorStop(0, 'rgba(0, 0, 0, 1)');
+    gradient3.addColorStop(0.7, 'rgba(20, 0, 40, 0.9)');
+    gradient3.addColorStop(1, 'rgba(148, 0, 211, 0.3)');
+
+    CTX.beginPath();
+    CTX.arc(blackHole.x, blackHole.y, blackHole.radius * 0.8, 0, Math.PI * 2);
+    CTX.fillStyle = gradient3;
+    CTX.shadowBlur = 30;
+    CTX.shadowColor = '#9400d3';
+    CTX.fill();
+    CTX.shadowBlur = 0;
+
+    // 4. Partikülleri çiz
+    for (const p of blackHole.particles) {
+        const alpha = p.life / 20;
+        CTX.beginPath();
+        CTX.arc(p.x, p.y, 2, 0, Math.PI * 2);
+        CTX.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+        CTX.fill();
+    }
+
+    CTX.restore();
+}
+
+// Easing fonksiyonu
+function easeOutCubic(t) {
+    return 1 - Math.pow(1 - t, 3);
+}
 document.getElementById('start-btn').addEventListener('click', initGame);
 document.getElementById('restart-btn').addEventListener('click', initGame);
