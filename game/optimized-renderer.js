@@ -45,15 +45,20 @@ const RenderOptimizer = {
                 CTX.shadowColor = color;
             }
 
+            CTX.globalCompositeOperation = 'lighter'; // NEON GLOW
             CTX.fill();
+            CTX.globalCompositeOperation = 'source-over'; // Reset
             CTX.shadowBlur = 0;
         }
     },
 
     // Batch draw particles
+    // Batch draw particles (Optimized with types)
     drawParticlesBatched(particles) {
         if (!this.batchRendering || particles.length === 0) return;
 
+        // Group by Color -> Type? Or just iterate and minimal state change.
+        // Grouping by Color is most important for fillStyle.
         const byColor = {};
 
         for (let i = 0; i < particles.length; i++) {
@@ -65,13 +70,12 @@ const RenderOptimizer = {
         for (const color in byColor) {
             const group = byColor[color];
 
-            // CHANGE: Reduce alpha buckets from 10 to 4 (fewer draw calls)
+            // Batch Alpha buckets
             const alphaBuckets = {};
 
             for (let i = 0; i < group.length; i++) {
                 const p = group[i];
-                // CHANGE: 0.25 increments instead of 0.1 (fewer buckets)
-                const alphaKey = Math.max(0.25, Math.round(p.alpha * 4) / 4);
+                const alphaKey = Math.max(0.1, Math.round(p.alpha * 4) / 4);
                 if (!alphaBuckets[alphaKey]) alphaBuckets[alphaKey] = [];
                 alphaBuckets[alphaKey].push(p);
             }
@@ -85,8 +89,35 @@ const RenderOptimizer = {
                 const bucket = alphaBuckets[alpha];
                 for (let i = 0; i < bucket.length; i++) {
                     const p = bucket[i];
-                    // ALL particles use rectangles (faster than arcs)
-                    CTX.rect(p.x - p.radius, p.y - p.radius, p.radius * 2, p.radius * 2);
+
+                    if (p.type === 'spark') {
+                        // Manual Rotated Rect for Spark (Line-like)
+                        // Length = radius * 4, Width = radius * 0.5
+                        const len = p.radius * 3;
+                        const width = Math.max(1, p.radius * 0.5);
+                        const c = Math.cos(p.rotation);
+                        const s = Math.sin(p.rotation);
+
+                        // Head
+                        const hx = p.x;
+                        const hy = p.y;
+                        // Tail
+                        const tx = p.x - c * len;
+                        const ty = p.y - s * len;
+
+                        // Perpendicular offset
+                        const px = -s * width;
+                        const py = c * width;
+
+                        CTX.moveTo(hx + px, hy + py);
+                        CTX.lineTo(hx - px, hy - py);
+                        CTX.lineTo(tx - px, ty - py);
+                        CTX.lineTo(tx + px, ty + py);
+                        // Close implicitly by next moveTo or fill
+                    } else {
+                        // Default Square
+                        CTX.rect(p.x - p.radius, p.y - p.radius, p.radius * 2, p.radius * 2);
+                    }
                 }
 
                 CTX.fill();
@@ -97,41 +128,85 @@ const RenderOptimizer = {
     },
 
     // Optimized enemy rendering (keep individual for variety)
+    // Optimized enemy rendering (keep individual for variety)
     drawEnemy(enemy) {
-        CTX.beginPath();
+        // Dynamic Pulse
+        const pulse = 1 + Math.sin(Date.now() / 200) * 0.1;
+        const color = enemy.freezeTimer > 0 ? '#00ffff' : enemy.color;
 
-        // Use simpler shapes in late game
-        if (enemyPool.getActiveCount() > 30) {
-            CTX.arc(enemy.x, enemy.y, enemy.radius, 0, Math.PI * 2);
-        } else {
-            // Original detailed shapes for early game
-            if (enemy.type.name === 'Speedster') {
-                CTX.moveTo(enemy.x + enemy.radius, enemy.y);
-                CTX.lineTo(enemy.x - enemy.radius, enemy.y + enemy.radius);
-                CTX.lineTo(enemy.x - enemy.radius, enemy.y - enemy.radius);
+        CTX.save();
+        CTX.translate(enemy.x, enemy.y);
+
+        // Rotation for some enemies
+        if (enemy.type.name === 'Splitter' || enemy.type.name === 'Spawner') {
+            CTX.rotate(Date.now() / 1000);
+        } else if (enemy.type.name === 'Speedster' || enemy.type.name === 'Dasher') {
+            // Speedsters point to player usually, but we don't have player ref here easily
+            // We can just rotate by velocity if valid
+            // For now specific shapes
+        }
+
+        // Draw based on type
+        switch (enemy.type.name) {
+            case 'Speedster': // Arrow
+                // Custom Arrow Draw
+                CTX.shadowBlur = 10;
+                CTX.shadowColor = color;
+                CTX.strokeStyle = color;
+                CTX.lineWidth = 2;
+                CTX.beginPath();
+                CTX.moveTo(enemy.radius, 0);
+                CTX.lineTo(-enemy.radius, enemy.radius * 0.7);
+                CTX.lineTo(-enemy.radius * 0.5, 0);
+                CTX.lineTo(-enemy.radius, -enemy.radius * 0.7);
                 CTX.closePath();
-            } else if (enemy.type.name === 'Tank') {
-                CTX.rect(enemy.x - enemy.radius, enemy.y - enemy.radius, enemy.radius * 2, enemy.radius * 2);
-            } else {
-                CTX.arc(enemy.x, enemy.y, enemy.radius, 0, Math.PI * 2);
-            }
+                CTX.stroke();
+                break;
+
+            case 'Tank': // Hexagon
+                FX.drawNeonPoly(CTX, 0, 0, 6, enemy.radius, color);
+                // Inner Detail
+                CTX.fillStyle = color;
+                CTX.globalAlpha = 0.3;
+                CTX.beginPath();
+                CTX.arc(0, 0, enemy.radius * 0.5, 0, Math.PI * 2);
+                CTX.fill();
+                CTX.globalAlpha = 1;
+                break;
+
+            case 'Splitter': // Cross/Star
+                FX.drawNeonPoly(CTX, 0, 0, 4, enemy.radius, color, Math.PI / 4);
+                FX.drawNeonPoly(CTX, 0, 0, 4, enemy.radius * 0.6, '#fff', 0);
+                break;
+
+            case 'Spawner': // Square
+                FX.drawNeonPoly(CTX, 0, 0, 4, enemy.radius, color);
+                // Inner rotating square
+                CTX.rotate(Date.now() / -500);
+                FX.drawNeonPoly(CTX, 0, 0, 4, enemy.radius * 0.5, '#fff');
+                break;
+
+            case 'Shielder': // Circle with Aura (Aura drawn in game loop usually, but body here)
+                FX.drawNeonCircle(CTX, 0, 0, enemy.radius, color);
+                break;
+
+            default: // Basic (Diamond)
+                FX.drawNeonPoly(CTX, 0, 0, 4, enemy.radius, color);
         }
 
-        CTX.fillStyle = enemy.freezeTimer > 0 ? '#00ffff' : enemy.color;
+        CTX.restore();
 
-        if (this.useShadows && enemyPool.getActiveCount() < 20) {
-            CTX.shadowBlur = 10;
-            CTX.shadowColor = enemy.color;
-        }
+        // HP Bar for high HP enemies (Modern Style)
+        if (enemy.hp > 3 && enemy.maxHp > 3) {
+            const hpPct = enemy.hp / enemy.maxHp;
+            const barW = enemy.radius * 2;
+            const barH = 4;
 
-        CTX.fill();
-        CTX.shadowBlur = 0;
+            CTX.fillStyle = '#333';
+            CTX.fillRect(enemy.x - enemy.radius, enemy.y + enemy.radius + 5, barW, barH);
 
-        // Draw HP only for high HP enemies
-        if (enemy.hp > 3) {
-            CTX.fillStyle = 'white';
-            CTX.font = '10px Arial';
-            CTX.fillText(enemy.hp, enemy.x - 3, enemy.y + 4);
+            CTX.fillStyle = hpPct > 0.5 ? '#0f0' : '#f00';
+            CTX.fillRect(enemy.x - enemy.radius, enemy.y + enemy.radius + 5, barW * hpPct, barH);
         }
     }
 };

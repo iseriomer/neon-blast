@@ -10,13 +10,23 @@ class Particle {
         this.alpha = 1;
     }
 
-    reset(x, y, radius, color, velocity) {
+    reset(x, y, radius, color, velocity, type = 'default') {
         this.x = x;
         this.y = y;
         this.radius = radius;
         this.color = color;
         this.velocity = velocity;
         this.alpha = 1;
+        this.type = type; // 'default', 'spark', 'smoke', 'text'
+        this.rotation = Math.random() * Math.PI * 2;
+        this.rotationSpeed = (Math.random() - 0.5) * 0.2;
+
+        if (type === 'spark') {
+            // Sparks align with velocity
+            this.rotation = Math.atan2(velocity.y, velocity.x);
+            this.rotationSpeed = 0;
+            this.radius *= 2; // Longer
+        }
     }
 
     // draw() METODUNU SİLDİK! 
@@ -45,15 +55,15 @@ class Particle {
 // Particle Pool (Aynen kalıyor)
 const particlePool = new ObjectPool(
     () => new Particle(),
-    (particle, x, y, radius, color, velocity) => {
-        particle.reset(x, y, radius, color, velocity);
+    (particle, x, y, radius, color, velocity, type) => {
+        particle.reset(x, y, radius, color, velocity, type);
     },
     POOL_SIZES.PARTICLE
 );
 
 // Helper function (Aynen kalıyor)
 // Add particle cap to spawn function
-function spawnParticles(x, y, count, radius, color, velocityMultiplier = 1) {
+function spawnParticles(x, y, count, radius, color, velocityMultiplier = 1, type = 'default') {
     // ADD THIS CHECK
     if (particlePool.getActiveCount() >= MAX_PARTICLES) {
         return; // Don't spawn if at cap
@@ -71,7 +81,8 @@ function spawnParticles(x, y, count, radius, color, velocityMultiplier = 1) {
             {
                 x: (Math.random() - 0.5) * (Math.random() * 8 * velocityMultiplier) * GAME_SCALE,
                 y: (Math.random() - 0.5) * (Math.random() * 8 * velocityMultiplier) * GAME_SCALE
-            }
+            },
+            type
         );
     }
 }

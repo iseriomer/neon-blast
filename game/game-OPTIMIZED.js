@@ -233,6 +233,8 @@ function checkCollisions() {
                 enemies.forEach(e => spawnParticles(e.x, e.y, 20, 5, '#00ffff'));
                 enemyPool.releaseAll();
                 playSound('levelup');
+                FX.glitch(0.5); // Major Glitch
+                FX.shake(20);
                 if (window.triggerHitstop) window.triggerHitstop(10);
                 break;
             } else {
@@ -432,6 +434,8 @@ function checkCollisions() {
 
                 const particleCount = Math.min(enemy.radius * 0.3, 10);
                 spawnParticles(projectile.x, projectile.y, particleCount, 3, enemy.color);
+                // Occasional spark on hit
+                if (Math.random() < 0.3) spawnParticles(projectile.x, projectile.y, 2, 2, '#fff', 2, 'spark');
 
                 if (gameState.playerStats.clusterCount > 0 && !projectile.isSplit) {
                     for (let c = 0; c < gameState.playerStats.clusterCount; c++) {
@@ -701,10 +705,21 @@ function animate(timestamp) {
     RenderOptimizer.autoAdjustQuality();
     profiler.end('quality-adjust');
 
+    // --- VISUAL EFFECTS UPDATE ---
+    FX.update(dt);
+
+    // Clear Screen (handled by FX.process but we need base black)
     profiler.start('clear-screen');
-    CTX.fillStyle = 'rgba(5, 5, 5, 0.1)';
+    CTX.fillStyle = '#050505'; // Deep black for neon contrast
     CTX.fillRect(0, 0, CANVAS.width, CANVAS.height);
+
+    // Background (if any)
+    if (BackgroundManager) BackgroundManager.updateAndDraw(dt);
+
     profiler.end('clear-screen');
+
+    // SHAKE APPLY
+    FX.applyShake(CTX);
 
     // BOSS 1 UPDATE
     if (gameState.bossActive && boss.active) {
@@ -883,6 +898,13 @@ function animate(timestamp) {
 
     checkCollisions();
 
+    // RESTORE SHAKE & POST PROCESS
+    FX.restoreShake(CTX);
+
+    profiler.start('post-process');
+    FX.process(CTX, CANVAS.width, CANVAS.height);
+    profiler.end('post-process');
+
     profiler.end('frame');
     profiler.update();
 }
@@ -922,6 +944,9 @@ function initGame() {
     player.visible = false; // Player başta görünmez
     player.x = CANVAS.width / 2;
     player.y = CANVAS.height / 2;
+
+    // INIT FX
+    FX.init(CANVAS.width, CANVAS.height);
 
     requestAnimationFrame(animate);
 }
@@ -1006,6 +1031,9 @@ window.addEventListener('resize', () => {
     player.x = CANVAS.width / 2;
     player.y = CANVAS.height / 2;
     player.radius = 20 * GAME_SCALE;
+
+    // RESIZE FX
+    FX.resize(CANVAS.width, CANVAS.height);
 });
 
 // Mine System
@@ -1195,8 +1223,13 @@ function createExplosion(x, y, radius, damage) {
     CTX.fill();
     // Grid'i bük! (Gücü 50, Yarıçapı 300 yaptık)
     /* backgroundEffect.applyForce(x, y, 150, 300); */
+
+    // JUICE: Shake & Sparks
+    FX.shake(radius / 20); // 100 radius -> 5 shake
+    spawnParticles(x, y, Math.min(radius / 3, 20), 4, '#ff4400', 3, 'smoke');
+    spawnParticles(x, y, 12, 5, '#ffee00', 4, 'spark'); // Sparks!
+
     // Şok dalgası efekti
-    spawnParticles(x, y, Math.min(radius / 3, 20), 4, '#ff4400', 3);
 
     // Hasar Mantığı - DÜZELTME BURADA
     // Grid üzerinden geniş alan sorgusu yapıyoruz

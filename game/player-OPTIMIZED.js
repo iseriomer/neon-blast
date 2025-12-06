@@ -6,53 +6,114 @@ const player = {
     radius: 20
 };
 
-function drawPlayer(playerStats, lastShotTime) {
-    CTX.beginPath();
-    CTX.arc(player.x, player.y, player.radius, 0, Math.PI * 2, false);
-    CTX.fillStyle = playerStats.color;
+// Player Visual State
+player.rotation = 0;
+player.trail = [];
 
-    // OPTIMIZATION: Only shadow when few objects
-    if (RenderOptimizer.useShadows) {
-        CTX.shadowBlur = 15;
-        CTX.shadowColor = playerStats.color;
+function drawPlayer(playerStats, lastShotTime) {
+    // 1. Calculate Rotation (Face Mouse)
+    const targetAngle = Math.atan2(gameState.lastMouseY - player.y, gameState.lastMouseX - player.x);
+    // Smooth rotation lerp could be added here, but instant is better for twitch shooters
+    player.rotation = targetAngle;
+
+    // 2. Update Trail
+    if (gameState.gameActive && !gameState.isPaused) {
+        player.trail.push({ x: player.x, y: player.y });
+        if (player.trail.length > 8) player.trail.shift();
     }
 
-    CTX.fill();
-    CTX.shadowBlur = 0;
+    // 3. Draw Trail
+    if (player.trail.length > 2) {
+        CTX.beginPath();
+        CTX.moveTo(player.trail[0].x, player.trail[0].y);
+        for (let i = 1; i < player.trail.length; i++) {
+            CTX.lineTo(player.trail[i].x, player.trail[i].y);
+        }
+        CTX.strokeStyle = `rgba(0, 255, 255, 0.3)`;
+        CTX.lineWidth = player.radius;
+        CTX.lineCap = 'round';
+        CTX.stroke();
+    }
 
-    // Reload indicator
+    CTX.save();
+    CTX.translate(player.x, player.y);
+    CTX.rotate(player.rotation);
+
+    // 4. Draw Ship Body (Composite Neon)
+    // Main Body (Triangle)
+    CTX.beginPath();
+    CTX.moveTo(player.radius, 0); // Nose
+    CTX.lineTo(-player.radius, player.radius * 0.8); // Left Wing
+    CTX.lineTo(-player.radius * 0.5, 0); // Engine indent
+    CTX.lineTo(-player.radius, -player.radius * 0.8); // Right Wing
+    CTX.closePath();
+
+    CTX.shadowBlur = 15;
+    CTX.shadowColor = playerStats.color;
+    CTX.fillStyle = '#000'; // Black core
+    CTX.fill();
+
+    CTX.strokeStyle = playerStats.color;
+    CTX.lineWidth = 2;
+    CTX.stroke();
+
+    // Inner Energy Core (Pulsing)
+    const pulse = 1 + Math.sin(Date.now() / 100) * 0.2;
+    CTX.fillStyle = '#fff';
+    CTX.shadowBlur = 20;
+    CTX.beginPath();
+    CTX.arc(0, 0, 4 * pulse, 0, Math.PI * 2);
+    CTX.fill();
+
+    // 5. Draw Engine Glow
+    CTX.shadowColor = '#ff4400';
+    CTX.shadowBlur = 20;
+    CTX.fillStyle = '#ff4400';
+    CTX.beginPath();
+    CTX.moveTo(-player.radius * 0.5, 0);
+    CTX.lineTo(-player.radius * 1.5 - (Math.random() * 10), 0); // Flicker flame
+    CTX.lineWidth = 4;
+    CTX.strokeStyle = '#ff4400';
+    CTX.stroke();
+
+    CTX.restore();
+    CTX.shadowBlur = 0; // Reset
+
+    // Reload indicator (Ring around ship)
     const now = Date.now();
     const timeSinceLast = now - lastShotTime;
     const reloadRatio = Math.min(timeSinceLast / playerStats.fireRate, 1);
 
-    CTX.beginPath();
-    CTX.arc(player.x, player.y, player.radius * reloadRatio, 0, Math.PI * 2, false);
-
     if (reloadRatio < 1) {
-        CTX.fillStyle = 'rgba(255, 255, 255, 0.4)';
-    } else {
-        CTX.fillStyle = 'rgba(255, 255, 255, 0.9)';
-        if (RenderOptimizer.useShadows) {
-            CTX.shadowBlur = 10;
-            CTX.shadowColor = 'white';
-        }
-    }
-    CTX.fill();
-    CTX.shadowBlur = 0;
-
-    // Shield indicator around player
-    if (playerStats.shield > 0) {
+        // Cooldown Arc
         CTX.beginPath();
-        CTX.arc(player.x, player.y, player.radius + 10, 0, Math.PI * 2);
-        CTX.strokeStyle = 'rgba(0, 255, 255, 0.6)';
-        CTX.lineWidth = 3;
-        if (RenderOptimizer.useShadows) {
-            CTX.shadowBlur = 15;
-            CTX.shadowColor = '#00ffff';
+        CTX.arc(player.x, player.y, player.radius * 1.5, -Math.PI / 2, (-Math.PI / 2) + (Math.PI * 2 * reloadRatio));
+        CTX.strokeStyle = `rgba(255, 255, 255, 0.5)`;
+        CTX.lineWidth = 2;
+        CTX.stroke();
+    }
+
+    // Shield indicator
+    if (playerStats.shield > 0) {
+        const shieldTime = Date.now() / 500;
+        CTX.strokeStyle = `rgba(0, 255, 255, ${0.4 + Math.sin(shieldTime) * 0.2})`;
+        CTX.lineWidth = 2;
+        CTX.shadowBlur = 10;
+        CTX.shadowColor = '#00ffff';
+
+        CTX.beginPath();
+        // Hexagon Shield
+        for (let i = 0; i < 6; i++) {
+            const angle = shieldTime + (i * Math.PI / 3);
+            const r = player.radius * 2;
+            const sx = player.x + Math.cos(angle) * r;
+            const sy = player.y + Math.sin(angle) * r;
+            if (i === 0) CTX.moveTo(sx, sy);
+            else CTX.lineTo(sx, sy);
         }
+        CTX.closePath();
         CTX.stroke();
         CTX.shadowBlur = 0;
-        CTX.lineWidth = 1;
     }
 }
 
