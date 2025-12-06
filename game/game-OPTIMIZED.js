@@ -594,7 +594,9 @@ function animate(timestamp) {
         CTX.translate((Math.random() - 0.5) * 5, (Math.random() - 0.5) * 5);
 
         // Mevcut kareyi tekrar çiz (Update olmadan)
-        CTX.fillStyle = 'rgba(5, 5, 5, 0.1)'; // Trail efekti için
+        // animate() başında trail efektini dinamik yap
+        const trailAlpha = projectilePool.getActiveCount() > 100 ? 0.2 : 0.1;
+        CTX.fillStyle = `rgba(5, 5, 5, ${trailAlpha})`;
         CTX.fillRect(0, 0, CANVAS.width, CANVAS.height);
 
         if (gameState.bossActive) boss.draw();
@@ -1465,11 +1467,6 @@ function updateAndDrawBlackHole(dt) {
 
     CTX.globalCompositeOperation = 'source-over';
     CTX.globalAlpha = 1;
-}
-
-// Easing fonksiyonu
-function easeOutCubic(t) {
-    return 1 - Math.pow(1 - t, 3);
 }
 document.getElementById('start-btn').addEventListener('click', initGame);
 document.getElementById('restart-btn').addEventListener('click', initGame);

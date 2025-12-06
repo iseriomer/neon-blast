@@ -10,13 +10,13 @@ function drawPlayer(playerStats, lastShotTime) {
     CTX.beginPath();
     CTX.arc(player.x, player.y, player.radius, 0, Math.PI * 2, false);
     CTX.fillStyle = playerStats.color;
-    
+
     // OPTIMIZATION: Only shadow when few objects
     if (RenderOptimizer.useShadows) {
         CTX.shadowBlur = 15;
         CTX.shadowColor = playerStats.color;
     }
-    
+
     CTX.fill();
     CTX.shadowBlur = 0;
 
@@ -59,7 +59,7 @@ function drawPlayer(playerStats, lastShotTime) {
 function shoot(targetX, targetY, gameState) {
     const now = Date.now();
     if (now - gameState.lastShotTime < gameState.playerStats.fireRate) return;
-    
+
     // OPTIMIZATION: Projectile cap to prevent FPS death
     const currentProjectiles = projectilePool.getActiveCount();
     if (currentProjectiles >= MAX_PROJECTILES) {
@@ -70,7 +70,7 @@ function shoot(targetX, targetY, gameState) {
         }
         return; // Don't shoot if at max
     }
-    
+
     gameState.lastShotTime = now;
 
     const angle = Math.atan2(targetY - player.y, targetX - player.x);
@@ -81,7 +81,7 @@ function shoot(targetX, targetY, gameState) {
     // Main shots
     for (let i = 0; i < count; i++) {
         if (projectilePool.getActiveCount() >= MAX_PROJECTILES) break;
-        
+
         const currentAngle = startAngle + (i * spread);
         const velocity = {
             x: Math.cos(currentAngle) * (gameState.playerStats.shotSpeed * GAME_SCALE),
@@ -104,12 +104,12 @@ function shoot(targetX, targetY, gameState) {
     if (gameState.playerStats.sideCannons && projectilePool.getActiveCount() < MAX_PROJECTILES - 1) {
         const leftAngle = angle - Math.PI / 2;
         const rightAngle = angle + Math.PI / 2;
-        
+
         projectilePool.get(player.x, player.y, {
             x: Math.cos(leftAngle) * gameState.playerStats.shotSpeed * GAME_SCALE,
             y: Math.sin(leftAngle) * gameState.playerStats.shotSpeed * GAME_SCALE
         }, false, gameState.playerStats);
-        
+
         projectilePool.get(player.x, player.y, {
             x: Math.cos(rightAngle) * gameState.playerStats.shotSpeed * GAME_SCALE,
             y: Math.sin(rightAngle) * gameState.playerStats.shotSpeed * GAME_SCALE
