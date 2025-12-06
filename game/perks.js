@@ -30,7 +30,7 @@ const ALL_PERKS = [
     {
         id: 'double_shot',
         title: 'Çift Namlu',
-        desc: 'Tek tıklamada +1 fazla mermi atarsın.',
+        desc: 'Tek tıklamada +1 fazla mermi atarsın.', //bu perkin bir sınırı olsun max shotcount sayısı olsun yani, bu sayıya ulaşınca bu perk çıkamasın bidaha
         apply: (stats) => {
             stats.shotCount += 1;
             stats.spread += 0.05;
@@ -49,7 +49,7 @@ const ALL_PERKS = [
         id: 'knockback',
         title: 'Geri Tepme',
         desc: 'Mermiler düşmanları geriye iter.',
-        apply: (stats) => { stats.knockback += 15; }
+        apply: (stats) => { stats.knockback += 5; } //knockback oyuncudan uzağa doğru olsun her zaman.
     },
     {
         id: 'side_cannons',
@@ -61,7 +61,7 @@ const ALL_PERKS = [
         id: 'orbitals',
         title: 'Yörünge Koruması',
         desc: 'Etrafında dönen ve düşmanlara hasar veren bir küre.',
-        apply: (stats) => { stats.orbitals += 1; }
+        apply: (stats) => { stats.orbitals += 1; } // orbitals olunca kaç tane yörünge koruma olacağını ayarlar. perk ekranında da örneğin "(şuanki yörünge koruma sayısı) + 1" yörünge koruma olarak yaz.
     },
     {
         id: 'screen_wrap',
@@ -103,13 +103,13 @@ const ALL_PERKS = [
         id: 'split_shot',
         title: 'Parça Tesirli',
         desc: 'Mermiler düşmana çarpınca küçük parçalara ayrılır.',
-        apply: (stats) => { stats.splitShot = true; }
+        apply: (stats) => { stats.splitShotCount += 1; } //bunu splitshot olunca kaç parçaya ayrılcağını ayarlamak için kullan perk ekranında da örneğin "(şuanki parça sayısı) + 1" parçaya ayrılır şeklinde yaz. 
     },
     {
         id: 'back_shot',
         title: 'Arka Koruma',
         desc: 'Ateş ettiğinde arkana da bir mermi atarsın.',
-        apply: (stats) => { stats.backShot = true; }
+        apply: (stats) => { stats.backShot = true; } //1 kere alınırsa bidaha çıkmasın perk seçmede.
     },
     {
         id: 'giant_bullet',
@@ -160,13 +160,13 @@ const ALL_PERKS = [
         desc: 'Sürekli hasar veren bir lazer ışını ekler.',
         apply: (stats) => {
             stats.laserBeam = true;
-            stats.color = '#ff0000';
+            stats.color = '#ff0000';   //lazer ışını saat yönünde dönsün otomatik belli bir hızda. 1 kere alınırsa bidaha çıkmasın perk seçmede.
         }
     },
     {
         id: 'singularity',
         title: 'Singularite',
         desc: 'Her 30 saniyede bir kara delik oluşur! Düşmanları emer ve yok eder.',
-        apply: (stats) => { stats.singularity = true; }
+        apply: (stats) => { stats.singularity = true; } //1 kere alınırsa bidaha çıkmasın perk seçmede. singularite sırasında yeni düşman spawn olmasın.
     }
 ];

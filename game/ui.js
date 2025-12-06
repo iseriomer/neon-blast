@@ -17,6 +17,14 @@ function updateProgressBar(score, nextLevelThreshold) {
     xpTextEl.innerText = `${score} / ${nextLevelThreshold}`;
 }
 
+function updateXPBarColor(color) {
+    if (color) {
+        xpFillEl.style.background = color;
+        // Also update the glow if possible, but simple background change is effective
+        xpFillEl.style.boxShadow = `0 0 15px ${color}`;
+    }
+}
+
 function updateShieldIndicator(shield) {
     shieldIndicatorEl.innerHTML = '';
     for (let i = 0; i < shield; i++) {
@@ -40,7 +48,7 @@ function updateFPS() {
     frameCount++;
     const currentTime = performance.now();
     const elapsed = currentTime - lastFrameTime;
-    
+
     if (elapsed >= 1000) {
         fps = Math.round((frameCount * 1000) / elapsed);
         fpsCounterEl.innerText = `FPS: ${fps}`;

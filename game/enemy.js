@@ -31,7 +31,10 @@ class Enemy {
         this.speed = (type.speed * (1 + (difficultyMultiplier * 0.1))) * GAME_SCALE;
 
         this.color = type.color;
-        this.hp = type.hp + Math.floor(difficultyMultiplier / 2);
+        this.hp = type.hp + Math.floor(difficultyMultiplier / 1.5);
+        if (gameState.level >= 10) this.hp = type.hp + Math.floor(difficultyMultiplier / 0.9);
+        if (gameState.level >= 20) this.hp = type.hp + Math.floor(difficultyMultiplier / 0.4);
+        if (gameState.level >= 30) this.hp = type.hp + Math.floor(difficultyMultiplier / 0.2);
         this.maxHp = this.hp;
         this.id = Math.random();
         this.dashCooldown = 0;

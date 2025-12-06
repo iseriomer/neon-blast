@@ -48,6 +48,9 @@ let isTouching = false;
 // Spawn Enemies
 function spawnEnemies() {
     let spawnRate = 1000 - (gameState.difficultyMultiplier * 50);
+    if (gameState.level >= 10) spawnRate = 1000 - (gameState.difficultyMultiplier * 100);
+    if (gameState.level >= 20) spawnRate = 1000 - (gameState.difficultyMultiplier * 150);
+    if (gameState.level >= 30) spawnRate = 1000 - (gameState.difficultyMultiplier * 200);
     if (spawnRate < 200) spawnRate = 200;
 
     gameState.spawnInterval = setInterval(() => {
@@ -98,20 +101,35 @@ function triggerLevelUp() {
     showLevelUpAnimation();
 
     setTimeout(() => {
-        const shuffled = ALL_PERKS.sort(() => 0.5 - Math.random());
-        let availablePerks = shuffled;
-        if (gameState.playerStats.shield >= gameState.playerStats.maxShields) {
-            availablePerks = shuffled.filter(p => p.id !== 'energy_shield');
-        }
+        // Filter perks
+        let availablePerks = ALL_PERKS.filter(p => {
+            if (p.id === 'energy_shield' && gameState.playerStats.shield >= gameState.playerStats.maxShields) return false;
+            if (p.id === 'double_shot' && gameState.playerStats.shotCount >= MAX_SHOT_COUNT) return false;
+            if (p.id === 'back_shot' && gameState.playerStats.backShot) return false;
+            if (p.id === 'laser_beam' && gameState.playerStats.laserBeam) return false;
+            if (p.id === 'singularity' && gameState.playerStats.singularity) return false;
+            return true;
+        });
 
-        const selectedPerks = availablePerks.slice(0, 3);
+        const shuffled = availablePerks.sort(() => 0.5 - Math.random());
+        const selectedPerks = shuffled.slice(0, 3);
+
         perkListEl.innerHTML = '';
         selectedPerks.forEach(perk => {
+            let displayDesc = perk.desc;
+
+            // Dynamic Descriptions
+            if (perk.id === 'orbitals') {
+                displayDesc = `(Şu an: ${gameState.playerStats.orbitals} koruma) + 1 Yörünge Koruması ekler.`;
+            } else if (perk.id === 'split_shot') {
+                displayDesc = `(Şu an: ${gameState.playerStats.splitShotCount} parça) + 1 Parçaya Ayrılır.`;
+            }
+
             const div = document.createElement('div');
             div.className = 'perk-card';
             div.innerHTML = `
                 <div class="perk-title">${perk.title}</div>
-                <div class="perk-desc">${perk.desc}</div>
+                <div class="perk-desc">${displayDesc}</div>
             `;
             div.onclick = () => selectPerk(perk);
             perkListEl.appendChild(div);
@@ -156,13 +174,14 @@ function startBossFight(bossId = 1) {
 function selectPerk(perk) {
     perk.apply(gameState.playerStats);
     gameState.level++;
-    gameState.currentLevelStep += 200;
+    gameState.currentLevelStep = Math.floor(gameState.currentLevelStep * 1.1) + 200;
     gameState.nextLevelThreshold += gameState.currentLevelStep;
     gameState.difficultyMultiplier += 0.5;
 
     updateLevelIndicator(gameState.level);
     updateShieldIndicator(gameState.playerStats.shield);
     updateProgressBar(gameState.score, gameState.nextLevelThreshold);
+    updateXPBarColor(gameState.playerStats.color);
     levelUpScreen.classList.add('hidden');
     gameState.isPaused = false;
     spawnEnemies();
@@ -399,9 +418,10 @@ function checkCollisions() {
                 enemy.hp -= damage;
 
                 if (gameState.playerStats.knockback > 0) {
-                    const angle = Math.atan2(dy, dx);
-                    enemy.x -= Math.cos(angle) * gameState.playerStats.knockback;
-                    enemy.y -= Math.sin(angle) * gameState.playerStats.knockback;
+                    // Knockback her zaman oyuncudan uzağa doğru
+                    const angle = Math.atan2(enemy.y - player.y, enemy.x - player.x);
+                    enemy.x += Math.cos(angle) * gameState.playerStats.knockback;
+                    enemy.y += Math.sin(angle) * gameState.playerStats.knockback;
                 }
 
                 if (gameState.playerStats.freeze > 0) {
@@ -419,8 +439,9 @@ function checkCollisions() {
                     }
                 }
 
-                if (gameState.playerStats.splitShot && !projectile.isSplit) {
-                    for (let s = 0; s < 3; s++) {
+                if (gameState.playerStats.splitShotCount > 0 && !projectile.isSplit) {
+                    const splitCount = gameState.playerStats.splitShotCount + 1;
+                    for (let s = 0; s < splitCount; s++) {
                         const splitAngle = Math.random() * Math.PI * 2;
                         const splitVel = {
                             x: Math.cos(splitAngle) * gameState.playerStats.shotSpeed * 0.8,
@@ -748,12 +769,10 @@ function animate(timestamp) {
     profiler.end('draw-player');
 
     // Laser Beam
-    if (gameState.playerStats.laserBeam && (isTouching || gameState.lastMouseX)) {
+    if (gameState.playerStats.laserBeam) {
         profiler.start('laser');
-        const angle = Math.atan2(
-            (gameState.lastMouseY || touchStartY) - player.y,
-            (gameState.lastMouseX || touchStartX) - player.x
-        );
+        // Otomatik saat yönünde dönme (Speed: 1 rad/s)
+        const angle = Date.now() / 1000;
         const laserEndX = player.x + Math.cos(angle) * 2000;
         const laserEndY = player.y + Math.sin(angle) * 2000;
 
@@ -1205,6 +1224,9 @@ function createExplosion(x, y, radius, damage) {
 // ===========================
 // SINGULARITY (KARA DELİK) SİSTEMİ
 // ===========================
+// ===========================
+// SINGULARITY (KARA DELİK) SİSTEMİ
+// ===========================
 function spawnBlackHole() {
     const centerX = CANVAS.width / 2;
     const centerY = CANVAS.height / 2;
@@ -1212,192 +1234,237 @@ function spawnBlackHole() {
     blackHole = {
         x: centerX,
         y: centerY,
-        radius: 20,
-        maxRadius: 250,
-        pullRadius: 600,
-        life: 300, // 5 saniye (60 fps * 5)
+        radius: 10,
+        targetRadius: 180, // Biraz daha büyük hedef yarıçap
+        pullRadius: 900,
+        life: 300,
         maxLife: 300,
         rotation: 0,
-        particles: []
+        particles: [],
+        diskElements: []
     };
 
-    playSound('levelup');
+    // Accretion Disk (Birikim Diski) için detaylar oluştur
+    // Bu disk parçaları sürekli dönecek
+    const colors = ['#8a2be2', '#4b0082', '#00ffff', '#ff00ff', '#ffffff'];
+    for (let i = 0; i < 120; i++) {
+        const distBase = 1.1 + Math.random() * 1.5; // Yarıçap çarpanı
+        blackHole.diskElements.push({
+            angle: Math.random() * Math.PI * 2,
+            dist: distBase,
+            speed: (3 / distBase) * 0.05 * (Math.random() < 0.5 ? 1 : 0.9), // İç kısımlar daha hızlı döner
+            size: Math.random() * 0.2 + 0.05, // Ark uzunluğu (radyan)
+            thickness: Math.random() * 3 + 1,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            alpha: Math.random() * 0.5 + 0.2
+        });
+    }
 
-    // Spawn efekti için partiküller
-    spawnParticles(centerX, centerY, 30, 8, '#9400d3', 4);
+    playSound('levelup');
+    createExplosion(centerX, centerY, 150, 0);
 }
 
 function updateAndDrawBlackHole(dt) {
     if (!blackHole) return;
 
-    // Yaşam süresi azalt
     blackHole.life -= dt;
+    // Olay ufku dönüşü
+    blackHole.rotation += 1.5 * dt;
 
-    // Ölüm animasyonu
+    // Radius Animasyonu (Ease Out Elastic benzeri bir etki ile açılış)
+    const lifeRatio = blackHole.life / blackHole.maxLife;
+    let currentRadius = blackHole.targetRadius;
+
+    if (lifeRatio > 0.9) {
+        // Açılış
+        const t = (1 - lifeRatio) * 10; // 0 -> 1
+        currentRadius = blackHole.targetRadius * Math.sin(t * Math.PI / 2);
+    } else if (lifeRatio < 0.1) {
+        // Kapanış - Hızlıca küçül
+        const t = lifeRatio * 10; // 1 -> 0
+        currentRadius = blackHole.targetRadius * t;
+    }
+
+    // Nefes alma efekti (Pulse)
+    const pulse = 1 + Math.sin(Date.now() / 150) * 0.05;
+    const visualRadius = currentRadius * pulse;
+
+    blackHole.radius = visualRadius; // Mantıksal yarıçapı da güncelle (çekim için)
+
+    // Ölüm
     if (blackHole.life <= 0) {
-        // Son patlama efekti
-        const finalExplosionSize = blackHole.radius * 2;
-        spawnParticles(blackHole.x, blackHole.y, 50, 10, '#9400d3', 6);
-        createExplosion(blackHole.x, blackHole.y, finalExplosionSize, 15);
+        createExplosion(blackHole.x, blackHole.y, 500, 50);
+        spawnParticles(blackHole.x, blackHole.y, 150, 20, '#9400d3', 10);
+
+        // Şok dalgası efekti (Screen Flash)
+        CTX.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        CTX.fillRect(0, 0, CANVAS.width, CANVAS.height);
+
         playSound('hit');
         blackHole = null;
         return;
     }
 
-    // Animasyon fazları
-    const lifeRatio = blackHole.life / blackHole.maxLife;
-    const phase = lifeRatio > 0.8 ? 'growing' : lifeRatio > 0.2 ? 'stable' : 'shrinking';
-
-    // Yarıçap animasyonu
-    if (phase === 'growing') {
-        const growthProgress = (1 - lifeRatio) / 0.2; // 0 -> 1 (ilk %20'de)
-        blackHole.radius = 20 + (blackHole.maxRadius - 20) * easeOutCubic(growthProgress);
-    } else if (phase === 'shrinking') {
-        const shrinkProgress = lifeRatio / 0.2; // 1 -> 0 (son %20'de)
-        blackHole.radius = blackHole.maxRadius * shrinkProgress;
-    } else {
-        blackHole.radius = blackHole.maxRadius;
-    }
-
-    // Rotasyon
-    blackHole.rotation += 0.05 * dt;
-
-    // DÜŞMAN ÇEKİMİ VE HASAR
+    // ────────────────────────────────────────────────────────────────
+    // FİZİK & MANTIK (Çekim Gücü)
+    // ────────────────────────────────────────────────────────────────
     const enemies = enemyPool.getActive();
     for (let i = enemies.length - 1; i >= 0; i--) {
         const enemy = enemies[i];
+        if (enemy.type.name.includes("Boss")) continue; // Bossları çekmesin
+
         const dx = blackHole.x - enemy.x;
         const dy = blackHole.y - enemy.y;
         const dist = Math.hypot(dx, dy);
 
-        // Çekim alanı içinde mi?
         if (dist < blackHole.pullRadius) {
-            // Çekim kuvveti (yaklaştıkça güçlenir)
-            const pullStrength = (1 - dist / blackHole.pullRadius) * 8 * dt;
+            // Çekim gücü
+            const pullFactor = (1 - dist / blackHole.pullRadius);
+            const force = pullFactor * pullFactor * 25 * dt; // Üstel artış kuvvetli çekim
+
             const angle = Math.atan2(dy, dx);
 
-            enemy.x += Math.cos(angle) * pullStrength;
-            enemy.y += Math.sin(angle) * pullStrength;
+            // Spiral Hareketi: Hem merkeze çek, hem döndür
+            // Tangential velocity (Teğetsel hız)
+            const spinForce = force * 0.8;
 
-            // Parçacık efekti (düşmandan kara deliğe doğru)
-            if (Math.random() < 0.1) {
-                const particleAngle = angle + (Math.random() - 0.5) * 0.5;
-                const px = enemy.x + Math.cos(particleAngle) * enemy.radius;
-                const py = enemy.y + Math.sin(particleAngle) * enemy.radius;
+            enemy.x += Math.cos(angle) * force;
+            enemy.y += Math.sin(angle) * force;
+            enemy.x += Math.cos(angle + Math.PI / 2) * spinForce;
+            enemy.y += Math.sin(angle + Math.PI / 2) * spinForce;
 
+            // Spaghettification (Görsel deformasyon partikülleri)
+            if (Math.random() < 0.3 * pullFactor) {
+                // Düşmandan merkeze doğru çizgi partiküller
                 blackHole.particles.push({
-                    x: px,
-                    y: py,
-                    targetX: blackHole.x,
-                    targetY: blackHole.y,
-                    life: 20,
-                    color: enemy.color
+                    x: enemy.x,
+                    y: enemy.y,
+                    vx: (Math.random() - 0.5) * 5,
+                    vy: (Math.random() - 0.5) * 5,
+                    life: 15,
+                    color: enemy.color,
+                    width: enemy.radius / 2
                 });
             }
 
-            // Merkeze çok yaklaştıysa hasarlı bölge
-            if (dist < blackHole.radius * 1.5) {
-                enemy.hp -= 0.3 * dt; // Sürekli hasar
-
-                // Spaghettification efekti (düşman çekiliyor görüntüsü)
-                if (Math.random() < 0.2) {
-                    spawnParticles(enemy.x, enemy.y, 1, 2, enemy.color, 1);
-                }
-
-                if (enemy.hp <= 0) {
-                    handleEnemyDeath(enemy);
-                }
+            // Olay Ufku Hasarı
+            if (dist < visualRadius) {
+                enemy.hp -= 5 * dt; // Saniyede ~300 hasar
+                if (enemy.hp <= 0) handleEnemyDeath(enemy);
             }
         }
     }
 
-    // Partikülleri güncelle
+    // ────────────────────────────────────────────────────────────────
+    // ÇİZİM (RENDER) - Katman Katman
+    // ────────────────────────────────────────────────────────────────
+    CTX.save();
+    CTX.translate(blackHole.x, blackHole.y);
+
+    // 1. UZAY BÜKÜLMESİ (Dark Halo)
+    // Etrafı karartarak kontrast yaratır
+    const darkHalo = CTX.createRadialGradient(0, 0, visualRadius, 0, 0, visualRadius * 6);
+    darkHalo.addColorStop(0, 'rgba(0,0,0,1)');
+    darkHalo.addColorStop(0.4, 'rgba(0,0,0,0.8)');
+    darkHalo.addColorStop(1, 'rgba(0,0,0,0)');
+
+    CTX.globalCompositeOperation = 'source-over';
+    CTX.beginPath();
+    CTX.arc(0, 0, visualRadius * 6, 0, Math.PI * 2);
+    CTX.fillStyle = darkHalo;
+    CTX.fill();
+
+    // 2. ACCRETION DISK (Birikim Diski) - PARLAK GAZLAR
+    // Additive blending ile parlak neon efekti
+    CTX.globalCompositeOperation = 'lighter';
+
+    // Arka plan disk parlaması
+    const glow = CTX.createRadialGradient(0, 0, visualRadius, 0, 0, visualRadius * 3);
+    glow.addColorStop(0, 'rgba(75, 0, 130, 0)');
+    glow.addColorStop(0.2, 'rgba(138, 43, 226, 0.4)'); // BlueViolet
+    glow.addColorStop(0.5, 'rgba(0, 255, 255, 0.2)'); // Cyan
+    glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+    CTX.beginPath();
+    CTX.arc(0, 0, visualRadius * 3, 0, Math.PI * 2);
+    CTX.fillStyle = glow;
+    CTX.fill();
+
+    // Dönen Disk Parçacıkları (Swirling Gas)
+    blackHole.diskElements.forEach(el => {
+        el.angle += el.speed * dt;
+        const r = visualRadius * el.dist;
+
+        CTX.beginPath();
+        CTX.arc(0, 0, r, el.angle, el.angle + el.size);
+        CTX.strokeStyle = el.color;
+        CTX.lineWidth = el.thickness;
+        CTX.globalAlpha = el.alpha;
+        CTX.stroke();
+    });
+
+    // 3. PHOTON RING (Foton Halkası)
+    // Olay ufkunun hemen dışındaki aşırı parlak ince halka
+    CTX.beginPath();
+    CTX.arc(0, 0, visualRadius * 1.05, 0, Math.PI * 2);
+    CTX.strokeStyle = '#ffffff';
+    CTX.lineWidth = 3;
+    CTX.shadowBlur = 20;
+    CTX.shadowColor = '#00ffff';
+    CTX.globalAlpha = 1;
+    CTX.stroke();
+    CTX.shadowBlur = 0; // Reset
+
+    // 4. EVENT HORIZON (Olay Ufku) - Mutlak Siyah
+    CTX.globalCompositeOperation = 'source-over';
+    CTX.beginPath();
+    CTX.arc(0, 0, visualRadius, 0, Math.PI * 2);
+    CTX.fillStyle = '#000000';
+    CTX.fill();
+
+    // İç kenar parlaması (Void hissi vermek için)
+    CTX.strokeStyle = '#4b0082'; // Indigo
+    CTX.lineWidth = 1;
+    CTX.stroke();
+
+    CTX.restore();
+
+    // 5. YUTULAN MADDELER (Particles)
+    // Merkeze çekilen çizgiler
+    CTX.globalCompositeOperation = 'lighter';
     for (let i = blackHole.particles.length - 1; i >= 0; i--) {
         const p = blackHole.particles[i];
 
-        // Hedefe doğru hareket et
-        const dx = p.targetX - p.x;
-        const dy = p.targetY - p.y;
+        // Hareketi güncelle
+        const dx = blackHole.x - p.x;
+        const dy = blackHole.y - p.y;
         const dist = Math.hypot(dx, dy);
 
-        if (dist > 5) {
-            p.x += (dx / dist) * 15 * dt;
-            p.y += (dy / dist) * 15 * dt;
-        }
-
+        // Hızlanarak merkeze git
+        p.x += (dx / dist) * 20 * dt;
+        p.y += (dy / dist) * 20 * dt;
         p.life -= dt;
+
         if (p.life <= 0 || dist < 10) {
             blackHole.particles.splice(i, 1);
+            continue;
         }
-    }
 
-    // ÇİZİM
-    CTX.save();
-
-    // 1. Dış halo (glow)
-    const gradient1 = CTX.createRadialGradient(
-        blackHole.x, blackHole.y, 0,
-        blackHole.x, blackHole.y, blackHole.radius * 2
-    );
-    gradient1.addColorStop(0, 'rgba(148, 0, 211, 0)');
-    gradient1.addColorStop(0.5, 'rgba(148, 0, 211, 0.3)');
-    gradient1.addColorStop(1, 'rgba(148, 0, 211, 0)');
-
-    CTX.beginPath();
-    CTX.arc(blackHole.x, blackHole.y, blackHole.radius * 2, 0, Math.PI * 2);
-    CTX.fillStyle = gradient1;
-    CTX.fill();
-
-    // 2. Accretion disk (dönen disk)
-    CTX.save();
-    CTX.translate(blackHole.x, blackHole.y);
-    CTX.rotate(blackHole.rotation);
-
-    for (let i = 0; i < 3; i++) {
-        const diskRadius = blackHole.radius * (1.2 + i * 0.2);
-        const gradient2 = CTX.createRadialGradient(0, 0, diskRadius * 0.3, 0, 0, diskRadius);
-
-        // Renkli spiral
-        const hue1 = (270 + i * 30) % 360;
-        const hue2 = (300 + i * 30) % 360;
-        gradient2.addColorStop(0, `hsla(${hue1}, 100%, 50%, 0.8)`);
-        gradient2.addColorStop(0.5, `hsla(${hue2}, 100%, 40%, 0.5)`);
-        gradient2.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        // Çizim (Uzayan kuyruklu yıldız gibi)
+        const tailLength = Math.min(dist, 40);
+        const angle = Math.atan2(dy, dx);
 
         CTX.beginPath();
-        CTX.arc(0, 0, diskRadius, 0, Math.PI * 2);
-        CTX.fillStyle = gradient2;
-        CTX.fill();
-    }
-    CTX.restore();
-
-    // 3. Event Horizon (merkez siyah küre)
-    const gradient3 = CTX.createRadialGradient(
-        blackHole.x, blackHole.y, 0,
-        blackHole.x, blackHole.y, blackHole.radius * 0.8
-    );
-    gradient3.addColorStop(0, 'rgba(0, 0, 0, 1)');
-    gradient3.addColorStop(0.7, 'rgba(20, 0, 40, 0.9)');
-    gradient3.addColorStop(1, 'rgba(148, 0, 211, 0.3)');
-
-    CTX.beginPath();
-    CTX.arc(blackHole.x, blackHole.y, blackHole.radius * 0.8, 0, Math.PI * 2);
-    CTX.fillStyle = gradient3;
-    CTX.shadowBlur = 30;
-    CTX.shadowColor = '#9400d3';
-    CTX.fill();
-    CTX.shadowBlur = 0;
-
-    // 4. Partikülleri çiz
-    for (const p of blackHole.particles) {
-        const alpha = p.life / 20;
-        CTX.beginPath();
-        CTX.arc(p.x, p.y, 2, 0, Math.PI * 2);
-        CTX.fillStyle = `rgba(255, 255, 255, ${alpha})`;
-        CTX.fill();
+        CTX.moveTo(p.x, p.y);
+        CTX.lineTo(p.x - Math.cos(angle) * tailLength, p.y - Math.sin(angle) * tailLength);
+        CTX.strokeStyle = p.color;
+        CTX.lineWidth = Math.max(1, p.width * (p.life / 15));
+        CTX.globalAlpha = p.life / 15;
+        CTX.stroke();
     }
 
-    CTX.restore();
+    CTX.globalCompositeOperation = 'source-over';
+    CTX.globalAlpha = 1;
 }
 
 // Easing fonksiyonu

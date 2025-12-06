@@ -90,9 +90,12 @@ const ENEMY_TYPES = {
 const FRICTION = 0.97;
 
 // Default Player Stats
+const MAX_SHOT_COUNT = 5; // Double Shot perki için sınır
+
+// Default Player Stats
 const DEFAULT_PLAYER_STATS = {
     shotCount: 1,
-    shotSpeed: 20,
+    shotSpeed: 15,
     shotSize: 5,
     piercing: 1,
     fireRate: 400,
@@ -101,7 +104,7 @@ const DEFAULT_PLAYER_STATS = {
     color: 'white',
     homing: 0,
     ricochet: 0,
-    splitShot: false,
+    splitShotCount: 0, // splitShot boolean yerine sayısal değer
     backShot: false,
     sideCannons: false,
     knockback: 0,
@@ -109,6 +112,7 @@ const DEFAULT_PLAYER_STATS = {
     execute: false,
     screenWrap: false,
     cluster: false,
+    clusterCount: 0,
     orbitals: 0,
     chainLightning: 0,
     explosiveRadius: 0,
