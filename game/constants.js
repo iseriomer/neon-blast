@@ -31,7 +31,7 @@ const ENEMY_TYPES = {
     SPEEDSTER: {
         radius: 12,
         color: 'hsl(60, 90%, 60%)',
-        speed: 2.2,
+        speed: 1.8,
         hp: 1,
         score: 100,
         name: 'Speedster'

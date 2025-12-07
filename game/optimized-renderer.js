@@ -127,11 +127,61 @@ const RenderOptimizer = {
         CTX.fill();
         CTX.shadowBlur = 0;
 
-        // Draw HP only for high HP enemies
-        if (enemy.hp > 3) {
-            CTX.fillStyle = 'white';
-            CTX.font = '10px Arial';
-            CTX.fillText(enemy.hp, enemy.x - 3, enemy.y + 4);
+        CTX.fill();
+        CTX.shadowBlur = 0;
+
+        // --- NEW: Neon Life Arc (Health Visualization) ---
+        // Sadece canı azalmış düşmanlarda göster
+        if (enemy.hp < enemy.maxHp) {
+            const hpPercent = enemy.hp / enemy.maxHp;
+            const arcRadius = enemy.radius + 8;
+
+            // Can durumuna göre renk ve efekt
+            let arcColor = '#00ffaa'; // Yüksek Can: Cyan/Yeşil
+            let isGlitching = false;
+
+            if (hpPercent < 0.25) {
+                arcColor = '#ff0055'; // Kritik: Neon Kırmızı
+                isGlitching = true;
+            } else if (hpPercent < 0.5) {
+                arcColor = '#ffaa00'; // Orta: Altın/Turuncu
+            }
+
+            CTX.save();
+
+            // Glitch Efekti: Kritik canda titreme
+            if (isGlitching) {
+                const shakeX = (Math.random() - 0.5) * 4;
+                const shakeY = (Math.random() - 0.5) * 4;
+                CTX.translate(shakeX, shakeY);
+                if (Math.random() < 0.3) CTX.globalAlpha = 0.5; // Flicker
+            }
+
+            // Arkaplan Arkı (Sönük gri)
+            CTX.beginPath();
+            CTX.arc(enemy.x, enemy.y, arcRadius, Math.PI * 0.8, Math.PI * 2.2);
+            CTX.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            CTX.lineWidth = 3;
+            CTX.stroke();
+
+            // Can Arkı
+            const startAngle = Math.PI * 0.8;
+            const endAngle = Math.PI * 0.8 + (Math.PI * 1.4 * hpPercent); // 252 derecelik yay
+
+            CTX.beginPath();
+            CTX.arc(enemy.x, enemy.y, arcRadius, startAngle, endAngle);
+            CTX.strokeStyle = arcColor;
+            CTX.lineWidth = 3;
+            CTX.lineCap = 'round';
+
+            // Glow efekti (Sadece high quality modunda)
+            if (this.useShadows) {
+                CTX.shadowBlur = 5;
+                CTX.shadowColor = arcColor;
+            }
+
+            CTX.stroke();
+            CTX.restore();
         }
     }
 };
