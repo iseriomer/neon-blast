@@ -44,6 +44,7 @@ const gameState = {
 let touchStartX = 0;
 let touchStartY = 0;
 let isTouching = false;
+let isMouseDown = false;
 
 // Spawn Enemies
 function spawnEnemies() {
@@ -1025,18 +1026,30 @@ CANVAS.addEventListener('touchend', (e) => {
     isTouching = false;
 });
 
+// Unified Auto-Fire Interval (approx 60 FPS)
 setInterval(() => {
-    if (isTouching && gameState.gameActive && !gameState.isPaused) {
-        shoot(touchStartX, touchStartY, gameState);
+    if ((isTouching || isMouseDown) && gameState.gameActive && !gameState.isPaused) {
+        const targetX = isTouching ? touchStartX : gameState.lastMouseX;
+        const targetY = isTouching ? touchStartY : gameState.lastMouseY;
+        shoot(targetX, targetY, gameState);
     }
-}, 100);
+}, 16);
 
-window.addEventListener('click', (e) => {
+window.addEventListener('mousedown', (e) => {
     if (e.target.closest('button') || e.target.closest('.perk-card')) return;
     if (!gameState.gameActive || gameState.isPaused) return;
+    isMouseDown = true;
     gameState.lastMouseX = e.clientX;
     gameState.lastMouseY = e.clientY;
     shoot(e.clientX, e.clientY, gameState);
+});
+
+window.addEventListener('mouseup', () => {
+    isMouseDown = false;
+});
+
+window.addEventListener('mouseleave', () => {
+    isMouseDown = false;
 });
 
 window.addEventListener('mousemove', (e) => {

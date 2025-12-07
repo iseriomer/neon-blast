@@ -123,7 +123,7 @@ const DEFAULT_PLAYER_STATS = {
     singularity: false,
     timeWarp: false,
     critChance: 0,
-    critMultiplier: 1.5,
+    critMultiplier: 2,
     poison: false,
     poisonDamage: 0.2, // HP per second (approx)
     burn: false,
