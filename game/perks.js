@@ -129,10 +129,27 @@ const ALL_PERKS = [
     {
         id: 'chain_lightning',
         title: 'Yıldırım Zinciri',
-        desc: 'Vuruş sonrası yakındaki 2 düşmana elektrik zıplar.',
+        desc: 'Vuruş sonrası yakındaki 2 düşmana elektrik zıplar. (Aktifleşir)',
         apply: (stats) => {
-            stats.chainLightning += 2;
+            stats.chainLightning = 2;
+            stats.chainLightningDamage = 1;
             stats.color = '#ffff00';
+        }
+    },
+    {
+        id: 'chain_lightning_count',
+        title: 'Yüksek Voltaj',
+        desc: 'Yıldırım 1 fazladan düşmana daha zıplar.',
+        apply: (stats) => {
+            stats.chainLightning += 1;
+        }
+    },
+    {
+        id: 'chain_lightning_damage',
+        title: 'Aşırı Yükleme',
+        desc: 'Yıldırım hasarını arttırır.',
+        apply: (stats) => {
+            stats.chainLightningDamage += 1;
         }
     },
     {
@@ -168,5 +185,33 @@ const ALL_PERKS = [
         title: 'Singularite',
         desc: 'Her 30 saniyede bir kara delik oluşur! Düşmanları emer ve yok eder.',
         apply: (stats) => { stats.singularity = true; } //1 kere alınırsa bidaha çıkmasın perk seçmede. singularite sırasında yeni düşman spawn olmasın.
+    },
+    {
+        id: 'critical_lens',
+        title: 'Lazer Gözlük',
+        desc: 'Mermilerin Kritik Vurma şansını %10, hasarını %50 arttırır.',
+        apply: (stats) => {
+            stats.critChance += 0.1;
+            stats.critMultiplier += 0.5;
+            stats.color = '#ff00ff'; // Morumsu lazer etkisi
+        }
+    },
+    {
+        id: 'poison_shot',
+        title: 'Asit Yağmuru',
+        desc: 'Mermiler zehirler (Yavaş hasar). (Alev ile alınamaz)',
+        apply: (stats) => {
+            stats.poison = true;
+            stats.color = '#32cd32';
+        }
+    },
+    {
+        id: 'burn_shot',
+        title: 'Alev Makinesi',
+        desc: 'Mermiler yakar (Hızlı hasar). (Zehir ile alınamaz)',
+        apply: (stats) => {
+            stats.burn = true;
+            stats.color = '#ff4500';
+        }
     }
 ];

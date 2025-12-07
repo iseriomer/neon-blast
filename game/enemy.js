@@ -17,6 +17,8 @@ class Enemy {
         this.freezeTimer = 0;
         this.shieldAura = false; // Kalkan aura aktif mi?
         this.shieldPulse = 0;
+        this.poisonTimer = 0;
+        this.burnTimer = 0;
     }
 
     reset(x, y, type, difficultyMultiplier) {
@@ -41,45 +43,67 @@ class Enemy {
         this.spawnTimer = 0;
         this.spawnCooldown = 180;
         this.freezeTimer = 0;
-        this.shieldAura = false; // Kalkan aura aktif mi?
+        this.shieldAura = false;
         this.shieldPulse = 0;
+        this.poisonTimer = 0;
+        this.burnTimer = 0;
     }
 
     draw() {
         CTX.beginPath();
-        if (this.type.name === 'Shielder') {
-            // Core (Merkez küre)
-            CTX.arc(this.x, this.y, this.radius * 0.6, 0, Math.PI * 2);
-            CTX.fillStyle = this.color;
+        if (this.type.name === 'Healer') {
+            const time = Date.now() / 1000;
+            const pulse = 1 + Math.sin(time * 5) * 0.1;
+
+            CTX.save();
+            CTX.translate(this.x, this.y);
+
+            // Aura Glow
+            CTX.shadowBlur = 20;
+            CTX.shadowColor = 'rgba(255, 215, 0, 0.6)';
+
+            // 1. Double Rotating Squares (8-pointed star effect)
+            CTX.fillStyle = 'rgba(255, 215, 0, 0.2)';
+            CTX.save();
+            CTX.rotate(time);
+            CTX.fillRect(-this.radius, -this.radius, this.radius * 2, this.radius * 2);
+            CTX.restore();
+
+            CTX.save();
+            CTX.rotate(-time);
+            CTX.fillStyle = 'rgba(255, 255, 100, 0.3)';
+            CTX.fillRect(-this.radius * 0.8, -this.radius * 0.8, this.radius * 1.6, this.radius * 1.6);
+            CTX.restore();
+
+            // 2. Heavy Medic Cross (Solid)
+            CTX.fillStyle = '#fff';
+            CTX.shadowBlur = 10;
+            CTX.shadowColor = '#fff';
+
+            const s = this.radius * 0.4 * pulse;
+            const l = this.radius * 1.0 * pulse;
+
+            // Cross Arms
+            CTX.beginPath();
+            CTX.rect(-s, -l, s * 2, l * 2); // Vertical
+            CTX.rect(-l, -s, l * 2, s * 2); // Horizontal
             CTX.fill();
 
-            // Dönen kalkan halkaları
-            const rings = 3;
-            for (let i = 0; i < rings; i++) {
-                const ringRadius = this.radius + 10 + (i * 8);
-                const offset = (this.shieldPulse + i * (Math.PI * 2 / rings));
-
-                CTX.save();
-                CTX.translate(this.x, this.y);
-                CTX.rotate(offset);
-
-                CTX.strokeStyle = `rgba(100, 200, 255, ${0.6 - i * 0.15})`;
-                CTX.lineWidth = 3;
-                CTX.setLineDash([15, 10]);
+            // 3. Tech Bits / Satellites
+            CTX.shadowBlur = 5;
+            CTX.shadowColor = '#ffd700';
+            CTX.fillStyle = '#ffd700';
+            const orbitDist = this.radius * 1.4;
+            for (let i = 0; i < 4; i++) {
+                const ang = time * 2 + (i * Math.PI / 2);
+                const ox = Math.cos(ang) * orbitDist;
+                const oy = Math.sin(ang) * orbitDist;
                 CTX.beginPath();
-                CTX.arc(0, 0, ringRadius, 0, Math.PI * 2);
-                CTX.stroke();
-                CTX.setLineDash([]);
-
-                CTX.restore();
+                CTX.arc(ox, oy, 4, 0, Math.PI * 2);
+                CTX.fill();
             }
 
-            // Aura efekti
-            CTX.beginPath();
-            CTX.arc(this.x, this.y, this.radius + 30 + Math.sin(this.shieldPulse * 2) * 5, 0, Math.PI * 2);
-            CTX.strokeStyle = 'rgba(100, 200, 255, 0.2)';
-            CTX.lineWidth = 2;
-            CTX.stroke();
+            CTX.restore();
         }
         else if (this.type.name === 'Speedster') {
             CTX.moveTo(this.x + this.radius, this.y);
@@ -117,14 +141,25 @@ class Enemy {
 
         if (this.freezeTimer > 0) {
             CTX.fillStyle = '#00ffff';
-        } else {
+        } else if (this.burnTimer > 0) {
+            // Pulsing Orange/Red for Burn
+            const pulse = (Math.sin(Date.now() / 100) + 1) / 2; // 0 to 1
+            CTX.fillStyle = `hsl(${10 + pulse * 30}, 100%, 50%)`; // Orange to Red
+        } else if (this.poisonTimer > 0) {
+            // Pulsing Green for Poison
+            const pulse = (Math.sin(Date.now() / 200) + 1) / 2;
+            CTX.fillStyle = `hsl(120, ${50 + pulse * 50}%, ${40 + pulse * 10}%)`; // Dark to Light Green
+        } else if (this.type.name !== 'Healer') { // Healer kendi rengini yönetiyor
             CTX.fillStyle = this.color;
         }
 
-        CTX.shadowBlur = 10;
-        CTX.shadowColor = this.color;
-        CTX.fill();
-        CTX.shadowBlur = 0;
+        // Common draw finalize (Shadows etc)
+        if (this.type.name !== 'Healer') {
+            CTX.shadowBlur = 10;
+            CTX.shadowColor = this.color;
+            CTX.fill();
+            CTX.shadowBlur = 0;
+        }
 
         if (this.hp > 1) {
             CTX.fillStyle = 'white';
@@ -141,26 +176,44 @@ class Enemy {
             currentSpeed *= 0.5;
             this.freezeTimer -= dt;
         }
-        // SHIELDER Mekaniği
-        if (this.type.name === 'Shielder') {
-            this.shieldPulse += 0.05 * dt;
 
-            // Yavaş hareket et ve mesafe koru
+        // Status Effects Damage
+        if (this.burnTimer > 0) {
+            this.hp -= (0.5 / 60) * dt;
+            this.burnTimer -= dt;
+            // Optimized Particles (Every 15 frames approx)
+            if (this.burnTimer % 15 < dt) {
+                spawnParticles(this.x, this.y, 1, 3, '#ff4500', 1); // Smoke
+            }
+        }
+        if (this.poisonTimer > 0) {
+            this.hp -= (0.2 / 60) * dt;
+            this.poisonTimer -= dt;
+            // Optimized Particles (Every 30 frames approx)
+            if (this.poisonTimer % 30 < dt) {
+                spawnParticles(this.x, this.y, 1, 2, '#32cd32', 0.5); // Bubbles
+            }
+        }
+
+        // HEALER Mechanic
+        if (this.type.name === 'Healer') {
+            // Run away if player is too close, else maintain safe distance
             const distToPlayer = Math.hypot(player.x - this.x, player.y - this.y);
-            const idealDist = 250; // Oyuncudan uzak dur
+            const idealDist = 350; // Use long range for healing support
 
             if (distToPlayer < idealDist) {
-                // Geri çekil
-                this.x -= Math.cos(angle) * currentSpeed * dt;
-                this.y -= Math.sin(angle) * currentSpeed * dt;
+                // Retreat fast
+                this.x -= Math.cos(angle) * currentSpeed * 1.1 * dt;
+                this.y -= Math.sin(angle) * currentSpeed * 1.1 * dt;
+            } else if (distToPlayer > idealDist + 100) {
+                // Approach slowly if too far
+                this.x += Math.cos(angle) * (currentSpeed * 0.6) * dt;
+                this.y += Math.sin(angle) * (currentSpeed * 0.6) * dt;
             } else {
-                // Hafif yaklaş
-                this.x += Math.cos(angle) * (currentSpeed * 0.3) * dt;
-                this.y += Math.sin(angle) * (currentSpeed * 0.3) * dt;
+                // Strafe / Orbit
+                this.x += Math.cos(angle + Math.PI / 2) * (currentSpeed * 0.2) * dt;
+                this.y += Math.sin(angle + Math.PI / 2) * (currentSpeed * 0.2) * dt;
             }
-
-            // Etraftaki düşmanlara kalkan ver
-            this.shieldAura = true;
         }
         else if (this.type.name === 'Spawner') {
             this.spawnTimer += dt;

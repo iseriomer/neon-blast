@@ -76,13 +76,13 @@ const ENEMY_TYPES = {
         score: 250,
         name: 'Spawner'
     },
-    SHIELDER: {
-        radius: 25,
-        color: 'hsl(200, 80%, 60%)', // Açık mavi
-        speed: 0.5,
-        hp: 4,
-        score: 300,
-        name: 'Shielder'
+    HEALER: {
+        radius: 30,
+        color: 'hsl(50, 90%, 60%)', // Gold/Yellow
+        speed: 0.7,
+        hp: 6,
+        score: 500,
+        name: 'Healer'
     }
 };
 
@@ -115,10 +115,17 @@ const DEFAULT_PLAYER_STATS = {
     clusterCount: 0,
     orbitals: 0,
     chainLightning: 0,
+    chainLightningDamage: 1,
     explosiveRadius: 0,
     shield: 0,
     maxShields: 2,
     laserBeam: false,
     singularity: false,
-    timeWarp: false
+    timeWarp: false,
+    critChance: 0,
+    critMultiplier: 1.5,
+    poison: false,
+    poisonDamage: 0.2, // HP per second (approx)
+    burn: false,
+    burnDamage: 0.5 // HP per second
 };

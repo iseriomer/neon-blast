@@ -59,7 +59,7 @@ function spawnEnemies() {
         let type = ENEMY_TYPES.BASIC;
         const rand = Math.random();
 
-        if (gameState.difficultyMultiplier > 5 && rand < 0.12) type = ENEMY_TYPES.SHIELDER; // EKLE!
+        if (gameState.difficultyMultiplier > 5 && rand < 0.08) type = ENEMY_TYPES.HEALER; // Rare spawn
         else if (gameState.difficultyMultiplier > 4 && rand < 0.15) type = ENEMY_TYPES.SPAWNER;
         else if (gameState.difficultyMultiplier > 3 && rand < 0.25) type = ENEMY_TYPES.SPLITTER;
         else if (gameState.difficultyMultiplier > 2 && rand < 0.35) type = ENEMY_TYPES.TANK;
@@ -108,6 +108,12 @@ function triggerLevelUp() {
             if (p.id === 'back_shot' && gameState.playerStats.backShot) return false;
             if (p.id === 'laser_beam' && gameState.playerStats.laserBeam) return false;
             if (p.id === 'singularity' && gameState.playerStats.singularity) return false;
+            // Chain Lightning Logic
+            if (p.id === 'chain_lightning' && gameState.playerStats.chainLightning > 0) return false;
+            if ((p.id === 'chain_lightning_count' || p.id === 'chain_lightning_damage') && gameState.playerStats.chainLightning === 0) return false;
+            // Status Mutual Exclusivity
+            if (p.id === 'poison_shot' && gameState.playerStats.burn) return false;
+            if (p.id === 'burn_shot' && gameState.playerStats.poison) return false;
             return true;
         });
 
@@ -246,33 +252,65 @@ function checkCollisions() {
     profiler.end('player-collision');
 
     // ═══════════════════════════════════════════════════════
-    // SHIELDER AURA SYSTEM (Only if we have Shielders)
+    // HEALER SYSTEM
     // ═══════════════════════════════════════════════════════
-    profiler.start('shielder-aura');
-    const shielders = enemies.filter(e => e.type.name === 'Shielder');
+    profiler.start('healer-system');
+    const healers = enemies.filter(e => e.type.name === 'Healer');
 
-    if (shielders.length > 0) {
-        // Reset all shield auras first
-        enemies.forEach(e => e.shieldAura = false);
-
-        for (const shielder of shielders) {
-            const nearbyEnemies = enemySpatialGrid.query(shielder.x, shielder.y, 200);
+    if (healers.length > 0) {
+        for (const healer of healers) {
+            const healRange = 350;
+            const nearbyEnemies = enemySpatialGrid.query(healer.x, healer.y, healRange);
 
             for (const enemy of nearbyEnemies) {
-                if (enemy.id === shielder.id) continue;
-                enemy.shieldAura = true;
+                if (enemy.id === healer.id) continue;
 
-                // Visual effect (every ~30 frames at 60fps)
-                if (Math.random() < 0.05) {
-                    const angle = Math.atan2(enemy.y - shielder.y, enemy.x - shielder.x);
-                    const midX = shielder.x + Math.cos(angle) * 100;
-                    const midY = shielder.y + Math.sin(angle) * 100;
-                    spawnParticles(midX, midY, 1, 2, '#64c8ff', 0.5);
+                const distSq = (enemy.x - healer.x) ** 2 + (enemy.y - healer.y) ** 2;
+                if (distSq < healRange * healRange) {
+                    // Draw Link (Visual connection)
+                    const dist = Math.sqrt(distSq);
+
+                    CTX.save();
+                    CTX.beginPath();
+                    CTX.moveTo(healer.x, healer.y);
+                    CTX.lineTo(enemy.x, enemy.y);
+
+                    // 1. Base Line (Constant weak connection)
+                    CTX.strokeStyle = `rgba(255, 215, 0, ${0.15 * (1 - dist / healRange)})`; // Gold fade
+                    CTX.lineWidth = 1;
+                    CTX.stroke();
+
+                    // 2. Flowing Energy (Animated Dash - The "Stream" effect)
+                    // Negative offset makes it flow FROM healer TO enemy
+                    const flowSpeed = performance.now() / 10;
+                    CTX.setLineDash([15, 30]); // Segment, Gap
+                    CTX.lineDashOffset = -flowSpeed;
+
+                    CTX.lineWidth = 2;
+                    CTX.strokeStyle = `rgba(255, 255, 100, ${0.6 * (1 - dist / healRange)})`; // Brighter gold
+                    CTX.stroke();
+
+                    CTX.setLineDash([]);
+                    CTX.restore();
+
+                    // Healing Logic
+                    if (enemy.hp < enemy.maxHp) {
+                        enemy.hp += 0.03;
+                        if (enemy.hp > enemy.maxHp) enemy.hp = enemy.maxHp;
+
+                        // Visual heal particles (sending energy)
+                        if (Math.random() < 0.05) {
+                            const ratio = Math.random();
+                            const px = healer.x + (enemy.x - healer.x) * ratio;
+                            const py = healer.y + (enemy.y - healer.y) * ratio;
+                            spawnParticles(px, py, 1, 2, '#ffd700', 0.5);
+                        }
+                    }
                 }
             }
         }
     }
-    profiler.end('shielder-aura');
+    profiler.end('healer-system');
 
     // ═══════════════════════════════════════════════════════
     // PROJECTILE COLLISION (Only if we have projectiles)
@@ -402,15 +440,18 @@ function checkCollisions() {
                 projectile.hitList.push(enemy.id);
                 projectile.penetration--;
 
-                // Shield Aura Check
-                if (enemy.shieldAura && enemy.type.name !== 'Shielder') {
-                    projectile.penetration -= 0.5;
-                    spawnParticles(projectile.x, projectile.y, 5, 2, '#64c8ff', 2);
-                    enemy.shieldAura = false;
-                    enemy.hp -= 0.5;
-                }
+                // Shield Aura Check REMOVED
 
                 let damage = 1;
+                let isCritical = Math.random() < gameState.playerStats.critChance;
+
+                if (isCritical) {
+                    damage *= gameState.playerStats.critMultiplier;
+                    // Updated Critical Visuals
+                    spawnShockwave(enemy.x, enemy.y, '#ff00ff');
+                    spawnCritStars(enemy.x, enemy.y, '#ffffff');
+                }
+
                 if (gameState.playerStats.execute && enemy.hp / enemy.maxHp < 0.3) {
                     damage = 999;
                     spawnParticles(enemy.x, enemy.y, 10, 3, 'red', 2);
@@ -427,6 +468,10 @@ function checkCollisions() {
                 if (gameState.playerStats.freeze > 0) {
                     enemy.freezeTimer = gameState.playerStats.freeze;
                 }
+
+                // Status Effects Application
+                if (gameState.playerStats.burn) enemy.burnTimer = 120; // 2 seconds @ 60fps
+                if (gameState.playerStats.poison) enemy.poisonTimer = 300; // 5 seconds @ 60fps
 
                 playSound('hit');
 
@@ -475,7 +520,7 @@ function checkCollisions() {
 
                     for (let c = 0; c < chainCount; c++) {
                         const target = chainTargets[c].enemy;
-                        target.hp -= 3;
+                        target.hp -= (gameState.playerStats.chainLightningDamage || 1);
 
                         spawnChainLightning(enemy.x, enemy.y, target.x, target.y);
                         spawnParticles(target.x, target.y, 5, 2, '#00ffff');

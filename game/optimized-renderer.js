@@ -54,6 +54,63 @@ const RenderOptimizer = {
     drawParticlesBatched(particles) {
         if (!this.batchRendering || particles.length === 0) return;
 
+        // Group by Type first
+        const byType = { default: [], shockwave: [], star: [] };
+
+        for (let i = 0; i < particles.length; i++) {
+            const p = particles[i];
+            const type = p.type || 'default';
+            if (!byType[type]) byType[type] = [];
+            byType[type].push(p);
+        }
+
+        // 1. Draw Default Particles (Squares)
+        if (byType.default.length > 0) {
+            this.drawDefaultParticles(byType.default);
+        }
+
+        // 2. Draw Shockwaves (Rings)
+        if (byType.shockwave.length > 0) {
+            const list = byType.shockwave;
+            CTX.lineWidth = 3;
+            for (let i = 0; i < list.length; i++) {
+                const p = list[i];
+                CTX.beginPath();
+                CTX.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                CTX.strokeStyle = p.color;
+                CTX.globalAlpha = p.alpha;
+                CTX.stroke();
+            }
+            CTX.globalAlpha = 1;
+        }
+
+        // 3. Draw Stars (Spikes/Lines)
+        if (byType.star.length > 0) {
+            const list = byType.star;
+            CTX.lineWidth = 2;
+            for (let i = 0; i < list.length; i++) {
+                const p = list[i];
+                CTX.save();
+                CTX.translate(p.x, p.y);
+                CTX.rotate(p.rotation);
+
+                CTX.beginPath();
+                // Draw a spike/star shape
+                CTX.moveTo(-p.radius, 0);
+                CTX.lineTo(p.radius, 0);
+                CTX.moveTo(0, -p.radius * 0.2);
+                CTX.lineTo(0, p.radius * 0.2);
+
+                CTX.strokeStyle = p.color;
+                CTX.globalAlpha = p.alpha;
+                CTX.stroke();
+                CTX.restore();
+            }
+            CTX.globalAlpha = 1;
+        }
+    },
+
+    drawDefaultParticles(particles) {
         const byColor = {};
 
         for (let i = 0; i < particles.length; i++) {
@@ -64,13 +121,10 @@ const RenderOptimizer = {
 
         for (const color in byColor) {
             const group = byColor[color];
-
-            // CHANGE: Reduce alpha buckets from 10 to 4 (fewer draw calls)
             const alphaBuckets = {};
 
             for (let i = 0; i < group.length; i++) {
                 const p = group[i];
-                // CHANGE: 0.25 increments instead of 0.1 (fewer buckets)
                 const alphaKey = Math.max(0.25, Math.round(p.alpha * 4) / 4);
                 if (!alphaBuckets[alphaKey]) alphaBuckets[alphaKey] = [];
                 alphaBuckets[alphaKey].push(p);
@@ -85,14 +139,12 @@ const RenderOptimizer = {
                 const bucket = alphaBuckets[alpha];
                 for (let i = 0; i < bucket.length; i++) {
                     const p = bucket[i];
-                    // ALL particles use rectangles (faster than arcs)
                     CTX.rect(p.x - p.radius, p.y - p.radius, p.radius * 2, p.radius * 2);
                 }
 
                 CTX.fill();
             }
         }
-
         CTX.globalAlpha = 1;
     },
 

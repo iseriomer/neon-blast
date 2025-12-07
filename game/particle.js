@@ -7,16 +7,25 @@ class Particle {
         this.radius = 0;
         this.color = 'white';
         this.velocity = { x: 0, y: 0 };
+        this.velocity = { x: 0, y: 0 };
         this.alpha = 1;
+        this.type = 'default'; // default, shockwave, star
+        this.life = 0;
+        this.maxLife = 0;
+        this.rotation = 0;
     }
 
-    reset(x, y, radius, color, velocity) {
+    reset(x, y, radius, color, velocity, type = 'default') {
         this.x = x;
         this.y = y;
         this.radius = radius;
         this.color = color;
         this.velocity = velocity;
         this.alpha = 1;
+        this.type = type;
+        this.life = 1.0;
+        this.maxLife = 1.0;
+        this.rotation = Math.random() * Math.PI * 2;
     }
 
     // draw() METODUNU SİLDİK! 
@@ -37,6 +46,16 @@ class Particle {
             this.y < -margin || this.y > CANVAS.height + margin) {
             return true; // Remove
         }
+
+        // Type specific updates
+        if (this.type === 'shockwave') {
+            this.radius += 10 * dt; // Expand quickly
+            this.alpha -= 0.05 * dt;
+        } else if (this.type === 'star') {
+            this.radius += 2 * dt; // Elongate or move
+            this.rotation += 0.1 * dt;
+        }
+
         // Return true if particle should be removed
         return this.alpha <= 0;
     }
@@ -45,8 +64,8 @@ class Particle {
 // Particle Pool (Aynen kalıyor)
 const particlePool = new ObjectPool(
     () => new Particle(),
-    (particle, x, y, radius, color, velocity) => {
-        particle.reset(x, y, radius, color, velocity);
+    (particle, x, y, radius, color, velocity, type) => {
+        particle.reset(x, y, radius, color, velocity, type);
     },
     POOL_SIZES.PARTICLE
 );
@@ -71,7 +90,25 @@ function spawnParticles(x, y, count, radius, color, velocityMultiplier = 1) {
             {
                 x: (Math.random() - 0.5) * (Math.random() * 8 * velocityMultiplier) * GAME_SCALE,
                 y: (Math.random() - 0.5) * (Math.random() * 8 * velocityMultiplier) * GAME_SCALE
-            }
+            },
+            'default'
         );
+    }
+}
+
+function spawnShockwave(x, y, color) {
+    // Single expanding ring
+    particlePool.get(x, y, 10, color, { x: 0, y: 0 }, 'shockwave');
+}
+
+function spawnCritStars(x, y, color) {
+    const count = 5;
+    for (let i = 0; i < count; i++) {
+        const angle = (Math.PI * 2 / count) * i;
+        const speed = 5;
+        particlePool.get(x, y, 8, color, {
+            x: Math.cos(angle) * speed,
+            y: Math.sin(angle) * speed
+        }, 'star');
     }
 }
