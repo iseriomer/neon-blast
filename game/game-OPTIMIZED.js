@@ -115,6 +115,8 @@ function triggerLevelUp() {
             // Status Mutual Exclusivity
             if (p.id === 'poison_shot' && gameState.playerStats.burn) return false;
             if (p.id === 'burn_shot' && gameState.playerStats.poison) return false;
+            // Conditional Perks
+            if (p.id === 'orbital_size' && gameState.playerStats.orbitals === 0) return false;
             return true;
         });
 
@@ -871,17 +873,22 @@ function animate(timestamp) {
         const orbitalTime = Date.now() / 500;
         for (let i = 0; i < gameState.playerStats.orbitals; i++) {
             const angle = orbitalTime + (i * (Math.PI * 2 / gameState.playerStats.orbitals));
-            const ox = player.x + Math.cos(angle) * 60;
-            const oy = player.y + Math.sin(angle) * 60;
+
+            // ADJUSTED: Larger radius and distance, scaled
+            const orbitalDist = 230 * GAME_SCALE;
+            const orbitalRadius = 16 * GAME_SCALE * gameState.playerStats.orbitalSizeMultiplier;
+
+            const ox = player.x + Math.cos(angle) * orbitalDist;
+            const oy = player.y + Math.sin(angle) * orbitalDist;
 
             CTX.beginPath();
-            CTX.arc(ox, oy, 10, 0, Math.PI * 2);
+            CTX.arc(ox, oy, orbitalRadius, 0, Math.PI * 2);
             CTX.fillStyle = '#00ffff';
             CTX.fill();
 
             enemyPool.getActive().forEach(enemy => {
                 const dist = Math.hypot(ox - enemy.x, oy - enemy.y);
-                if (dist < enemy.radius + 10) {
+                if (dist < enemy.radius + orbitalRadius) {
                     enemy.hp -= 0.1;
                     if (enemy.hp <= 0) {
                         handleEnemyDeath(enemy);

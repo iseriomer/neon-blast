@@ -114,6 +114,7 @@ const DEFAULT_PLAYER_STATS = {
     cluster: false,
     clusterCount: 0,
     orbitals: 0,
+    orbitalSizeMultiplier: 1,
     chainLightning: 0,
     chainLightningDamage: 1,
     explosiveRadius: 0,

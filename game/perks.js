@@ -64,6 +64,12 @@ const ALL_PERKS = [
         apply: (stats) => { stats.orbitals += 1; } // orbitals olunca kaç tane yörünge koruma olacağını ayarlar. perk ekranında da örneğin "(şuanki yörünge koruma sayısı) + 1" yörünge koruma olarak yaz.
     },
     {
+        id: 'orbital_size',
+        title: 'Massive Orbitals',
+        desc: 'Increases the size of Orbital Shields by 50%.',
+        apply: (stats) => { stats.orbitalSizeMultiplier *= 1.5; }
+    },
+    {
         id: 'screen_wrap',
         title: 'Wormhole Bullets',
         desc: 'Bullets wrap around the screen once.',
