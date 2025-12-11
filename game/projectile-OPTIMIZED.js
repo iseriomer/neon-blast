@@ -54,7 +54,7 @@ class Projectile {
                 this.targetEnemy.hp <= 0;
 
             if (shouldUpdateTarget) {
-                this.homingCooldown = 5;
+                this.homingCooldown = 3;
                 this.targetEnemy = this.findNearestEnemy(enemies);
             }
 
@@ -106,7 +106,7 @@ class Projectile {
 
     // En yakın düşmanı bul (SPATIAL GRID ile optimize edilebilir!)
     findNearestEnemy(enemies) {
-        const homingRange = 400 * GAME_SCALE; // Ölçeklenmiş menzil
+        const homingRange = 500 * GAME_SCALE; // Ölçeklenmiş menzil
         let nearestEnemy = null;
         let minDistSq = homingRange * homingRange; // Squared distance karşılaştırması (sqrt yok!)
 

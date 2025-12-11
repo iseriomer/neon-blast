@@ -71,42 +71,28 @@ const RenderOptimizer = {
 
         // 2. Draw Shockwaves (Rings)
         if (byType.shockwave.length > 0) {
-            const list = byType.shockwave;
-            CTX.lineWidth = 3;
-            for (let i = 0; i < list.length; i++) {
-                const p = list[i];
-                CTX.beginPath();
-                CTX.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                CTX.strokeStyle = p.color;
-                CTX.globalAlpha = p.alpha;
-                CTX.stroke();
-            }
-            CTX.globalAlpha = 1;
+            this.renderStrokeBatch(byType.shockwave, 3, (ctx, p) => {
+                ctx.moveTo(p.x + p.radius, p.y);
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            });
         }
 
-        // 3. Draw Stars (Spikes/Lines)
+        // 3. Draw Stars (Spikes/Lines) - NO SAVE/RESTORE!
         if (byType.star.length > 0) {
-            const list = byType.star;
-            CTX.lineWidth = 2;
-            for (let i = 0; i < list.length; i++) {
-                const p = list[i];
-                CTX.save();
-                CTX.translate(p.x, p.y);
-                CTX.rotate(p.rotation);
+            this.renderStrokeBatch(byType.star, 2, (ctx, p) => {
+                const c = Math.cos(p.rotation);
+                const s = Math.sin(p.rotation);
+                const r = p.radius;
+                const rOffset = r * 0.2;
 
-                CTX.beginPath();
-                // Draw a spike/star shape
-                CTX.moveTo(-p.radius, 0);
-                CTX.lineTo(p.radius, 0);
-                CTX.moveTo(0, -p.radius * 0.2);
-                CTX.lineTo(0, p.radius * 0.2);
+                // Main Axis
+                ctx.moveTo(p.x - r * c, p.y - r * s);
+                ctx.lineTo(p.x + r * c, p.y + r * s);
 
-                CTX.strokeStyle = p.color;
-                CTX.globalAlpha = p.alpha;
-                CTX.stroke();
-                CTX.restore();
-            }
-            CTX.globalAlpha = 1;
+                // Cross Axis
+                ctx.moveTo(p.x + rOffset * s, p.y - rOffset * c);
+                ctx.lineTo(p.x - rOffset * s, p.y + rOffset * c);
+            });
         }
     },
 
@@ -125,7 +111,8 @@ const RenderOptimizer = {
 
             for (let i = 0; i < group.length; i++) {
                 const p = group[i];
-                const alphaKey = Math.max(0.25, Math.round(p.alpha * 4) / 4);
+                // Use slightly coarser buckets for filled particles
+                const alphaKey = Math.max(0.1, Math.round(p.alpha * 5) / 5);
                 if (!alphaBuckets[alphaKey]) alphaBuckets[alphaKey] = [];
                 alphaBuckets[alphaKey].push(p);
             }
@@ -143,6 +130,46 @@ const RenderOptimizer = {
                 }
 
                 CTX.fill();
+            }
+        }
+        CTX.globalAlpha = 1;
+    },
+
+    // Helper for Batched Strokes (Shockwaves, Stars) to reduce draw calls
+    renderStrokeBatch(particles, lineWidth, pathCallback) {
+        const byColor = {};
+        for (const p of particles) {
+            if (!byColor[p.color]) byColor[p.color] = [];
+            byColor[p.color].push(p);
+        }
+
+        CTX.lineWidth = lineWidth;
+
+        for (const color in byColor) {
+            const group = byColor[color];
+            const alphaBuckets = {};
+
+            // Group by alpha (0.1 steps for smooth enough fades)
+            for (const p of group) {
+                const alphaKey = Math.max(0.0, Math.floor(p.alpha * 10) / 10);
+                if (alphaKey <= 0) continue;
+                if (!alphaBuckets[alphaKey]) alphaBuckets[alphaKey] = [];
+                alphaBuckets[alphaKey].push(p);
+            }
+
+            CTX.strokeStyle = color;
+
+            for (const alphaStr in alphaBuckets) {
+                const alpha = parseFloat(alphaStr);
+                CTX.globalAlpha = alpha;
+                CTX.beginPath();
+
+                const bucket = alphaBuckets[alphaStr];
+                for (let i = 0; i < bucket.length; i++) {
+                    pathCallback(CTX, bucket[i]);
+                }
+
+                CTX.stroke();
             }
         }
         CTX.globalAlpha = 1;

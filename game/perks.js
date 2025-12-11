@@ -180,10 +180,10 @@ const ALL_PERKS = [
     {
         id: 'laser_beam',
         title: 'Orbital Laser',
-        desc: 'Adds a rotating laser beam that deals continuous damage.',
+        desc: 'Adds a rotating laser beam. (Stackable)',
         apply: (stats) => {
-            stats.laserBeam = true;
-            stats.color = '#ff0000';   //lazer ışını saat yönünde dönsün otomatik belli bir hızda. 1 kere alınırsa bidaha çıkmasın perk seçmede.
+            stats.laserBeam += 1;
+            stats.color = '#ff0000';   //lazer ışını saat yönünde dönsün otomatik belli bir hızda.
         }
     },
     {
@@ -218,6 +218,14 @@ const ALL_PERKS = [
         apply: (stats) => {
             stats.burn = true;
             stats.color = '#ff4500';
+        }
+    },
+    {
+        id: 'laser_damage',
+        title: 'Focused Beam',
+        desc: 'Increases Orbital Laser damage.',
+        apply: (stats) => {
+            stats.laserDamage += 0.03;
         }
     }
 ];

@@ -107,7 +107,9 @@ function triggerLevelUp() {
             if (p.id === 'energy_shield' && gameState.playerStats.shield >= gameState.playerStats.maxShields) return false;
             if (p.id === 'double_shot' && gameState.playerStats.shotCount >= MAX_SHOT_COUNT) return false;
             if (p.id === 'back_shot' && gameState.playerStats.backShot) return false;
-            if (p.id === 'laser_beam' && gameState.playerStats.laserBeam) return false;
+            if (p.id === 'laser_beam' && gameState.playerStats.laserBeam >= 5) return false;
+            // Laser Damage Perk Logic
+            if (p.id === 'laser_damage' && gameState.playerStats.laserBeam === 0) return false;
             if (p.id === 'singularity' && gameState.playerStats.singularity) return false;
             // Chain Lightning Logic
             if (p.id === 'chain_lightning' && gameState.playerStats.chainLightning > 0) return false;
@@ -818,38 +820,44 @@ function animate(timestamp) {
     drawPlayer(gameState.playerStats, gameState.lastShotTime);
     profiler.end('draw-player');
 
-    // Laser Beam
-    if (gameState.playerStats.laserBeam) {
+    // Multi-Laser Beam Implementation
+    if (gameState.playerStats.laserBeam > 0) {
         profiler.start('laser');
-        // Otomatik saat yönünde dönme (Speed: 1 rad/s)
-        const angle = Date.now() / 1000;
-        const laserEndX = player.x + Math.cos(angle) * 2000;
-        const laserEndY = player.y + Math.sin(angle) * 2000;
+        const laserCount = gameState.playerStats.laserBeam;
+        const baseAngle = Date.now() / 1000; // Base rotation speed
 
-        CTX.beginPath();
-        CTX.moveTo(player.x, player.y);
-        CTX.lineTo(laserEndX, laserEndY);
-        CTX.strokeStyle = 'rgba(255, 0, 0, 0.5)';
-        CTX.lineWidth = 3;
-        CTX.stroke();
-        CTX.lineWidth = 1;
+        for (let i = 0; i < laserCount; i++) {
+            const angleOffset = (Math.PI * 2 / laserCount) * i;
+            const angle = baseAngle + angleOffset;
 
-        enemyPool.getActive().forEach(enemy => {
-            const distToLine = Math.abs(
-                (laserEndY - player.y) * enemy.x -
-                (laserEndX - player.x) * enemy.y +
-                laserEndX * player.y - laserEndY * player.x
-            ) / Math.hypot(laserEndY - player.y, laserEndX - player.x);
-            const distToPlayer = Math.hypot(enemy.x - player.x, enemy.y - player.y);
+            const laserEndX = player.x + Math.cos(angle) * 2000;
+            const laserEndY = player.y + Math.sin(angle) * 2000;
 
-            if (distToLine < enemy.radius + 10 && distToPlayer < 2000) {
-                enemy.hp -= 0.02;
+            CTX.beginPath();
+            CTX.moveTo(player.x, player.y);
+            CTX.lineTo(laserEndX, laserEndY);
+            CTX.strokeStyle = 'rgba(255, 0, 0, 0.5)';
+            CTX.lineWidth = 3;
+            CTX.stroke();
+            CTX.lineWidth = 1;
 
-                if (enemy.hp <= 0) {
-                    handleEnemyDeath(enemy);
+            enemyPool.getActive().forEach(enemy => {
+                const distToLine = Math.abs(
+                    (laserEndY - player.y) * enemy.x -
+                    (laserEndX - player.x) * enemy.y +
+                    laserEndX * player.y - laserEndY * player.x
+                ) / Math.hypot(laserEndY - player.y, laserEndX - player.x);
+                const distToPlayer = Math.hypot(enemy.x - player.x, enemy.y - player.y);
+
+                if (distToLine < enemy.radius + 10 && distToPlayer < 2000) {
+                    enemy.hp -= gameState.playerStats.laserDamage;
+
+                    if (enemy.hp <= 0) {
+                        handleEnemyDeath(enemy);
+                    }
                 }
-            }
-        });
+            });
+        }
         profiler.end('laser');
     }
 
@@ -955,17 +963,51 @@ function initGame() {
     projectilePool.releaseAll();
     enemyPool.releaseAll();
     particlePool.releaseAll();
+
+    // BOSS RESET LOGIC
+    gameState.bossActive = false;
+    if (typeof boss !== 'undefined') {
+        boss.active = false;
+        boss.hp = 0;
+    }
+    if (typeof boss2 !== 'undefined') {
+        boss2.active = false;
+    }
+    if (typeof boss3 !== 'undefined') {
+        boss3.active = false;
+        boss3.platforms = [];
+        boss3.walls = [];
+        boss3.vortexes = [];
+    }
+    if (typeof bossShapePool !== 'undefined') {
+        bossShapePool.releaseAll();
+    }
+    document.getElementById('boss-hud').style.display = 'none';
+
+    // Reset other states
+    gameState.timeWarpActive = false;
+    gameState.timeWarpTimer = 0;
+    gameState.hitstopTimer = 0;
+    gameState.isDying = false;
+    gameState.deathTimer = 0;
+    player.shattered = false;
+    if (typeof enemySpatialGrid !== 'undefined') {
+        enemySpatialGrid.clear();
+    }
+
     gameState.playerStats = { ...DEFAULT_PLAYER_STATS };
     player.radius = 20 * GAME_SCALE;
     updateLevelIndicator(1);
     updateProgressBar(0, 600);
     updateShieldIndicator(0);
+    updateXPBarColor(gameState.playerStats.color); // Reset XP bar color
     /* BackgroundManager.init(); */
     gameState.gameActive = true;
     gameState.isPaused = false;
 
     startScreen.classList.add('hidden');
     gameOverScreen.classList.add('hidden');
+    levelUpScreen.classList.add('hidden'); // Ensure level up screen is closed
 
     lastTime = 0;
 
@@ -993,13 +1035,13 @@ function gameOver() {
     gameState.isPaused = true;
     clearInterval(gameState.spawnInterval);
 
-    finalScoreEl.innerText = `Toplam Skor: ${gameState.score} - Seviye: ${gameState.level}`;
+    finalScoreEl.innerText = `Total Score: ${gameState.score} - Level: ${gameState.level}`;
     window.lastGameScore = gameState.score;
     window.lastGameLevel = gameState.level;
 
     document.getElementById('submit-score-btn').style.display = 'inline-block';
     document.getElementById('submit-score-btn').disabled = false;
-    document.getElementById('submit-score-btn').innerText = 'SKORU KAYDET';
+    document.getElementById('submit-score-btn').innerText = 'SAVE SCORE';
     document.getElementById('player-name-input').style.display = 'inline-block';
 
     if (window.fetchLeaderboard) {

@@ -120,7 +120,7 @@ const DEFAULT_PLAYER_STATS = {
     explosiveRadius: 0,
     shield: 0,
     maxShields: 2,
-    laserBeam: false,
+    laserBeam: 0,
     singularity: false,
     timeWarp: false,
     critChance: 0,
@@ -128,5 +128,6 @@ const DEFAULT_PLAYER_STATS = {
     poison: false,
     poisonDamage: 0.2, // HP per second (approx)
     burn: false,
-    burnDamage: 0.5 // HP per second
+    burnDamage: 0.5, // HP per second
+    laserDamage: 0.02
 };
