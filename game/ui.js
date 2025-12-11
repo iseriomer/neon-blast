@@ -36,7 +36,7 @@ function updateShieldIndicator(shield) {
 }
 
 function updateLevelIndicator(level) {
-    levelEl.innerText = `Seviye: ${level}`;
+    levelEl.innerText = `Level: ${level}`;
 }
 
 // FPS Counter

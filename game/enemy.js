@@ -33,7 +33,12 @@ class Enemy {
         this.speed = (type.speed * (1 + (difficultyMultiplier * 0.1))) * GAME_SCALE;
 
         this.color = type.color;
-        this.hp = type.hp + Math.floor(difficultyMultiplier / 1.5);
+
+        // SPEEDSTER FIX: Early levels (Difficulty < 3) should have 1 HP
+        let hpMultiplierDivisor = 1.5;
+        if (type.name === 'Speedster') hpMultiplierDivisor = 3.0; // Grows slower
+
+        this.hp = type.hp + Math.floor(difficultyMultiplier / hpMultiplierDivisor);
         if (gameState.level >= 10) this.hp = type.hp + Math.floor(difficultyMultiplier / 0.9);
         if (gameState.level >= 20) this.hp = type.hp + Math.floor(difficultyMultiplier / 0.4);
         if (gameState.level >= 30) this.hp = type.hp + Math.floor(difficultyMultiplier / 0.2);

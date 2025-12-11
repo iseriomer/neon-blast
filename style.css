@@ -103,7 +103,7 @@ canvas {
     font-family: monospace;
 }
 
-/* BAŞLANGIÇ EKRANI */
+/* START SCREEN */
 #start-screen,
 #game-over-screen {
     position: absolute;
@@ -111,25 +111,25 @@ canvas {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(5px);
+    background: linear-gradient(135deg, rgba(5, 5, 10, 0.95), rgba(20, 0, 20, 0.9));
+    backdrop-filter: blur(8px);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     pointer-events: auto;
     z-index: 20;
-    transition: opacity 0.3s;
+    transition: opacity 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-/* LEVEL UP EKRANI */
+/* LEVEL UP SCREEN */
 #levelup-screen {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(10, 10, 20, 0.95);
+    background: rgba(10, 10, 25, 0.98);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -139,96 +139,152 @@ canvas {
 }
 
 h1 {
-    font-size: 4rem;
+    font-size: 5rem;
     margin: 0 0 20px 0;
-    background: linear-gradient(to right, #0ff, #f0f);
+    background: linear-gradient(to right, #00ffff, #ff00ff, #00ffff);
+    background-size: 200% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    text-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+    text-shadow: 0 0 40px rgba(0, 255, 255, 0.4);
+    animation: shine 3s linear infinite;
+    letter-spacing: -2px;
+}
+
+@keyframes shine {
+    to {
+        background-position: 200% center;
+    }
 }
 
 h2 {
-    font-size: 2.5rem;
+    font-size: 3rem;
     color: #ffd700;
-    text-shadow: 0 0 20px #ffd700;
-    margin-bottom: 30px;
+    text-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
+    margin-bottom: 40px;
+    letter-spacing: 2px;
 }
 
 p {
-    font-size: 1.2rem;
-    color: #aaa;
+    font-size: 1.3rem;
+    color: #b0b0cc;
     text-align: center;
-    max-width: 600px;
-    line-height: 1.6;
+    max-width: 650px;
+    line-height: 1.7;
+    margin-bottom: 10px;
 }
 
 button.main-btn {
-    margin-top: 30px;
-    padding: 15px 50px;
-    font-size: 1.5rem;
-    background: white;
-    color: black;
+    margin-top: 40px;
+    padding: 18px 60px;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: white;
+    background: linear-gradient(45deg, #ff0055, #ff00aa);
     border: none;
-    font-weight: bold;
     border-radius: 50px;
     cursor: pointer;
-    box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
-    transition: transform 0.1s, box-shadow 0.1s;
-}
-
-button.main-btn:active {
-    transform: scale(0.95);
-}
-
-/* PERK KARTLARI */
-.perk-container {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-    justify-content: center;
-    width: 100%;
-    padding: 20px;
-}
-
-.perk-card {
-    background: rgba(255, 255, 255, 0.05);
-    border: 2px solid #333;
-    border-radius: 15px;
-    padding: 20px;
-    width: 250px;
-    cursor: pointer;
-    transition: all 0.2s;
-    text-align: center;
+    box-shadow: 0 10px 30px rgba(255, 0, 85, 0.4);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    text-transform: uppercase;
+    letter-spacing: 1px;
     position: relative;
     overflow: hidden;
 }
 
+button.main-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: 0.5s;
+}
+
+button.main-btn:hover {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 15px 40px rgba(255, 0, 85, 0.6);
+}
+
+button.main-btn:hover::before {
+    left: 100%;
+}
+
+button.main-btn:active {
+    transform: scale(0.95);
+    box-shadow: 0 5px 15px rgba(255, 0, 85, 0.3);
+}
+
+/* PERK CARDS */
+.perk-container {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    padding: 20px;
+    max-width: 1200px;
+}
+
+.perk-card {
+    background: rgba(20, 20, 35, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 30px;
+    width: 280px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+}
+
+.perk-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at top, rgba(255, 255, 255, 0.05), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
 .perk-card:hover {
     background: rgba(255, 255, 255, 0.1);
-    border-color: #0ff;
-    transform: translateY(-5px);
-    box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
+    border-color: #00ffff;
+    transform: translateY(-10px);
+    box-shadow: 0 0 50px rgba(0, 255, 255, 0.15);
+}
+
+.perk-card:hover::before {
+    opacity: 1;
 }
 
 .perk-title {
-    font-size: 1.4rem;
+    font-size: 1.6rem;
     font-weight: bold;
     color: #fff;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
 .perk-desc {
-    font-size: 0.9rem;
-    color: #ccc;
+    font-size: 1rem;
+    color: #cbd5e1;
+    line-height: 1.5;
 }
 
 .hidden {
     display: none !important;
 }
 
-/* LEADERBOARD STİLLERİ */
+/* LEADERBOARD STYLES */
 #leaderboard-section {
-    margin: 20px 0;
+    margin: 30px 0;
     text-align: center;
     width: 100%;
     display: flex;
@@ -237,32 +293,62 @@ button.main-btn:active {
 }
 
 #player-name-input {
-    background: rgba(255, 255, 255, 0.1);
-    border: 2px solid #ff0055;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid #333;
     color: white;
-    padding: 10px;
-    font-size: 1.2rem;
-    border-radius: 5px;
+    padding: 15px 25px;
+    font-size: 1.3rem;
+    border-radius: 12px;
     outline: none;
     text-align: center;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
     font-family: inherit;
+    width: 300px;
+    transition: all 0.3s;
+}
+
+#player-name-input:focus {
+    border-color: #ff0055;
+    background: rgba(255, 0, 85, 0.1);
+    box-shadow: 0 0 20px rgba(255, 0, 85, 0.2);
+}
+
+#submit-score-btn {
+    margin-top: 10px !important;
+    padding: 12px 30px !important;
+    font-size: 1.1rem !important;
+    background: linear-gradient(45deg, #00aaaa, #00ffff) !important;
+    /* Fixed typo in logic, but let's stick to theme */
+    background: transparent;
+    border: 1px solid #ff0055 !important;
+    color: #ff0055 !important;
+    box-shadow: none !important;
+}
+
+#submit-score-btn:hover {
+    background: #ff0055 !important;
+    color: white !important;
+    box-shadow: 0 0 20px rgba(255, 0, 85, 0.4) !important;
 }
 
 .leaderboard-container {
-    margin-top: 20px;
-    background: rgba(0, 0, 0, 0.6);
-    border: 1px solid #333;
-    border-radius: 10px;
-    padding: 15px;
-    width: 300px;
+    margin-top: 30px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 25px;
+    width: 350px;
     max-width: 90%;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
 .leaderboard-container h3 {
     color: #ffd700;
-    margin: 0 0 10px 0;
-    font-size: 1.2rem;
+    margin: 0 0 15px 0;
+    font-size: 1.4rem;
+    letter-spacing: 1px;
+    border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+    padding-bottom: 10px;
 }
 
 #leaderboard-list {
@@ -275,22 +361,26 @@ button.main-btn:active {
 #leaderboard-list li {
     display: flex;
     justify-content: space-between;
-    padding: 5px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    font-size: 1rem;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 1.1rem;
     color: #0ff;
+    transition: background 0.2s;
+}
+
+#leaderboard-list li:last-child {
+    border-bottom: none;
 }
 
 #leaderboard-list li span:last-child {
     color: #fff;
-    font-weight: bold;
+    font-weight: 800;
 }
 
 /* BOSS HUD */
 #boss-hud {
     position: absolute;
     top: 60px;
-    /* Level göstergesinin altında */
     left: 50%;
     transform: translateX(-50%);
     width: 60%;
@@ -303,30 +393,29 @@ button.main-btn:active {
 }
 
 #boss-name {
-    font-size: 1.5rem;
+    font-size: 1.8rem;
     font-weight: 900;
     letter-spacing: 5px;
     color: #ff00ff;
-    text-shadow: 0 0 10px #ff00ff;
-    margin-bottom: 5px;
-    /* 
-    animation: pulseName 1s infinite alternate; */
+    text-shadow: 0 0 20px rgba(255, 0, 255, 0.8);
+    margin-bottom: 8px;
 }
 
 #boss-hp-bar {
     width: 100%;
-    height: 30px;
+    height: 20px;
     background: rgba(0, 0, 0, 0.8);
-    border: 3px solid #fff;
-    border-radius: 15px;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 10px;
     overflow: hidden;
-    box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
+    box-shadow: 0 0 20px rgba(255, 0, 255, 0.3);
 }
 
 #boss-hp-fill {
     width: 100%;
     height: 100%;
-    background: #8a2be2;
+    background: linear-gradient(90deg, #8a2be2, #ff00ff);
+    box-shadow: 0 0 15px #ff00ff;
     transition: width 0.2s, background 0.5s;
 }
 
@@ -341,8 +430,6 @@ button.main-btn:active {
         opacity: 1;
     }
 }
-
-/* canvas { cursor: none; } */
 
 /* MOBILE RESPONSIVE OPTIMIZATIONS */
 @media screen and (max-width: 768px) {
@@ -386,16 +473,14 @@ button.main-btn:active {
     }
 
     #boss-name {
-        font-size: 1rem;
-        /* İsmi küçült */
+        font-size: 1.2rem;
         letter-spacing: 2px;
-        margin-bottom: 2px;
+        margin-bottom: 4px;
     }
 
     #boss-hp-bar {
         height: 12px;
         /* Barı incelt */
-        border: 1px solid rgba(255, 255, 255, 0.5);
         border-radius: 6px;
     }
 
@@ -415,20 +500,20 @@ button.main-btn:active {
 
     /* Level Up Ekranı Mobilde Taşmasın */
     h1 {
-        font-size: 2.5rem;
+        font-size: 3rem;
     }
 
     h2 {
-        font-size: 1.8rem;
+        font-size: 2rem;
     }
 
     .perk-container {
-        gap: 10px;
+        gap: 15px;
     }
 
     .perk-card {
         width: 100%;
-        max-width: 300px;
-        padding: 15px;
+        max-width: 320px;
+        padding: 20px;
     }
 }

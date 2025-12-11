@@ -127,9 +127,9 @@ function triggerLevelUp() {
 
             // Dynamic Descriptions
             if (perk.id === 'orbitals') {
-                displayDesc = `(Şu an: ${gameState.playerStats.orbitals} koruma) + 1 Yörünge Koruması ekler.`;
+                displayDesc = `(Current: ${gameState.playerStats.orbitals} protection) + 1 Orbital Shield.`;
             } else if (perk.id === 'split_shot') {
-                displayDesc = `(Şu an: ${gameState.playerStats.splitShotCount} parça) + 1 Parçaya Ayrılır.`;
+                displayDesc = `(Current: ${gameState.playerStats.splitShotCount} fragments) + 1 Fragment on hit.`;
             }
 
             const div = document.createElement('div');
@@ -156,7 +156,7 @@ function startBossFight(bossId = 1) {
     gameState.bossActive = true;
     gameState.level++; // 15 veya 30 olur
 
-    // Boss tipine göre etiket
+    // Boss label based on type
     let bossLabel = bossId === 2 ? "BOSS: NEXUS" : "BOSS: OMEGA";
     if (bossId === 3) bossLabel = "BOSS: ARCHITECT";
     updateLevelIndicator(bossLabel);
@@ -974,7 +974,7 @@ function initGame() {
 
 // Death Sequence
 function startDeathSequence() {
-    if (gameState.isDying || !gameState.gameActive) return;
+    if (gameState.isDying || !gameState.gameActive || blackHole) return;
 
     gameState.isDying = true;
     gameState.deathTimer = 0;

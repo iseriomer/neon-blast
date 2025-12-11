@@ -3,17 +3,17 @@
 // 1. Panelin HTML Yapısı
 const ADMIN_HTML = `
     <div id="admin-panel" class="hidden">
-        <h3>🛠️ ADMIN PANELİ</h3>
+        <h3>🛠️ ADMIN PANEL</h3>
         <div class="admin-grid">
-            <button onclick="adminGodMode()" id="btn-godmode">🛡️ God Mode: KAPALI</button>
-            <button onclick="adminLevelUp()">⬆️ Level Atla</button>
-            <button onclick="adminKillAll()">💀 Herkesi Öldür</button>
-            <button onclick="adminAddScore()">💰 +5000 Puan</button>
-            <button onclick="adminMaxFireRate()">🔫 Makineli Tüfek</button>
-            <button onclick="adminSpawnBoss()">😈 Boss Çağır</button>
+            <button onclick="adminGodMode()" id="btn-godmode">🛡️ God Mode: OFF</button>
+            <button onclick="adminLevelUp()">⬆️ Level Up</button>
+            <button onclick="adminKillAll()">💀 Kill All</button>
+            <button onclick="adminAddScore()">💰 +5000 Score</button>
+            <button onclick="adminMaxFireRate()">🔫 Machine Gun</button>
+            <button onclick="adminSpawnBoss()">😈 Spawn Boss</button>
             <button onclick="adminToggleCluster()">💣 Cluster Test (+5)</button>
         </div>
-        <div class="admin-info">Panel: <b>"H"</b> Tuşu</div>
+        <div class="admin-info">Panel: <b>"H"</b> Key</div>
     </div>
 `;
 
@@ -57,7 +57,7 @@ function initAdminPanel() {
         }
     });
 
-    console.log("Admin Paneli Yüklendi. Açmak için 'H' tuşuna basın.");
+    console.log("Admin Panel Loaded. Press 'H' to toggle.");
 }
 
 // 4. Admin Fonksiyonları
@@ -66,13 +66,13 @@ function adminGodMode() {
     const btn = document.getElementById('btn-godmode');
 
     if (gameState.godMode) {
-        btn.innerText = "🛡️ God Mode: AÇIK";
+        btn.innerText = "🛡️ God Mode: ON";
         btn.style.background = "#00ff00";
         btn.style.color = "black";
         gameState.playerStats.shield = 999;
         updateShieldIndicator(999);
     } else {
-        btn.innerText = "🛡️ God Mode: KAPALI";
+        btn.innerText = "🛡️ God Mode: OFF";
         btn.style.background = "#003300";
         btn.style.color = "#00ff00";
         gameState.playerStats.shield = gameState.playerStats.maxShields;

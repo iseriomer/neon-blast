@@ -1,23 +1,23 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Neon Parçacık: Evrim [OPTIMIZED]</title>
+    <title>Neon Blast</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-    <!-- Oyun Arayüzü -->
+    <!-- Game UI Layer -->
     <div id="ui-layer">
         <div id="xp-container">
             <div id="xp-bar">
                 <div id="xp-fill"></div>
             </div>
             <div id="xp-info-row">
-                <div id="level-indicator">Seviye: 1</div>
+                <div id="level-indicator">Level: 1</div>
                 <div id="xp-text">0 / 1000</div>
             </div>
         </div>
@@ -31,67 +31,60 @@
         <div id="fps-counter">FPS: 60</div>
     </div>
 
-    <!-- Başlangıç Ekranı -->
+    <!-- Start Screen -->
     <div id="start-screen">
-        <h1>NEON EVRİM</h1>
-        <p>Merkezi koru. Düşmanları yok et.<br>XP barını doldurup EVRİM GEÇİR.</p>
+        <h1>NEON BLAST</h1>
+        <p>Protect the center. Destroy enemies.<br>Fill the XP bar to EVOLVE.</p>
         <p style="font-size: 0.9rem; color: #888; margin-top: 10px;">
             ⚡ OPTIMIZED VERSION ⚡<br>
             Press <strong>P</strong> for Performance Monitor
         </p>
-        <button class="main-btn" id="start-btn">BAŞLAT</button>
+        <button class="main-btn" id="start-btn">START GAME</button>
     </div>
 
-    <!-- Oyun Sonu Ekranı -->
+    <!-- Game Over Screen -->
     <div id="game-over-screen" class="hidden">
-        <h1 style="color: #ff0055; -webkit-text-fill-color: #ff0055;">OYUN BİTTİ</h1>
-        <p id="final-score">Skorun: 0</p>
+        <h1 style="color: #ff0055; -webkit-text-fill-color: #ff0055;">GAME OVER</h1>
+        <p id="final-score">Score: 0</p>
 
         <div id="leaderboard-section">
-            <input type="text" id="player-name-input" placeholder="İsmini Gir" maxlength="20">
-            <button class="main-btn" id="submit-score-btn" style="padding: 10px 30px; font-size: 1rem;">SKORU
-                KAYDET</button>
+            <input type="text" id="player-name-input" placeholder="Enter your name" maxlength="20">
+            <button class="main-btn" id="submit-score-btn" style="padding: 10px 30px; font-size: 1rem;">SAVE
+                SCORE</button>
 
             <div class="leaderboard-container">
-                <h3>🏆 EN İYİ 5 OYUNCU 🏆</h3>
+                <h3>🏆 TOP 5 PLAYERS 🏆</h3>
                 <ul id="leaderboard-list">
-                    <li>Yükleniyor...</li>
+                    <li>Loading...</li>
                 </ul>
             </div>
         </div>
-        <button class="main-btn" id="restart-btn" style="margin-top: 20px;">TEKRAR DENE</button>
+        <button class="main-btn" id="restart-btn" style="margin-top: 20px;">PLAY AGAIN</button>
     </div>
 
-    <!-- Level Up / Perk Seçim Ekranı -->
+    <!-- Level Up / Perk Selection Screen -->
     <div id="levelup-screen" class="hidden">
-        <h2>SEVİYE ATLADIN!</h2>
-        <p>Bir güçlendirme seç:</p>
+        <h2>LEVEL UP!</h2>
+        <p>Choose a perk:</p>
         <div class="perk-container" id="perk-list"></div>
     </div>
 
     <!-- Admin Panel -->
     <div id="admin-panel" class="hidden">
-        <h3>🛠️ ADMIN PANELİ</h3>
+        <h3>🛠️ ADMIN PANEL</h3>
         <div class="admin-grid">
-            <button onclick="adminGodMode()" id="btn-godmode">🛡️ God Mode: KAPALI</button>
-            <button onclick="adminLevelUp()">⬆️ Level Atla</button>
-            <button onclick="adminKillAll()">💀 Herkesi Öldür</button>
-            <button onclick="adminAddScore()">💰 +5000 Puan</button>
-            <button onclick="adminMaxFireRate()">🔫 Makineli Tüfek</button>
-            <button onclick="adminSpawnBoss()">😈 Boss Çağır</button>
+            <button onclick="adminGodMode()" id="btn-godmode">🛡️ God Mode: OFF</button>
+            <button onclick="adminLevelUp()">⬆️ Level Up</button>
+            <button onclick="adminKillAll()">💀 Kill All</button>
+            <button onclick="adminAddScore()">💰 +5000 Score</button>
+            <button onclick="adminMaxFireRate()">🔫 Machine Gun</button>
+            <button onclick="adminSpawnBoss()">😈 Spawn Boss</button>
         </div>
         <div class="admin-info">
             Panel: <b>H</b> | Profiler: <b>P</b>
         </div>
     </div>
-    <!-- <div id="bg-selector-container" style="position: absolute; top: 10px; left: 10px; z-index: 1000;">
-        <select id="bg-select" style="background: rgba(0,0,0,0.8); color: #00ffff; border: 1px solid #00ffff; padding: 5px 10px; font-family: 'Courier New'; cursor: pointer; outline: none;">
-            <option value="nebula">🌌 Deep Space (Mor)</option>
-            <option value="magma">🔥 Solar Flare (Turuncu)</option>
-            <option value="toxic">bio Toxic Waste (Yeşil)</option>
-            <option value="bokeh">✨ Dreamy Bokeh (Renkli)</option>
-        </select>
-    </div> -->
+
     <canvas id="gameCanvas"></canvas>
 
     <!-- Load Firebase Leaderboard -->
@@ -129,7 +122,6 @@
     <script src="game/boss.js"></script>
     <script src="game/boss_2.js"></script>
     <script src="game/boss_3.js"></script>
-    <!-- <script src="game/boss_2.js"></script> -->
     <!-- 9. REPLACE: Main game loop with all optimizations -->
     <script src="game/game-OPTIMIZED.js"></script>
     <script src="game/background.js"></script>
