@@ -37,7 +37,10 @@ const gameState = {
     isDying: false,
     deathTimer: 0,
     isStarting: false,
-    startTimer: 0
+    startTimer: 0,
+    startTimer: 0,
+    activeHealerCount: 0,
+    takenPerks: []
 };
 
 // Input State
@@ -48,6 +51,9 @@ let isMouseDown = false;
 
 // Spawn Enemies
 function spawnEnemies() {
+    // Clear any existing interval to prevent duplicates (Leak fix)
+    if (gameState.spawnInterval) clearInterval(gameState.spawnInterval);
+
     let spawnRate = 1000 - (gameState.difficultyMultiplier * 50);
     if (gameState.level >= 10) spawnRate = 1000 - (gameState.difficultyMultiplier * 100);
     if (gameState.level >= 20) spawnRate = 1000 - (gameState.difficultyMultiplier * 150);
@@ -60,7 +66,7 @@ function spawnEnemies() {
         let type = ENEMY_TYPES.BASIC;
         const rand = Math.random();
 
-        if (gameState.difficultyMultiplier > 5 && rand < 0.08) type = ENEMY_TYPES.HEALER; // Rare spawn
+        if (gameState.difficultyMultiplier > 5 && rand < 0.04 && gameState.activeHealerCount < 4) type = ENEMY_TYPES.HEALER; // Rare spawn (Max 4)
         else if (gameState.difficultyMultiplier > 4 && rand < 0.15) type = ENEMY_TYPES.SPAWNER;
         else if (gameState.difficultyMultiplier > 3 && rand < 0.25) type = ENEMY_TYPES.SPLITTER;
         else if (gameState.difficultyMultiplier > 2 && rand < 0.35) type = ENEMY_TYPES.TANK;
@@ -104,6 +110,7 @@ function triggerLevelUp() {
     setTimeout(() => {
         // Filter perks
         let availablePerks = ALL_PERKS.filter(p => {
+            if (p.singleUse && gameState.takenPerks.includes(p.id)) return false;
             if (p.id === 'energy_shield' && gameState.playerStats.shield >= gameState.playerStats.maxShields) return false;
             if (p.id === 'double_shot' && gameState.playerStats.shotCount >= MAX_SHOT_COUNT) return false;
             if (p.id === 'back_shot' && gameState.playerStats.backShot) return false;
@@ -138,6 +145,11 @@ function triggerLevelUp() {
 
             const div = document.createElement('div');
             div.className = 'perk-card';
+            // Set dynamic theme color
+            if (perk.theme) {
+                div.style.setProperty('--perk-theme', perk.theme);
+            }
+
             div.innerHTML = `
                 <div class="perk-title">${perk.title}</div>
                 <div class="perk-desc">${displayDesc}</div>
@@ -183,6 +195,7 @@ function startBossFight(bossId = 1) {
 }
 
 function selectPerk(perk) {
+    gameState.takenPerks.push(perk.id);
     perk.apply(gameState.playerStats);
     gameState.level++;
     gameState.currentLevelStep = Math.floor(gameState.currentLevelStep * 1.1) + 200;
@@ -208,6 +221,7 @@ function checkCollisions() {
 
     // Early exit: If no enemies AND no boss, nothing to collide with
     if (enemies.length === 0 && !gameState.bossActive) {
+        gameState.activeHealerCount = 0;
         profiler.end('collisions');
         return;
     }
@@ -236,7 +250,7 @@ function checkCollisions() {
                 spawnParticles(enemy.x, enemy.y, 10, 5, enemy.color);
                 continue;
             }
-            if (gameState.playerStats.shield > 0) {
+            if (gameState.playerStats.shield > 0 && !blackHole) {
                 gameState.playerStats.shield--;
                 updateShieldIndicator(gameState.playerStats.shield);
                 CTX.fillStyle = 'rgba(0, 255, 255, 0.3)';
@@ -261,6 +275,7 @@ function checkCollisions() {
     // ═══════════════════════════════════════════════════════
     profiler.start('healer-system');
     const healers = enemies.filter(e => e.type.name === 'Healer');
+    gameState.activeHealerCount = healers.length;
 
     if (healers.length > 0) {
         for (const healer of healers) {
@@ -457,7 +472,7 @@ function checkCollisions() {
                     spawnCritStars(enemy.x, enemy.y, '#ffffff');
                 }
 
-                if (gameState.playerStats.execute && enemy.hp / enemy.maxHp < 0.3) {
+                if (gameState.playerStats.execute && enemy.hp / enemy.maxHp < 0.2) {
                     damage = 999;
                     spawnParticles(enemy.x, enemy.y, 10, 3, 'red', 2);
                 }
@@ -955,6 +970,8 @@ function initGame() {
     gameState.nextLevelThreshold = 600;
     gameState.currentLevelStep = 600;
     gameState.difficultyMultiplier = 0;
+    gameState.activeHealerCount = 0;
+    gameState.takenPerks = [];
     // Yeni:
     gameState.singularityTimer = 0;
     blackHole = null;
@@ -1262,7 +1279,9 @@ function updateAndDrawLightnings(dt) {
 // YENİ: Merkezi ölüm yönetimi (Kod tekrarını ve bugları önler)
 function handleEnemyDeath(enemy) {
     // Eğer zaten öldüyse veya havuzda değilse işlem yapma
-    if (enemy.hp > 0 && !enemyPool.active.includes(enemy)) return;
+    if ((enemy.hp > 0 && !enemyPool.active.includes(enemy)) || enemy.isDead) return;
+
+    enemy.isDead = true;
 
     if (!gameState.bossActive) {
         gameState.score += enemy.type.score;

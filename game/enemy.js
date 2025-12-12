@@ -19,12 +19,20 @@ class Enemy {
         this.shieldPulse = 0;
         this.poisonTimer = 0;
         this.burnTimer = 0;
+        this.isDead = false;
     }
 
     reset(x, y, type, difficultyMultiplier) {
         this.x = x;
         this.y = y;
         this.type = type;
+
+        // FIX: Boss 2 assigns custom update methods and physics to enemies.
+        // We must clear these when recycling the enemy from the pool.
+        delete this.update;
+        this.vx = 0;
+        this.vy = 0;
+        this.isChasing = false;
 
         // YARIÇAP ve HIZ ölçekleniyor
         this.radius = type.radius * GAME_SCALE;
@@ -52,6 +60,7 @@ class Enemy {
         this.shieldPulse = 0;
         this.poisonTimer = 0;
         this.burnTimer = 0;
+        this.isDead = false;
     }
 
     draw() {

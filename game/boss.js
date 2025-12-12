@@ -3,7 +3,7 @@
 const BOSS_TYPES = {
     OMEGA: {
         name: 'OMEGA CORE',
-        hp: 3500,
+        hp: 6500,
         color: '#8a2be2', // Phase 1: Mor
         radius: 80,
         score: 6000

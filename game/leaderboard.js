@@ -13,14 +13,14 @@ import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs } from
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-apiKey: "AIzaSyCNqCeXDbc04vuqj8VX0i34NebvcClqUes",
-authDomain: "neon-blast-8a945.firebaseapp.com",
-databaseURL: "https://neon-blast-8a945-default-rtdb.europe-west1.firebasedatabase.app",
-projectId: "neon-blast-8a945",
-storageBucket: "neon-blast-8a945.firebasestorage.app",
-messagingSenderId: "313551328820",
-appId: "1:313551328820:web:d565525e8b0d5ae26e1c61",
-measurementId: "G-YCGD0Z8GDM"
+    apiKey: "AIzaSyCNqCeXDbc04vuqj8VX0i34NebvcClqUes",
+    authDomain: "neon-blast-8a945.firebaseapp.com",
+    databaseURL: "https://neon-blast-8a945-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "neon-blast-8a945",
+    storageBucket: "neon-blast-8a945.firebasestorage.app",
+    messagingSenderId: "313551328820",
+    appId: "1:313551328820:web:d565525e8b0d5ae26e1c61",
+    measurementId: "G-YCGD0Z8GDM"
 };
 
 // Firebase'i Başlat
@@ -32,12 +32,17 @@ const scoresCollection = collection(db, "scores");
 // DOM Elementleri
 const nameInput = document.getElementById('player-name-input');
 const submitBtn = document.getElementById('submit-score-btn');
-const listElement = document.getElementById('leaderboard-list');
+const listElement = document.getElementById('leaderboard-list'); // Keeping for reference if needed, though loadLeaderboard handles it.
+
+// NEW: Main Menu Leaderboard Elements
+const leaderboardScreen = document.getElementById('leaderboard-screen');
+const openLeaderboardBtn = document.getElementById('leaderboard-btn');
+const closeLeaderboardBtn = document.getElementById('close-leaderboard-btn');
 
 // Skoru Veritabanına Kaydet
 async function saveScoreToDB(name, score, level) {
     if (!name.trim()) return alert("Lütfen bir isim gir!");
-    
+
     submitBtn.disabled = true;
     submitBtn.innerText = "Kaydediliyor...";
 
@@ -48,7 +53,7 @@ async function saveScoreToDB(name, score, level) {
             level: level,
             date: new Date()
         });
-        
+
         // Kaydettikten sonra listeyi yenile ve butonu gizle
         await loadLeaderboard();
         submitBtn.style.display = 'none';
@@ -63,48 +68,83 @@ async function saveScoreToDB(name, score, level) {
 
 // Skorları Getir ve Listele
 async function loadLeaderboard() {
-    listElement.innerHTML = '<li>Yükleniyor...</li>';
-    
+    const listElements = [
+        document.getElementById('leaderboard-list'),
+        document.getElementById('main-leaderboard-list')
+    ];
+
+    // Yükleniyor yazısı
+    listElements.forEach(el => {
+        if (el) el.innerHTML = '<li>Yükleniyor...</li>';
+    });
+
     // Skora göre azalan sırala, ilk 5'i al
     const q = query(scoresCollection, orderBy("score", "desc"), limit(5));
-    
+
     try {
         const querySnapshot = await getDocs(q);
-        listElement.innerHTML = '';
-        
-        let rank = 1;
+        const scores = [];
         querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            const li = document.createElement('li');
-            li.innerHTML = `
-                <span>#${rank} ${data.name}</span>
-                <span>${data.score}</span>
-            `;
-            listElement.appendChild(li);
-            rank++;
+            scores.push(doc.data());
         });
 
-        if (rank === 1) {
-             listElement.innerHTML = '<li>Henüz skor yok. İlk sen ol!</li>';
-        }
+        listElements.forEach(el => {
+            if (!el) return;
+            el.innerHTML = '';
+
+            if (scores.length === 0) {
+                el.innerHTML = '<li>Henüz skor yok. İlk sen ol!</li>';
+                return;
+            }
+
+            scores.forEach((data, index) => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span>#${index + 1} ${data.name}</span>
+                    <span>${data.score}</span>
+                `;
+                el.appendChild(li);
+            });
+        });
 
     } catch (e) {
         console.error("Liste çekilemedi:", e);
-        listElement.innerHTML = '<li>Bağlantı hatası!</li>';
+        listElements.forEach(el => {
+            if (el) el.innerHTML = '<li>Bağlantı hatası!</li>';
+        });
     }
 }
 
 // Olay Dinleyicileri
-submitBtn.addEventListener('click', () => {
-    // Global gameState objesine erişim (window üzerinden)
-    // game.js'deki skor değişkenini alıyoruz
-    // NOT: game.js'deki gameState değişkeni global değilse erişemeyebiliriz.
-    // Bu yüzden game.js içinde window.currentScore gibi bir atama yapacağız (Adım 5'e bak).
-    
-    const currentScore = window.lastGameScore || 0;
-    const currentLevel = window.lastGameLevel || 1;
-    saveScoreToDB(nameInput.value, currentScore, currentLevel);
-});
+// Olay Dinleyicileri
+if (submitBtn) {
+    submitBtn.addEventListener('click', () => {
+        const currentScore = window.lastGameScore || 0;
+        const currentLevel = window.lastGameLevel || 1;
+        saveScoreToDB(nameInput.value, currentScore, currentLevel);
+    });
+}
+
+// NEW: Main Menu Button Logic
+if (openLeaderboardBtn) {
+    openLeaderboardBtn.addEventListener('click', () => {
+        if (leaderboardScreen) {
+            leaderboardScreen.classList.remove('hidden');
+            leaderboardScreen.style.display = 'flex';
+            leaderboardScreen.style.zIndex = '100'; // Force on top
+            loadLeaderboard();
+        }
+    });
+}
+
+if (closeLeaderboardBtn) {
+    closeLeaderboardBtn.addEventListener('click', () => {
+        if (leaderboardScreen) {
+            leaderboardScreen.style.display = 'none';
+            leaderboardScreen.classList.add('hidden');
+        }
+    });
+}
 
 // Fonksiyonu dışarıdan tetiklenebilir yapmak için window'a ata
 window.fetchLeaderboard = loadLeaderboard;

@@ -21,7 +21,7 @@ const POOL_SIZES = {
 // Enemy Types Configuration
 const ENEMY_TYPES = {
     BASIC: {
-        radius: 20,
+        radius: 22,
         color: 'hsl(0, 70%, 50%)',
         speed: 1,
         hp: 1,
@@ -29,9 +29,9 @@ const ENEMY_TYPES = {
         name: 'Basic'
     },
     SPEEDSTER: {
-        radius: 12,
+        radius: 16,
         color: 'hsl(60, 90%, 60%)',
-        speed: 1.8,
+        speed: 1.9,
         hp: 1,
         score: 100,
         name: 'Speedster'
@@ -129,5 +129,5 @@ const DEFAULT_PLAYER_STATS = {
     poisonDamage: 0.2, // HP per second (approx)
     burn: false,
     burnDamage: 0.5, // HP per second
-    laserDamage: 0.02
+    laserDamage: 0.05
 };
