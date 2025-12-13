@@ -148,6 +148,7 @@ canvas {
     #game-over-screen {
         justify-content: center;
         /* Try to center content vertically */
+        zoom: 0.8;
     }
 }
 
@@ -503,7 +504,7 @@ button.main-btn:active {
     }
 
     #xp-container {
-        width: 180px;
+        width: 250px;
     }
 
     #boss-hud {
@@ -622,12 +623,33 @@ button.main-btn:active {
 @media screen and (max-height: 500px) {
 
     #start-screen,
-    #game-over-screen,
+
     #levelup-screen {
         justify-content: center;
         padding: 10px;
         overflow-y: auto;
         /* Allow scrolling if content is too tall */
+    }
+
+    #game-over-screen {
+        zoom: 0.76;
+        justify-content: center;
+        padding: 10px;
+        overflow-y: auto;
+    }
+
+    /* XP Container için özel ölçekleme */
+    #xp-container {
+        /* 1. Objeyi %70 boyutuna indir (Değeri ihtiyacına göre 0.6 veya 0.8 yapabilirsin) */
+        transform: scale(0.7);
+
+        /* 2. Küçülme işlemini MERKEZE değil, SOL ÜSTE sabitleyerek yap */
+        transform-origin: top left;
+
+        /* Eğer scale sonrası çok kenara yapışık kalırsa biraz pay bırakabilirsin */
+        /* margin-top: 10px; */
+        /* margin-left: 10px; */
+
     }
 
     h1 {
@@ -726,4 +748,139 @@ button.main-btn:active {
     .perk-desc {
         font-size: 0.8rem;
     }
+}
+
+/* PAUSE BUTTON & MENU */
+#pause-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: #000;
+    border: 2px solid #00ffff;
+    color: #00ffff;
+    font-size: 1.5rem;
+    cursor: pointer;
+    z-index: 100;
+    width: 25px;
+    height: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0;
+    /* KESKİN */
+    transform: skew(-5deg);
+    box-shadow: 4px 4px 0 #00ffff;
+    transition: all 0.1s;
+    pointer-events: auto;
+    /* ENABLE CLICKS */
+}
+
+#pause-btn:hover {
+    background: #00ffff;
+    color: #000;
+    transform: skew(-5deg) translate(-2px, -2px);
+    box-shadow: 6px 6px 0 #000;
+}
+
+#pause-btn:active {
+    transform: skew(-5deg) translate(2px, 2px);
+    box-shadow: 2px 2px 0 #000;
+}
+
+#pause-menu {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    /* Higher than UI layer */
+}
+
+#pause-menu h2 {
+    font-size: 3rem;
+    color: #fff;
+    text-shadow: 0 0 10px #00ffff;
+    margin-bottom: 40px;
+    border-bottom: none;
+}
+
+.pause-options {
+    margin-bottom: 30px;
+}
+
+/* FPS Toggle Checkbox */
+.toggle-container {
+    display: flex;
+    align-items: center;
+    position: relative;
+    padding-left: 35px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    user-select: none;
+    color: #eee;
+    font-family: monospace;
+}
+
+.toggle-container input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+.checkmark {
+    position: absolute;
+    left: 0;
+    height: 25px;
+    width: 25px;
+    background-color: #222;
+    border: 2px solid #555;
+    transition: all 0.2s;
+}
+
+.toggle-container:hover input~.checkmark {
+    background-color: #333;
+    border-color: #777;
+}
+
+.toggle-container input:checked~.checkmark {
+    background-color: #00ffff;
+    border-color: #00ffff;
+    box-shadow: 0 0 10px #00ffff;
+}
+
+.checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+
+.toggle-container input:checked~.checkmark:after {
+    display: block;
+}
+
+.toggle-container .checkmark:after {
+    left: 9px;
+    top: 5px;
+    width: 5px;
+    height: 10px;
+    border: solid black;
+    border-width: 0 3px 3px 0;
+    -webkit-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    transform: rotate(45deg);
+}
+
+/* Adjust FPS counter position if needed to not overlap with pause button */
+#fps-counter {
+    right: 70px;
+    /* Move it to the left of the pause button */
+    top: 20px;
 }

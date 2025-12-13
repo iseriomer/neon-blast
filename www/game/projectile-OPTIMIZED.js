@@ -106,7 +106,7 @@ class Projectile {
 
     // En yakın düşmanı bul (SPATIAL GRID ile optimize edilebilir!)
     findNearestEnemy(enemies) {
-        const homingRange = 500 * GAME_SCALE; // Ölçeklenmiş menzil
+        const homingRange = 300 * GAME_SCALE; // Ölçeklenmiş menzil
         let nearestEnemy = null;
         let minDistSq = homingRange * homingRange; // Squared distance karşılaştırması (sqrt yok!)
 

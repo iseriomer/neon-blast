@@ -504,7 +504,49 @@ function gameOver() {
     gameOverScreen.classList.remove('hidden');
 }
 
-// Init Input Manager
+
+
+// PAUSE FUNCTIONALITY
+function togglePause() {
+    if (!gameState.gameActive) return; // Can't pause if game not active
+
+    gameState.isPaused = !gameState.isPaused;
+
+    if (gameState.isPaused) {
+        document.getElementById('pause-menu').classList.remove('hidden');
+        document.getElementById('ui-layer').style.filter = 'blur(5px)'; // Optional: Blur BG
+    } else {
+        document.getElementById('pause-menu').classList.add('hidden');
+        document.getElementById('ui-layer').style.filter = 'none';
+        lastTime = 0; // Reset timer to prevent jump
+        requestAnimationFrame(animate);
+    }
+}
+
+document.getElementById('pause-btn').addEventListener('click', togglePause);
+document.getElementById('resume-btn').addEventListener('click', togglePause);
+
+// FPS TOGGLE
+document.getElementById('fps-toggle').addEventListener('change', (e) => {
+    const fpsCounter = document.getElementById('fps-counter');
+    if (e.target.checked) {
+        fpsCounter.style.display = 'block';
+    } else {
+        fpsCounter.style.display = 'none';
+    }
+});
+
+// KEYBOARD SHORTCUTS
+window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        if (gameState.gameActive && !gameState.isDying) {
+            togglePause();
+        } else if (!document.getElementById('leaderboard-screen').classList.contains('hidden')) {
+            // Close leaderboard if open (optional context)
+            document.getElementById('leaderboard-screen').classList.add('hidden');
+        }
+    }
+});
 InputManager.init();
 
 // Initialize buttons

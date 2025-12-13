@@ -58,37 +58,76 @@ function updateFPS() {
 }
 
 function showLevelUpAnimation() {
+    // Check if an existing animation is running and remove it to prevent overlap
+    const existingAnim = document.getElementById('levelup-floating-text');
+    if (existingAnim) {
+        existingAnim.remove();
+    }
+
     const levelUpAnim = document.createElement('div');
+    levelUpAnim.id = 'levelup-floating-text';
+    levelUpAnim.innerText = 'LEVEL UP!';
+
+    // Dynamic styles for the element
     levelUpAnim.style.cssText = `
         position: fixed;
-        top: 50%;
+        top: 40%;
         left: 50%;
-        transform: translate(-50%, -50%);
-        font-size: 5rem;
-        font-weight: bold;
+        transform: translate(-50%, -50%) skew(-5deg);
+        font-size: clamp(4rem, 12vw, 8rem);
+        font-weight: 900;
+        font-family: 'Arial Black', Impact, sans-serif;
         color: #ffd700;
-        text-shadow: 0 0 30px #ffd700;
-        z-index: 40;
-        animation: levelUpPulse 1.2s ease-out;
+        text-shadow: 6px 6px 0 #b8860b, 0 0 30px rgba(255, 215, 0, 0.8);
+        z-index: 100;
         pointer-events: none;
+        white-space: nowrap;
+        text-transform: uppercase;
+        letter-spacing: -2px;
+        opacity: 0;
+        animation: levelUpPop 1.5s cubic-bezier(0.19, 1, 0.22, 1) forwards;
     `;
-    levelUpAnim.innerText = 'LEVEL UP!';
+
     document.body.appendChild(levelUpAnim);
 
+    // Inject styles for the animation if not already present
     if (!document.getElementById('levelup-anim-style')) {
         const style = document.createElement('style');
         style.id = 'levelup-anim-style';
         style.innerHTML = `
-            @keyframes levelUpPulse {
-                0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-                50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
-                100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+            @keyframes levelUpPop {
+                0% { 
+                    opacity: 0; 
+                    transform: translate(-50%, -20%) skew(-10deg) scale(0.5); 
+                    filter: blur(10px);
+                }
+                15% { 
+                    opacity: 1; 
+                    transform: translate(-50%, -50%) skew(-5deg) scale(1.1); 
+                    filter: blur(0px);
+                }
+                30% { 
+                    transform: translate(-50%, -50%) skew(-5deg) scale(1); 
+                }
+                80% { 
+                    opacity: 1; 
+                    transform: translate(-50%, -50%) skew(-5deg) scale(1); 
+                    filter: blur(0px);
+                }
+                100% { 
+                    opacity: 0; 
+                    transform: translate(-50%, -100%) skew(-5deg) scale(1.2); 
+                    filter: blur(4px);
+                }
             }
         `;
         document.head.appendChild(style);
     }
 
+    // Cleanup after animation finishes
     setTimeout(() => {
-        document.body.removeChild(levelUpAnim);
-    }, 1200);
+        if (levelUpAnim.parentNode) {
+            levelUpAnim.parentNode.removeChild(levelUpAnim);
+        }
+    }, 1500);
 }

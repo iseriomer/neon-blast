@@ -28,7 +28,24 @@
             </div>
         </div>
         <div id="shield-indicator"></div>
-        <div id="fps-counter">FPS: 60</div>
+        <!-- FPS Counter (Hidden by default) -->
+        <div id="fps-counter" style="display: none;">FPS: 60</div>
+
+        <!-- Pause Button -->
+        <button id="pause-btn" class="icon-btn">⏸️</button>
+    </div>
+
+    <!-- Pause Menu (Hidden by default) -->
+    <div id="pause-menu" class="hidden">
+        <h2>PAUSED</h2>
+        <div class="pause-options">
+            <label class="toggle-container">
+                <input type="checkbox" id="fps-toggle">
+                <span class="checkmark"></span>
+                Show FPS
+            </label>
+        </div>
+        <button class="main-btn" id="resume-btn">RESUME</button>
     </div>
 
     <div id="start-screen">

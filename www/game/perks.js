@@ -112,7 +112,7 @@ const ALL_PERKS = [
         icon: '🚀',
         theme: '#00ff88',
         apply: (stats) => {
-            stats.homing += 0.1;
+            stats.homing += 0.03;
             stats.color = '#0f0';
         }
     },
