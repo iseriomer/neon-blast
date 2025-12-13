@@ -1,4 +1,4 @@
-// game/boss.js - Epic Boss System (Clean & Simple 2 Phases)
+// game/boss.js - Epic Boss System (Refactored)
 
 const BOSS_TYPES = {
     OMEGA: {
@@ -10,89 +10,63 @@ const BOSS_TYPES = {
     }
 };
 
-class Boss {
+class BossOmega extends BossBase {
     constructor() {
-        this.active = false;
-        this.x = 0;
-        this.y = 0;
-        this.radius = 0;
-        this.hp = 0;
-        this.maxHp = 0;
-        this.angle = 0;
+        super();
+        this.name = BOSS_TYPES.OMEGA.name;
+        this.maxHp = BOSS_TYPES.OMEGA.hp;
+        this.score = BOSS_TYPES.OMEGA.score;
+        this.baseColor = BOSS_TYPES.OMEGA.color;
+        this.color = this.baseColor;
+        this.radius = BOSS_TYPES.OMEGA.radius;
         this.orbitAngle = 0;
-        this.phase = 1;
-        this.attackTimer = 0;
-
-        this.name = "";
+        this.angle = 0;
+        this.cooldowns = { minion: 0, missile: 0, spiral: 0 };
     }
 
     spawn(x, y) {
-        this.active = true;
-        this.x = x;
-        this.y = y;
+        // Call generic spawn first
+        super.spawn(x, y);
 
-        const type = BOSS_TYPES.OMEGA;
-        this.name = type.name;
-        this.hp = type.hp;
-        this.maxHp = type.hp;
-        this.radius = type.radius;
-        this.color = type.color;
-        this.phase = 1;
-        this.attackTimer = 0;
+        // Specific resets
         this.orbitAngle = 0;
-
-        document.getElementById('boss-hud').style.display = 'flex';
-        this.updateHealthBar();
-
-        playSound('levelup');
-        console.log("⚠️ WARNING: OMEGA CORE ACTIVE ⚠️");
+        this.cooldowns = { minion: 0, missile: 0, spiral: 0 };
+        this.color = this.baseColor;
     }
 
-    update(player, dt = 1) {
-        if (!this.active) return;
-
-        this.attackTimer += dt;
+    onUpdate(player, dt) {
         this.angle += 0.02 * dt;
+        this.attackTimer += dt;
 
-        // --- PHASE KONTROLÜ (%50) ---
+        // --- PHASE CONTROL ---
         if (this.hp < this.maxHp * 0.5) {
             this.phase = 2;
-            this.color = '#ff0000'; // Phase 2: Kırmızı
+            this.color = '#ff0000'; // Phase 2: Red
         } else {
             this.phase = 1;
-            this.color = BOSS_TYPES.OMEGA.color; // Phase 1: Mor
+            this.color = this.baseColor; // Phase 1: Purple
         }
 
-        // --- HAREKET: YÖRÜNGE (Her iki fazda da döner) ---
-        let orbitSpeed = 0.01 * dt; // Phase 1 Hızı
+        // --- MOVEMENT: ORBIT ---
+        let orbitSpeed = 0.01 * dt;
         let orbitRadius = 350;
         let chaseSpeed = 0.05 * dt;
 
         if (this.phase === 2) {
-            orbitSpeed = 0.015 * dt; // Phase 2 biraz daha hızlı döner
-            orbitRadius = 300;  // Biraz daha yaklaşır
+            orbitSpeed = 0.015 * dt;
+            orbitRadius = 300;
         }
 
         this.orbitAngle += orbitSpeed;
 
-        // Hedef koordinat
         let targetX = player.x + Math.cos(this.orbitAngle) * orbitRadius;
         let targetY = player.y + Math.sin(this.orbitAngle) * orbitRadius;
 
-        // Yumuşak takip (Lerp)
+        // Smooth Lerp
         this.x += (targetX - this.x) * chaseSpeed;
         this.y += (targetY - this.y) * chaseSpeed;
 
-
-        // --- SALDIRILAR ---
-        if (this.phase === 1) {
-            // Phase 1: Minion + Homing Missile
-            // Note: Logic simplified for dt, relying on cooldowns below
-        }
-
-        // COOLDOWN MANTIĞINA GEÇİŞ (Daha güvenli)
-        if (!this.cooldowns) this.cooldowns = { minion: 0, missile: 0, spiral: 0 };
-
+        // --- ATTACKS ---
         this.cooldowns.minion -= dt;
         this.cooldowns.missile -= dt;
         this.cooldowns.spiral -= dt;
@@ -106,26 +80,25 @@ class Boss {
                 this.shootHomingMissile(player);
                 this.cooldowns.missile = 80;
             }
-        }
-        else {
+        } else {
             // Phase 2: Spiral Bullet Hell
             if (this.cooldowns.spiral <= 0) {
                 this.spiralShoot();
-                this.cooldowns.spiral = 15; // Daha sık
+                this.cooldowns.spiral = 15;
             }
         }
     }
 
-    // --- SALDIRI FONKSİYONLARI ---
+    // --- ATTACK FUNCTIONS ---
 
     spawnMinions() {
-        for (let i = 0; i < 1; i++) {
-            enemyPool.get(this.x + (Math.random() - 0.5) * 50, this.y + (Math.random() - 0.5) * 50, ENEMY_TYPES.SPEEDSTER, 2);
-        }
-        playSound('shoot');
+        if (!typeof enemyPool) return;
+        enemyPool.get(this.x + (Math.random() - 0.5) * 50, this.y + (Math.random() - 0.5) * 50, ENEMY_TYPES.SPEEDSTER, 2);
+        if (window.playSound) playSound('shoot');
     }
 
     shootHomingMissile(player) {
+        if (!typeof enemyPool) return;
         const missile = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1.5);
         missile.color = '#ff00ff';
         const angle = Math.atan2(player.y - this.y, player.x - this.x);
@@ -134,6 +107,7 @@ class Boss {
     }
 
     spiralShoot() {
+        if (!typeof enemyPool) return;
         const angle = this.attackTimer * 0.3;
         for (let i = 0; i < 4; i++) {
             const finalAngle = angle + (i * (Math.PI * 2 / 4));
@@ -141,58 +115,20 @@ class Boss {
             bullet.radius = 8;
             bullet.hp = 1;
             bullet.color = '#ffff00';
-            bullet.type = { ...bullet.type, score: 0 }; // Puan vermez
+            bullet.type = { ...bullet.type, score: 0 };
 
             bullet.x += Math.cos(finalAngle) * 20;
             bullet.y += Math.sin(finalAngle) * 20;
         }
     }
 
-    takeDamage(amount) {
-        this.hp -= amount;
-        this.updateHealthBar();
-
-        this.radius = BOSS_TYPES.OMEGA.radius - 3;
-        setTimeout(() => this.radius = BOSS_TYPES.OMEGA.radius, 50);
-
-        if (this.hp <= 0) {
-            this.die();
-        }
-    }
-
-    updateHealthBar() {
-        const fill = document.getElementById('boss-hp-fill');
-        if (fill) {
-            const percent = Math.max(0, (this.hp / this.maxHp) * 100);
-            fill.style.width = percent + '%';
-
-            if (percent < 50) fill.style.background = '#ff0000'; // %50 altı kırmızı
-            else fill.style.background = '#8a2be2';
-        }
-    }
-
+    // Override death to add specific cleanup if needed, or rely on base
     die() {
-        this.active = false;
-        document.getElementById('boss-hud').style.display = 'none';
-
-        // Final Patlaması
-        createExplosion(this.x, this.y, 1000, 9999);
-
-        // Hitstop efekti
-        if (window.triggerHitstop) window.triggerHitstop(60); // 1 saniye donma
-
-        // Ödül ve Level Up
-        gameState.score += BOSS_TYPES.OMEGA.score;
-        triggerLevelUp();
-
-        // Normal oyuna dönüş
-        gameState.bossActive = false;
-        spawnEnemies();
+        super.die();
+        // Specific Boss Omega death logic is handled by base (explosion, score)
     }
 
-    draw() {
-        if (!this.active) return;
-
+    onDraw() {
         CTX.save();
         CTX.translate(this.x, this.y);
 
@@ -203,21 +139,19 @@ class Boss {
         CTX.lineWidth = 4;
         CTX.stroke();
 
-        // Gövde
+        // Body
         CTX.rotate(this.angle);
         CTX.fillStyle = this.color;
 
-        if (RenderOptimizer.useShadows) {
+        if (window.RenderOptimizer && RenderOptimizer.useShadows) {
             CTX.shadowBlur = 20;
             CTX.shadowColor = this.color;
         }
 
-        // Titreme yok, sadece dönen kare
         CTX.fillRect(-this.radius, -this.radius, this.radius * 2, this.radius * 2);
 
-        // Göz
-        CTX.rotate(-this.angle - this.orbitAngle); // Açıyı sıfırla
-        // Hafif bir bakış animasyonu
+        // Eye
+        CTX.rotate(-this.angle - this.orbitAngle); // Reset angle
         CTX.rotate(Math.sin(this.attackTimer * 0.05) * 0.5);
 
         CTX.fillStyle = '#fff';
@@ -227,4 +161,5 @@ class Boss {
     }
 }
 
-const boss = new Boss();
+// Rename to 'boss' variable for backward compatibility until Manager is refactored
+const boss = new BossOmega();

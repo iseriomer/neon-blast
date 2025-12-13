@@ -82,7 +82,6 @@ class PerformanceProfiler {
         html += `<div>Projectiles: ${projectilePool?.getActiveCount() || 0}</div>`;
         html += `<div>Enemies: ${enemyPool?.getActiveCount() || 0}</div>`;
         html += `<div>Particles: ${particlePool?.getActiveCount() || 0}</div>`;
-        html += `<div>Mines: ${mines?.length || 0}</div>`;
         html += `<div>Lightnings: ${lightnings?.length || 0}</div><br>`;
 
         // Sort metrics by average time
