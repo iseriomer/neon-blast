@@ -23,7 +23,7 @@ class SpawnManager {
             const rand = Math.random();
 
             if (gameState.difficultyMultiplier > 5 && rand < 0.04 && gameState.activeHealerCount < 4) type = ENEMY_TYPES.HEALER; // Rare spawn (Max 4)
-            else if (gameState.difficultyMultiplier > 4 && rand < 0.15) type = ENEMY_TYPES.SPAWNER;
+            else if (gameState.difficultyMultiplier > 4 && rand < 0.15 && gameState.activeSpawnerCount < 4) type = ENEMY_TYPES.SPAWNER;
             else if (gameState.difficultyMultiplier > 3 && rand < 0.25) type = ENEMY_TYPES.SPLITTER;
             else if (gameState.difficultyMultiplier > 2 && rand < 0.35) type = ENEMY_TYPES.TANK;
             else if (gameState.difficultyMultiplier > 3 && rand < 0.5) type = ENEMY_TYPES.DASHER;
@@ -77,8 +77,7 @@ class SpawnManager {
                 if (p.id === 'chain_lightning' && gameState.playerStats.chainLightning > 0) return false;
                 if ((p.id === 'chain_lightning_count' || p.id === 'chain_lightning_damage') && gameState.playerStats.chainLightning === 0) return false;
                 // Status Mutual Exclusivity
-                if (p.id === 'poison_shot' && gameState.playerStats.burn) return false;
-                if (p.id === 'burn_shot' && gameState.playerStats.poison) return false;
+
                 // Conditional Perks
                 if (p.id === 'orbital_size' && gameState.playerStats.orbitals === 0) return false;
                 return true;

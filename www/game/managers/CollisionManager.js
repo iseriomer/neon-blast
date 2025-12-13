@@ -15,6 +15,7 @@ class CollisionManager {
         // Early exit: If no enemies AND no boss, nothing to collide with
         if (enemies.length === 0 && !gameState.bossActive) {
             gameState.activeHealerCount = 0;
+            gameState.activeSpawnerCount = 0;
             profiler.end('collisions');
             return;
         }
@@ -127,6 +128,12 @@ class CollisionManager {
             }
         }
         profiler.end('healer-system');
+
+        // ═══════════════════════════════════════════════════════
+        // SPAWNER COUNTING (Limit Logic)
+        // ═══════════════════════════════════════════════════════
+        const spawners = enemies.filter(e => e.type.name === 'Spawner');
+        gameState.activeSpawnerCount = spawners.length;
 
         // ═══════════════════════════════════════════════════════
         // PROJECTILE COLLISION (Only if we have projectiles)
@@ -285,9 +292,7 @@ class CollisionManager {
                         enemy.freezeTimer = gameState.playerStats.freeze;
                     }
 
-                    // Status Effects Application
-                    if (gameState.playerStats.burn) enemy.burnTimer = 120; // 2 seconds @ 60fps
-                    if (gameState.playerStats.poison) enemy.poisonTimer = 300; // 5 seconds @ 60fps
+
 
                     playSound('hit');
 

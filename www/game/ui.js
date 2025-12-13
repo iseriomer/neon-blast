@@ -78,13 +78,14 @@ function showLevelUpAnimation() {
         font-weight: 900;
         font-family: 'Arial Black', Impact, sans-serif;
         color: #ffd700;
-        text-shadow: 6px 6px 0 #b8860b, 0 0 30px rgba(255, 215, 0, 0.8);
+        text-shadow: 4px 4px 0 #b8860b;
         z-index: 100;
         pointer-events: none;
         white-space: nowrap;
         text-transform: uppercase;
         letter-spacing: -2px;
         opacity: 0;
+        will-change: transform, opacity;
         animation: levelUpPop 1.5s cubic-bezier(0.19, 1, 0.22, 1) forwards;
     `;
 
@@ -99,12 +100,10 @@ function showLevelUpAnimation() {
                 0% { 
                     opacity: 0; 
                     transform: translate(-50%, -20%) skew(-10deg) scale(0.5); 
-                    filter: blur(10px);
                 }
                 15% { 
                     opacity: 1; 
                     transform: translate(-50%, -50%) skew(-5deg) scale(1.1); 
-                    filter: blur(0px);
                 }
                 30% { 
                     transform: translate(-50%, -50%) skew(-5deg) scale(1); 
@@ -112,12 +111,10 @@ function showLevelUpAnimation() {
                 80% { 
                     opacity: 1; 
                     transform: translate(-50%, -50%) skew(-5deg) scale(1); 
-                    filter: blur(0px);
                 }
                 100% { 
                     opacity: 0; 
                     transform: translate(-50%, -100%) skew(-5deg) scale(1.2); 
-                    filter: blur(4px);
                 }
             }
         `;

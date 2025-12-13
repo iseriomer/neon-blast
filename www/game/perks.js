@@ -12,12 +12,14 @@ const ALL_PERKS = [
     {
         id: 'machine_gun',
         title: 'Machine Gun',
-        desc: 'Greatly increases fire rate but decreases accuracy.',
+        desc: 'Greatly increases fire rate but less spread',
         icon: '🦾',
         theme: '#ff00ff',
         apply: (stats) => {
             stats.fireRate *= 0.7;
-            stats.spread += 0.2;
+            stats.spread -= 0.05;
+            //if spread is less than 0, set it to 0.02
+            if (stats.spread < 0) stats.spread = 0.02;
             stats.color = '#ff00ff';
         }
     },
@@ -41,7 +43,7 @@ const ALL_PERKS = [
         theme: '#ffff00',
         apply: (stats) => {
             stats.shotCount += 1;
-            stats.spread += 0.05;
+            stats.spread += 0.02;
         }
     },
     {
@@ -156,7 +158,7 @@ const ALL_PERKS = [
         theme: '#cc8800',
         apply: (stats) => {
             stats.shotCount += 2;
-            stats.spread += 0.15;
+            stats.spread += 0.06;
         }
     },
     {
@@ -245,28 +247,8 @@ const ALL_PERKS = [
             stats.color = '#ff00ff'; // Morumsu lazer etkisi
         }
     },
-    {
-        id: 'poison_shot',
-        title: 'Acid Rain',
-        desc: 'Bullets poison enemies (DoT). (Incompatible with Fire)',
-        icon: '🧪',
-        theme: '#32cd32',
-        apply: (stats) => {
-            stats.poison = true;
-            stats.color = '#32cd32';
-        }
-    },
-    {
-        id: 'burn_shot',
-        title: 'Flamethrower',
-        desc: 'Bullets burn enemies (Fast DoT). (Incompatible with Poison)',
-        icon: '🔥',
-        theme: '#ff4500',
-        apply: (stats) => {
-            stats.burn = true;
-            stats.color = '#ff4500';
-        }
-    },
+
+
     {
         id: 'laser_damage',
         title: 'Focused Beam',

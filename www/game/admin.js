@@ -10,6 +10,7 @@ const ADMIN_HTML = `
             <button onclick="adminKillAll()">💀 Kill All</button>
             <button onclick="adminAddScore()">💰 +5000 Score</button>
             <button onclick="adminMaxFireRate()">🔫 Machine Gun</button>
+            <button onclick="adminSpawnSpawner()">Spawn Spawner</button>
             <button onclick="adminSpawnBoss()">😈 Spawn Boss</button>
             <button onclick="adminToggleCluster()">💣 Cluster Test (+5)</button>
         </div>
@@ -110,7 +111,11 @@ function adminSpawnBoss() {
     const y = Math.random() * CANVAS.height;
     enemyPool.get(x, y, ENEMY_TYPES.TANK, gameState.difficultyMultiplier + 5);
 }
-
+function adminSpawnSpawner() {
+    const x = Math.random() * CANVAS.width;
+    const y = Math.random() * CANVAS.height;
+    enemyPool.get(x, y, ENEMY_TYPES.SPAWNER, gameState.difficultyMultiplier + 5);
+}
 function adminToggleCluster() {
     gameState.playerStats.clusterCount = (gameState.playerStats.clusterCount || 0) + 5;
     console.log("Cluster Mayın Sayısı:", gameState.playerStats.clusterCount);
@@ -123,4 +128,5 @@ window.adminKillAll = adminKillAll;
 window.adminAddScore = adminAddScore;
 window.adminMaxFireRate = adminMaxFireRate;
 window.adminSpawnBoss = adminSpawnBoss;
+window.adminSpawnSpawner = adminSpawnSpawner;
 window.adminToggleCluster = adminToggleCluster;

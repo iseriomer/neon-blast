@@ -17,8 +17,7 @@ class Enemy {
         this.freezeTimer = 0;
         this.shieldAura = false; // Kalkan aura aktif mi?
         this.shieldPulse = 0;
-        this.poisonTimer = 0;
-        this.burnTimer = 0;
+
         this.isDead = false;
     }
 
@@ -58,8 +57,7 @@ class Enemy {
         this.freezeTimer = 0;
         this.shieldAura = false;
         this.shieldPulse = 0;
-        this.poisonTimer = 0;
-        this.burnTimer = 0;
+
         this.isDead = false;
     }
 
@@ -149,20 +147,38 @@ class Enemy {
                 else CTX.lineTo(x, y);
             }
             CTX.closePath();
+            CTX.stroke();
+            CTX.restore();
+
+            // 2. Inner Portal (Pulsating)
+            CTX.beginPath();
+            CTX.arc(0, 0, this.radius * 0.6 * pulse, 0, Math.PI * 2);
+            CTX.fillStyle = 'black'; // "Void" center
+            CTX.fill();
+            CTX.lineWidth = 2;
+            CTX.strokeStyle = '#fff';
+            CTX.stroke();
+
+            // 3. Orbiting Particles (Spawning Energy)
+            for (let i = 0; i < 3; i++) {
+                CTX.save();
+                CTX.rotate(time * 2 + (i * (Math.PI * 2 / 3)));
+                CTX.translate(this.radius * 0.8, 0);
+                CTX.beginPath();
+                CTX.arc(0, 0, 4, 0, Math.PI * 2);
+                CTX.fillStyle = '#fff';
+                CTX.fill();
+                CTX.restore();
+            }
+
+            CTX.restore();
         } else {
             CTX.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
         }
 
         if (this.freezeTimer > 0) {
             CTX.fillStyle = '#00ffff';
-        } else if (this.burnTimer > 0) {
-            // Pulsing Orange/Red for Burn
-            const pulse = (Math.sin(Date.now() / 100) + 1) / 2; // 0 to 1
-            CTX.fillStyle = `hsl(${10 + pulse * 30}, 100%, 50%)`; // Orange to Red
-        } else if (this.poisonTimer > 0) {
-            // Pulsing Green for Poison
-            const pulse = (Math.sin(Date.now() / 200) + 1) / 2;
-            CTX.fillStyle = `hsl(120, ${50 + pulse * 50}%, ${40 + pulse * 10}%)`; // Dark to Light Green
+
         } else if (this.type.name !== 'Healer') { // Healer kendi rengini yönetiyor
             CTX.fillStyle = this.color;
         }
@@ -191,23 +207,7 @@ class Enemy {
             this.freezeTimer -= dt;
         }
 
-        // Status Effects Damage
-        if (this.burnTimer > 0) {
-            this.hp -= (0.5 / 60) * dt;
-            this.burnTimer -= dt;
-            // Optimized Particles (Every 15 frames approx)
-            if (this.burnTimer % 15 < dt) {
-                spawnParticles(this.x, this.y, 1, 3, '#ff4500', 1); // Smoke
-            }
-        }
-        if (this.poisonTimer > 0) {
-            this.hp -= (0.2 / 60) * dt;
-            this.poisonTimer -= dt;
-            // Optimized Particles (Every 30 frames approx)
-            if (this.poisonTimer % 30 < dt) {
-                spawnParticles(this.x, this.y, 1, 2, '#32cd32', 0.5); // Bubbles
-            }
-        }
+
 
         // HEALER Mechanic
         if (this.type.name === 'Healer') {
@@ -261,7 +261,9 @@ class Enemy {
             this.y += Math.sin(angle) * currentSpeed * dt;
         }
 
-        this.draw();
+
+        // Double-draw fix: RenderOptimizer handles drawing
+        // this.draw();
     }
 }
 

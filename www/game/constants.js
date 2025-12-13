@@ -24,7 +24,7 @@ const MAX_PARTICLES = 800;
 // Enemy Types Configuration
 const ENEMY_TYPES = {
     BASIC: {
-        radius: 22,
+        radius: 25,
         color: 'hsl(0, 70%, 50%)',
         speed: 1,
         hp: 1,
@@ -32,7 +32,7 @@ const ENEMY_TYPES = {
         name: 'Basic'
     },
     SPEEDSTER: {
-        radius: 16,
+        radius: 20,
         color: 'hsl(60, 90%, 60%)',
         speed: 1.9,
         hp: 1,
@@ -48,7 +48,7 @@ const ENEMY_TYPES = {
         name: 'Tank'
     },
     DASHER: {
-        radius: 15,
+        radius: 20,
         color: 'hsl(300, 80%, 50%)',
         speed: 1.5,
         hp: 2,
@@ -58,7 +58,7 @@ const ENEMY_TYPES = {
     SPLITTER: {
         radius: 25,
         color: 'hsl(120, 70%, 50%)',
-        speed: 0.8,
+        speed: 0.6,
         hp: 3,
         score: 180,
         name: 'Splitter'
@@ -66,8 +66,8 @@ const ENEMY_TYPES = {
     MINI_SPLITTER: {
         radius: 10,
         color: 'hsl(120, 70%, 40%)',
-        speed: 1.5,
-        hp: 1,
+        speed: 1,
+        hp: 0.5,
         score: 30,
         name: 'MiniSplitter'
     },
@@ -128,9 +128,6 @@ const DEFAULT_PLAYER_STATS = {
     timeWarp: false,
     critChance: 0,
     critMultiplier: 2,
-    poison: false,
-    poisonDamage: 0.2, // HP per second (approx)
-    burn: false,
-    burnDamage: 0.5, // HP per second
+
     laserDamage: 0.05
 };
