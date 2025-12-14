@@ -203,6 +203,7 @@ class SpawnManager {
     }
 
     static selectPerk(perk) {
+        playSound('perk_select');
         gameState.takenPerks.push(perk.id);
         perk.apply(gameState.playerStats);
         gameState.level++;

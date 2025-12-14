@@ -283,7 +283,7 @@ button.main-btn:active {
     justify-content: center;
     align-items: stretch;
     /* Cards stretch to same height */
-    width: 100%;
+    width: 90%;
     padding: 20px;
     max-width: 1200px;
     /* Constrain slightly */
@@ -589,7 +589,7 @@ button.main-btn:active {
     }
 
     #leaderboard-section .leaderboard-container {
-        width: 100%;
+        width: 90%;
         max-width: none;
         padding: 15px;
     }
@@ -618,6 +618,7 @@ button.main-btn:active {
     }
 
     .leaderboard-container h3 {
+        margin: auto;
         margin-bottom: 10px;
         font-size: 1.2rem;
     }
@@ -705,7 +706,7 @@ button.main-btn:active {
     /* Compact Leaderboard for Landscape */
     .leaderboard-container {
         margin-top: 5px;
-        max-height: 120px;
+        max-height: 170px;
         /* Limit height significantly */
         padding: 5px;
     }
@@ -747,7 +748,7 @@ button.main-btn:active {
 
     /* Perk cards smaller */
     .perk-container {
-        gap: 10px;
+        gap: 30px;
         padding: 0;
     }
 
@@ -835,6 +836,7 @@ button.main-btn:active {
     font-size: 1.5rem;
     cursor: pointer;
     user-select: none;
+    margin-top: 10px;
 }
 
 .toggle-container input {
@@ -970,12 +972,13 @@ button.main-btn:active {
     font-size: 3rem;
     color: #fff;
     text-shadow: 0 0 10px #00ffff;
-    margin-bottom: 40px;
+    margin-bottom: 5px;
     border-bottom: none;
+    margin-top: inherit;
 }
 
 .pause-options {
-    margin-bottom: 30px;
+    margin-bottom: 15px;
 }
 
 /* FPS Toggle Checkbox */
@@ -1047,4 +1050,47 @@ button.main-btn:active {
     right: 70px;
     /* Move it to the left of the pause button */
     top: 20px;
+}
+
+/* Audio Track Selector */
+.track-selector {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 250px;
+    margin-top: 20px;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 10px;
+    border: 1px solid #00ffff;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+}
+
+.arrow-btn {
+    background: transparent;
+    border: none;
+    color: #00ffff;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0 10px;
+    transition: transform 0.2s, color 0.2s;
+    user-select: none;
+}
+
+.arrow-btn:hover {
+    color: #fff;
+    transform: scale(1.2);
+    text-shadow: 0 0 10px #00ffff;
+}
+
+.arrow-btn:active {
+    transform: scale(0.9);
+}
+
+#current-track-name {
+    color: #fff;
+    font-family: 'Courier New', monospace;
+    font-size: 1rem;
+    text-shadow: 0 0 5px #00ffff;
+    flex-grow: 1;
+    text-align: center;
 }

@@ -43,7 +43,9 @@ const gameState = {
     startTimer: 0,
     activeHealerCount: 0,
     activeSpawnerCount: 0,
-    takenPerks: []
+    takenPerks: [],
+    laserRotation: 0,
+    orbitalRotation: 0
 };
 
 // Input State handled by InputManager
@@ -276,8 +278,11 @@ function animate(timestamp) {
     // Multi-Laser Beam Implementation
     if (gameState.playerStats.laserBeam > 0) {
         profiler.start('laser');
+        // Update laser rotation based on deltaTime (seconds)
+        gameState.laserRotation += deltaTime / 1000;
+
         const laserCount = gameState.playerStats.laserBeam;
-        const baseAngle = Date.now() / 1000; // Base rotation speed
+        const baseAngle = gameState.laserRotation; // Use accumulated rotation
 
         for (let i = 0; i < laserCount; i++) {
             const angleOffset = (Math.PI * 2 / laserCount) * i;
@@ -332,7 +337,9 @@ function animate(timestamp) {
     // Orbitals
     if (gameState.playerStats.orbitals > 0) {
         profiler.start('orbitals');
-        const orbitalTime = Date.now() / 500;
+        gameState.orbitalRotation += deltaTime / 500;
+        const orbitalTime = gameState.orbitalRotation;
+
         for (let i = 0; i < gameState.playerStats.orbitals; i++) {
             const angle = orbitalTime + (i * (Math.PI * 2 / gameState.playerStats.orbitals));
 
@@ -408,6 +415,8 @@ function initGame() {
     gameState.activeHealerCount = 0;
     gameState.activeSpawnerCount = 0;
     gameState.takenPerks = [];
+    gameState.laserRotation = 0;
+    gameState.orbitalRotation = 0;
     // Yeni:
     gameState.singularityTimer = 0;
 
@@ -553,5 +562,48 @@ window.addEventListener('keydown', (e) => {
 InputManager.init();
 
 // Initialize buttons
-document.getElementById('start-btn').addEventListener('click', initGame);
-document.getElementById('restart-btn').addEventListener('click', initGame);
+document.getElementById('start-btn').addEventListener('click', () => {
+    // Audio Context might need user gesture to resume/start
+    if (musicManager && musicManager.audioCtx) {
+        if (musicManager.audioCtx.state === 'suspended') {
+            musicManager.audioCtx.resume();
+        }
+    } else if (window.audioCtx) {
+        musicManager.init(window.audioCtx);
+    }
+
+    musicManager.play(); // Start music
+    initGame();
+});
+document.getElementById('restart-btn').addEventListener('click', () => {
+    musicManager.play();
+    initGame();
+});
+
+// AUDIO CONTROLS
+document.getElementById('sfx-toggle').addEventListener('change', (e) => {
+    setSFXEnabled(e.target.checked);
+});
+
+document.getElementById('music-toggle').addEventListener('change', (e) => {
+    musicManager.toggleMusic(e.target.checked);
+});
+
+document.getElementById('music-volume').addEventListener('input', (e) => {
+    musicManager.setVolume(parseFloat(e.target.value));
+});
+
+document.getElementById('prev-track-btn').addEventListener('click', () => {
+    const trackName = musicManager.prevTrack();
+    document.getElementById('current-track-name').innerText = trackName;
+});
+
+document.getElementById('next-track-btn').addEventListener('click', () => {
+    const trackName = musicManager.nextTrack();
+    document.getElementById('current-track-name').innerText = trackName;
+});
+
+// Initialize Track Name display
+if (typeof musicManager !== 'undefined') {
+    document.getElementById('current-track-name').innerText = musicManager.getCurrentTrackName();
+}

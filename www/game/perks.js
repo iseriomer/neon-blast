@@ -26,7 +26,7 @@ const ALL_PERKS = [
     {
         id: 'sniper',
         title: 'Sniper Shot',
-        desc: 'Increases bullet speed and damage, decreases fire rate.',
+        desc: 'Increases bullet speed and piercing, decreases fire rate.',
         icon: '🎯',
         theme: '#00ff00',
         apply: (stats) => {
@@ -116,7 +116,7 @@ const ALL_PERKS = [
         icon: '🚀',
         theme: '#00ff88',
         apply: (stats) => {
-            stats.homing += 0.03;
+            stats.homing += 0.02;
             stats.color = '#0f0';
         }
     },
@@ -126,6 +126,7 @@ const ALL_PERKS = [
         desc: 'Bullets bounce off walls.',
         icon: '🎱',
         theme: '#ff0088',
+        singleUse: true,
         apply: (stats) => { stats.ricochet += 1; }
     },
     {
@@ -167,7 +168,7 @@ const ALL_PERKS = [
     {
         id: 'chain_lightning',
         title: 'Chain Lightning',
-        desc: 'Electricity arcs to 2 nearby enemies on hit. (Actives)',
+        desc: 'Electricity arcs to 2 nearby enemies on hit.',
         icon: '🌩️',
         theme: '#ffff00',
         apply: (stats) => {
@@ -255,11 +256,11 @@ const ALL_PERKS = [
     {
         id: 'laser_damage',
         title: 'Focused Beam',
-        desc: 'Increases Orbital Laser damage.',
+        desc: 'Increases Orbital Laser damage by %100.',
         icon: '🔅',
         theme: '#ff5555',
         apply: (stats) => {
-            stats.laserDamage += 0.08;
+            stats.laserDamage += stats.laserDamage;
         }
     }
 ];

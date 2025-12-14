@@ -1,8 +1,20 @@
 // audio.js - Sound System using Web Audio API
 
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+// Global Audio Context (Singleton)
+window.audioCtx = window.audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+
+let sfxEnabled = true;
+
+function setSFXEnabled(enabled) {
+    sfxEnabled = enabled;
+}
+
+function getSFXEnabled() {
+    return sfxEnabled;
+}
 
 function playSound(type) {
+    if (!sfxEnabled) return;
     if (audioCtx.state === 'suspended') audioCtx.resume();
 
     const osc = audioCtx.createOscillator();
@@ -67,5 +79,26 @@ function playSound(type) {
 
         osc.start(now);
         osc.stop(now + 0.3);
+    } else if (type === 'perk_select') {
+        // Selection sound similar to lock (descending, mechanical)
+
+
+
+        // Mechanical layer
+        const osc2 = audioCtx.createOscillator();
+        const gain2 = audioCtx.createGain();
+        osc2.connect(gain2);
+        gain2.connect(audioCtx.destination);
+        osc2.type = 'square';
+        osc2.frequency.setValueAtTime(250, now);
+        osc2.frequency.linearRampToValueAtTime(50, now + 0.3);
+        gain2.gain.setValueAtTime(0.08, now);
+        gain2.gain.linearRampToValueAtTime(0, now + 0.3);
+
+        osc2.start(now);
+        osc2.stop(now + 0.3);
+
+        /* osc.start(now);
+        osc.stop(now + 0.3); */
     }
 }
