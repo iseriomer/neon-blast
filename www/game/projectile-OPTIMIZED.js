@@ -1,4 +1,4 @@
-// projectile-OPTIMIZED.js - İyileştirilmiş Homing Mekaniği
+// projectile-CONE-HOMING.js - Cone-based Smart Homing
 
 class Projectile {
     constructor() {
@@ -15,7 +15,9 @@ class Projectile {
         this.screenWrap = false;
         this.hasWrapped = false;
         this.homingCooldown = 0;
-        this.targetEnemy = null; // Hedef düşman cache'i
+        this.targetEnemy = null;
+        this.homingState = 'SEARCHING';
+        this.lostTargetTime = 0;
     }
 
     reset(x, y, velocity, isSplit, playerStats) {
@@ -34,6 +36,8 @@ class Projectile {
         this.hasWrapped = false;
         this.homingCooldown = 0;
         this.targetEnemy = null;
+        this.homingState = 'SEARCHING';
+        this.lostTargetTime = 0;
     }
 
     draw() {
@@ -44,23 +48,43 @@ class Projectile {
     }
 
     update(enemies, playerStats, dt = 1) {
-        // HOMING MEKANİĞİ - Optimize ve Smooth
+        // CONE-BASED HOMING - Sadece ön tarafa bakar!
         if (this.homing > 0 && enemies.length > 0) {
             this.homingCooldown -= dt;
 
-            // Her 5 frame'de bir hedef güncelle veya hedef yoksa/ölmüşse
-            const shouldUpdateTarget = this.homingCooldown <= 0 ||
+            const shouldUpdateTarget =
+                this.homingCooldown <= 0 ||
                 !this.targetEnemy ||
-                this.targetEnemy.hp <= 0;
+                this.targetEnemy.hp <= 0 ||
+                this.homingState === 'LOST';
 
             if (shouldUpdateTarget) {
-                this.homingCooldown = 3;
-                this.targetEnemy = this.findNearestEnemy(enemies);
+                this.homingCooldown = 0.15; // 150ms
+                const newTarget = this.findNearestEnemyInCone(enemies);
+
+                if (newTarget) {
+                    this.targetEnemy = newTarget;
+                    this.homingState = 'LOCKED';
+                    this.lostTargetTime = 0;
+                } else if (this.targetEnemy) {
+                    this.homingState = 'LOST';
+                    this.lostTargetTime += dt;
+                    if (this.lostTargetTime > 0.5) {
+                        this.targetEnemy = null;
+                    }
+                }
             }
 
-            // Hedef varsa sürekli takip et (sadece 5 frame'de bir hedef değiştir)
+            // Hedef varsa ve hala cone içindeyse takip et
             if (this.targetEnemy && this.targetEnemy.hp > 0) {
-                this.applyHoming(this.targetEnemy, playerStats.shotSpeed, dt);
+                // Hedef hala cone içinde mi kontrol et
+                if (this.isEnemyInCone(this.targetEnemy)) {
+                    this.applyHoming(this.targetEnemy, playerStats.shotSpeed, dt);
+                } else {
+                    // Cone dışına çıktı - hedefi kaybet
+                    this.homingState = 'LOST';
+                    this.targetEnemy = null;
+                }
             }
         }
 
@@ -90,37 +114,92 @@ class Projectile {
             if (this.x - this.radius < 0 || this.x + this.radius > CANVAS.width) {
                 this.velocity.x = -this.velocity.x;
                 this.ricochetCount--;
-                this.targetEnemy = null; // Hedefi sıfırla
+                this.targetEnemy = null;
             }
             if (this.y - this.radius < 0 || this.y + this.radius > CANVAS.height) {
                 this.velocity.y = -this.velocity.y;
                 this.ricochetCount--;
-                this.targetEnemy = null; // Hedefi sıfırla
+                this.targetEnemy = null;
             }
         }
 
-        // Ekran dışı kontrolü
         return (this.x < -50 || this.x > CANVAS.width + 50 ||
             this.y < -50 || this.y > CANVAS.height + 50);
     }
 
-    // En yakın düşmanı bul (SPATIAL GRID ile optimize edilebilir!)
-    findNearestEnemy(enemies) {
-        const homingRange = 300 * GAME_SCALE; // Ölçeklenmiş menzil
-        let nearestEnemy = null;
-        let minDistSq = homingRange * homingRange; // Squared distance karşılaştırması (sqrt yok!)
+    // ✅ CONE İÇİNDE Mİ KONTROLÜ - OPTIMIZE (sqrt yok!)
+    isEnemyInCone(enemy, coneAngleDeg = 90, maxRange = 300 * GAME_SCALE) {
+        const dx = enemy.x - this.x;
+        const dy = enemy.y - this.y;
+        const distSq = dx * dx + dy * dy;
 
-        // Spatial grid varsa onu kullan, yoksa brute force
+        // Menzil kontrolü (squared distance)
+        if (distSq > maxRange * maxRange) return false;
+
+        // Açı kontrolü - Dot Product kullan (sqrt gereksiz!)
+        const velocityMag = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
+        if (velocityMag === 0) return false;
+
+        // Normalize edilmiş velocity direction
+        const dirX = this.velocity.x / velocityMag;
+        const dirY = this.velocity.y / velocityMag;
+
+        // Düşmana olan direction
+        const dist = Math.sqrt(distSq);
+        const toEnemyX = dx / dist;
+        const toEnemyY = dy / dist;
+
+        // Dot product = cos(angle)
+        const dotProduct = dirX * toEnemyX + dirY * toEnemyY;
+
+        // Cone açısını radyana çevir ve cos değerini hesapla
+        const coneAngleRad = (coneAngleDeg / 2) * (Math.PI / 180);
+        const minDotProduct = Math.cos(coneAngleRad);
+
+        return dotProduct >= minDotProduct;
+    }
+
+    // ✅ CONE İÇİNDEKİ EN YAKIN DÜŞMANI BUL
+    findNearestEnemyInCone(enemies) {
+        const homingRange = 300 * GAME_SCALE;
+        const coneAngle = 60; // 60 derece FOV (ayarlanabilir!)
+
+        let nearestEnemy = null;
+        let minDistSq = homingRange * homingRange;
+
+        // Spatial grid ile optimize et
         const searchList = typeof enemySpatialGrid !== 'undefined'
             ? enemySpatialGrid.query(this.x, this.y, homingRange)
             : enemies;
 
+        // Mevcut hedefi tercih et (sticky targeting - daha smooth)
+        if (this.targetEnemy &&
+            !this.hitList.includes(this.targetEnemy.id) &&
+            this.targetEnemy.hp > 0) {
+
+            if (this.isEnemyInCone(this.targetEnemy, coneAngle * 1.2, homingRange * 1.2)) {
+                const dx = this.targetEnemy.x - this.x;
+                const dy = this.targetEnemy.y - this.y;
+                const distSq = dx * dx + dy * dy;
+
+                // Sticky tolerance: %30 daha uzak bile olsa devam et
+                if (distSq < minDistSq * 1.3) {
+                    return this.targetEnemy;
+                }
+            }
+        }
+
+        // Cone içindeki en yakın düşmanı bul
         for (let i = 0; i < searchList.length; i++) {
             const enemy = searchList[i];
 
-            // Zaten vurduğumuz düşmanları atla
-            if (this.hitList.includes(enemy.id)) continue;
+            // Skip conditions
+            if (this.hitList.includes(enemy.id) || enemy.hp <= 0) continue;
 
+            // Önce cone kontrolü (ucuz işlem)
+            if (!this.isEnemyInCone(enemy, coneAngle, homingRange)) continue;
+
+            // Sonra mesafe kontrolü
             const dx = enemy.x - this.x;
             const dy = enemy.y - this.y;
             const distSq = dx * dx + dy * dy;
@@ -134,33 +213,38 @@ class Projectile {
         return nearestEnemy;
     }
 
-    // Homing uygulaması - Smooth interpolation
+    // ✅ GELİŞTİRİLMİŞ HOMING - Adaptive + Prediction
     applyHoming(target, shotSpeed, dt) {
-        const dx = target.x - this.x;
-        const dy = target.y - this.y;
+        // 1. Hedef prediction
+        const predictTime = 0.1;
+        const predictedX = target.x + (target.velocity?.x || 0) * predictTime;
+        const predictedY = target.y + (target.velocity?.y || 0) * predictTime;
+
+        const dx = predictedX - this.x;
+        const dy = predictedY - this.y;
+        const distSq = dx * dx + dy * dy;
+        const dist = Math.sqrt(distSq);
+
+        // 2. Adaptive strength (yakında güçlü, uzakta zayıf)
+        const normalizedDist = Math.min(dist / (300 * GAME_SCALE), 1);
+        const adaptiveStrength = this.homing * (0.5 + 0.5 * (1 - normalizedDist));
+
+        // 3. Smooth angular lerp
         const angle = Math.atan2(dy, dx);
+        const currentAngle = Math.atan2(this.velocity.y, this.velocity.x);
 
-        const targetVx = Math.cos(angle) * shotSpeed;
-        const targetVy = Math.sin(angle) * shotSpeed;
+        // Angle difference normalize et
+        let angleDiff = angle - currentAngle;
+        while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
+        while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
 
-        // Lerp interpolation (daha smooth)
-        const homingStrength = this.homing * dt; // dt ile çarp ki frame rate bağımsız olsun
-        this.velocity.x += (targetVx - this.velocity.x) * homingStrength;
-        this.velocity.y += (targetVy - this.velocity.y) * homingStrength;
+        // 4. Lerp interpolation
+        const lerpFactor = Math.min(adaptiveStrength * dt * 10, 1);
+        const newAngle = currentAngle + angleDiff * lerpFactor;
 
-        // Hız normalizasyonu - sadece çok sapma olursa
-        const currentSpeedSq = this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y;
-        const targetSpeedSq = shotSpeed * shotSpeed;
-
-        // %10'dan fazla sapma varsa normalize et
-        if (Math.abs(currentSpeedSq - targetSpeedSq) > targetSpeedSq * 0.1) {
-            const currentSpeed = Math.sqrt(currentSpeedSq);
-            if (currentSpeed > 0) {
-                const scale = shotSpeed / currentSpeed;
-                this.velocity.x *= scale;
-                this.velocity.y *= scale;
-            }
-        }
+        // 5. Velocity güncelle
+        this.velocity.x = Math.cos(newAngle) * shotSpeed;
+        this.velocity.y = Math.sin(newAngle) * shotSpeed;
     }
 }
 
