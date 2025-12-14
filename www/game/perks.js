@@ -71,6 +71,7 @@ const ALL_PERKS = [
         desc: 'Fires additional shots to the left and right.',
         icon: '⚓',
         theme: '#ff00cc',
+        singleUse: true,
         apply: (stats) => { stats.sideCannons = true; }
     },
     {
@@ -95,6 +96,7 @@ const ALL_PERKS = [
         desc: 'Bullets wrap around the screen once.',
         icon: '🌀',
         theme: '#4b0082',
+        singleUse: true,
         apply: (stats) => { stats.screenWrap = true; }
     },
     {
@@ -140,6 +142,7 @@ const ALL_PERKS = [
         desc: 'Fires an additional bullet backwards.',
         icon: '🔙',
         theme: '#888888',
+        singleUse: true,
         apply: (stats) => { stats.backShot = true; } //1 kere alınırsa bidaha çıkmasın perk seçmede.
     },
     {

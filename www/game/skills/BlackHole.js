@@ -125,7 +125,7 @@ function updateAndDrawBlackHole(dt) {
 
             // Olay Ufku Hasarı
             if (dist < visualRadius) {
-                enemy.hp -= 5 * dt; // Saniyede ~300 hasar
+                enemy.hp -= 40 * dt; // Saniyede ~300 hasar
                 if (enemy.hp <= 0) handleEnemyDeath(enemy);
             }
         }

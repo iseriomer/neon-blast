@@ -278,11 +278,15 @@ button.main-btn:active {
 .perk-container {
     display: flex;
     gap: 30px;
+    /* Reduced gap */
     flex-wrap: wrap;
     justify-content: center;
+    align-items: stretch;
+    /* Cards stretch to same height */
     width: 100%;
     padding: 20px;
-    max-width: 1400px;
+    max-width: 1200px;
+    /* Constrain slightly */
 }
 
 .perk-card {
@@ -291,8 +295,20 @@ button.main-btn:active {
     border: 2px solid var(--perk-theme);
     border-radius: 0;
     /* KESKİN */
-    padding: 30px;
-    width: 300px;
+    padding: 25px;
+    /* Slightly less padding */
+    flex: 1;
+    /* Grow to fill space */
+    min-width: 220px;
+    /* Minimum reasonable width */
+    max-width: 320px;
+    /* Maximum reasonable width */
+    min-height: 104px;
+    /* Minimum reasonable height */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
     cursor: pointer;
     transition: all 0.2s ease;
     text-align: center;
@@ -798,8 +814,156 @@ button.main-btn:active {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    z-index: 200;
-    /* Higher than UI layer */
+    z-index: 100;
+}
+
+#pause-menu h2 {
+    font-size: 4rem;
+    color: #00ffff;
+    text-shadow: 0 0 20px #00ffff;
+    margin-bottom: 40px;
+}
+
+.pause-options {
+    margin-bottom: 40px;
+}
+
+.toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.toggle-container input {
+    display: none;
+}
+
+.checkmark {
+    width: 25px;
+    height: 25px;
+    border: 2px solid #fff;
+    display: inline-block;
+    position: relative;
+    transition: all 0.2s;
+}
+
+.toggle-container input:checked+.checkmark {
+    background: #00ffff;
+    box-shadow: 0 0 10px #00ffff;
+    border-color: #00ffff;
+}
+
+.toggle-container input:checked+.checkmark:after {
+    content: '✔';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: black;
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+/* Perk Entry Animation */
+@keyframes cardEntry {
+    0% {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+
+    60% {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Perk Shuffle/Glitch Animation Styles */
+.perk-shuffling {
+    position: relative;
+    overflow: hidden;
+    color: rgba(255, 255, 255, 0.7);
+    border-color: #555 !important;
+}
+
+.perk-shuffling::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(0deg,
+            rgba(0, 0, 0, 0.1) 0px,
+            rgba(0, 0, 0, 0.1) 1px,
+            transparent 1px,
+            transparent 2px);
+    pointer-events: none;
+    z-index: 2;
+}
+
+/* Glitch Effect on Text */
+.perk-shuffling .perk-title {
+    animation: textGlitch 0.2s infinite;
+}
+
+@keyframes textGlitch {
+    0% {
+        transform: translate(0, 0);
+    }
+
+    20% {
+        transform: translate(-2px, 2px);
+    }
+
+    40% {
+        transform: translate(-2px, -2px);
+    }
+
+    60% {
+        transform: translate(2px, 2px);
+    }
+
+    80% {
+        transform: translate(2px, -2px);
+    }
+
+    100% {
+        transform: translate(0, 0);
+    }
+}
+
+/* Locked selection visual */
+.perk-card.locked-in {
+    border-color: #fff !important;
+    box-shadow: 0 0 30px var(--perk-theme) !important;
+    /* Glow with theme color */
+    transform: scale(1.05) !important;
+    z-index: 20;
+    filter: none !important;
+    animation: perkFlash 0.5s ease-out;
+    background: rgba(20, 20, 40, 0.95);
+}
+
+@keyframes perkFlash {
+    0% {
+        box-shadow: 0 0 50px white;
+        background: white;
+        color: black;
+    }
+
+    100% {
+        box-shadow: 0 0 30px var(--perk-theme);
+        background: rgba(20, 20, 40, 0.95);
+        color: white;
+    }
 }
 
 #pause-menu h2 {

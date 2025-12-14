@@ -57,63 +57,149 @@ class SpawnManager {
             startBossFight(3);
             return;
         }
+
         gameState.isPaused = true;
         clearInterval(gameState.spawnInterval);
         playSound('levelup');
         showLevelUpAnimation();
 
-        setTimeout(() => {
-            // Filter perks
-            let availablePerks = ALL_PERKS.filter(p => {
-                if (p.singleUse && gameState.takenPerks.includes(p.id)) return false;
-                if (p.id === 'energy_shield' && gameState.playerStats.shield >= gameState.playerStats.maxShields) return false;
-                if (p.id === 'double_shot' && gameState.playerStats.shotCount >= MAX_SHOT_COUNT) return false;
-                if (p.id === 'back_shot' && gameState.playerStats.backShot) return false;
-                if (p.id === 'laser_beam' && gameState.playerStats.laserBeam >= 5) return false;
-                // Laser Damage Perk Logic
-                if (p.id === 'laser_damage' && gameState.playerStats.laserBeam === 0) return false;
-                if (p.id === 'singularity' && gameState.playerStats.singularity) return false;
-                // Chain Lightning Logic
-                if (p.id === 'chain_lightning' && gameState.playerStats.chainLightning > 0) return false;
-                if ((p.id === 'chain_lightning_count' || p.id === 'chain_lightning_damage') && gameState.playerStats.chainLightning === 0) return false;
-                // Status Mutual Exclusivity
+        // 1. FILTER AVAILABLE PERKS
+        let availablePerks = ALL_PERKS.filter(p => {
+            if (p.singleUse && gameState.takenPerks.includes(p.id)) return false;
+            // Max Shield Check
+            if (p.id === 'energy_shield' && gameState.playerStats.shield >= gameState.playerStats.maxShields) return false;
+            // Max Shot Check
+            if (p.id === 'double_shot' && gameState.playerStats.shotCount >= MAX_SHOT_COUNT) return false;
+            // One-time perks
+            if (p.id === 'back_shot' && gameState.playerStats.backShot) return false;
+            if (p.id === 'singularity' && gameState.playerStats.singularity) return false;
 
-                // Conditional Perks
-                if (p.id === 'orbital_size' && gameState.playerStats.orbitals === 0) return false;
-                return true;
-            });
+            // Laser Beam Cap
+            if (p.id === 'laser_beam' && gameState.playerStats.laserBeam >= 5) return false;
+            // Laser Damage needs Laser Beam
+            if (p.id === 'laser_damage' && gameState.playerStats.laserBeam === 0) return false;
 
-            const shuffled = availablePerks.sort(() => 0.5 - Math.random());
-            const selectedPerks = shuffled.slice(0, 3);
+            // Chain Lightning Logic
+            if (p.id === 'chain_lightning' && gameState.playerStats.chainLightning > 0) return false;
+            if ((p.id === 'chain_lightning_count' || p.id === 'chain_lightning_damage') && gameState.playerStats.chainLightning === 0) return false;
 
+            // Orbital Size needs Orbitals
+            if (p.id === 'orbital_size' && gameState.playerStats.orbitals === 0) return false;
+
+            return true;
+        });
+
+        // 2. SELECT 3 UNIQUE PERKS (Final Selection)
+        // Shuffle available perks
+        const shuffled = availablePerks.sort(() => 0.5 - Math.random());
+        // Pick top 3 (or fewer if not enough perks)
+        const selectedPerks = shuffled.slice(0, 3);
+
+        // If we have fewer than 3 perks, fill the rest with placeholders or just show fewer
+        // For visual consistency, let's just use what we have.
+
+        // 3. SHOW UI WITH PLACEHOLDERS
+        // We want the perk cards to appear immediately after the "LEVEL UP" text starts fading
+        // The original code had 1200ms delay. We'll keep a short delay for the text impact.
+        setTimeout(() => { // Faster start (500ms)
             perkListEl.innerHTML = '';
-            selectedPerks.forEach(perk => {
-                let displayDesc = perk.desc;
+            levelUpScreen.classList.remove('hidden');
 
-                // Dynamic Descriptions
-                if (perk.id === 'orbitals') {
-                    displayDesc = `(Current: ${gameState.playerStats.orbitals} protection) + 1 Orbital Shield.`;
-                } else if (perk.id === 'split_shot') {
-                    displayDesc = `(Current: ${gameState.playerStats.splitShotCount} fragments) + 1 Fragment on hit.`;
-                }
+            // Create card elements
+            const cardElements = [];
 
+            // We'll create 3 cards (or less)
+            for (let i = 0; i < selectedPerks.length; i++) {
                 const div = document.createElement('div');
-                div.className = 'perk-card';
-                // Set dynamic theme color
-                if (perk.theme) {
-                    div.style.setProperty('--perk-theme', perk.theme);
-                }
+                div.className = 'perk-card perk-shuffling'; // Start blurring
+                div.style.setProperty('--perk-theme', '#555'); // Default gray during shuffle
+
+                // Staggered entry animation (Tight timing)
+                div.style.animation = `cardEntry 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 0.08}s backwards`;
 
                 div.innerHTML = `
-                    <div class="perk-title">${perk.title}</div>
-                    <div class="perk-desc">${displayDesc}</div>
+                    <div class="perk-title" style="font-family: monospace;">INIT...</div>
+                    <div class="perk-desc">DECRYPTING...</div>
                 `;
-                div.onclick = () => SpawnManager.selectPerk(perk);
+                // Prevent clicking during shuffle
+                div.style.pointerEvents = 'none';
                 perkListEl.appendChild(div);
+                cardElements.push(div);
+            }
+
+            // 4. SLOT MACHINE ANIMATION
+            // Cycle through random perks on each card independently
+            const intervals = [];
+            const randomChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#@!%&";
+
+            cardElements.forEach((card, index) => {
+                let tickCount = 0;
+                const interval = setInterval(() => {
+                    tickCount++;
+                    // Play tick sound occasionally (too fast otherwise)
+                    if (tickCount % 3 === 0) playSound('ui_tick');
+
+                    // Pick a random perk from ALL available perks just for visual noise
+                    const randomPerk = availablePerks[Math.floor(Math.random() * availablePerks.length)];
+
+                    if (randomPerk) {
+                        // Randomize color
+                        const randomColor = `hsl(${Math.random() * 360}, 70%, 50%)`;
+                        card.style.setProperty('--perk-theme', randomColor);
+
+                        // Scramble Text Effect
+                        let scrambledTitle = "";
+                        for (let k = 0; k < 10; k++) scrambledTitle += randomChars.charAt(Math.floor(Math.random() * randomChars.length));
+
+                        // NO ICON - Scrambled text only
+                        card.querySelector('.perk-title').innerText = scrambledTitle;
+                    }
+                }, 40); // Faster shuffle (40ms)
+                intervals.push(interval);
             });
 
-            levelUpScreen.classList.remove('hidden');
-        }, 1200);
+            // 5. STOP CARDS ONE BY ONE
+            // Faster stagger
+            selectedPerks.forEach((finalPerk, index) => {
+                setTimeout(() => {
+                    clearInterval(intervals[index]);
+
+                    const card = cardElements[index];
+
+                    // Set Final Content
+                    let displayDesc = finalPerk.desc;
+                    // Dynamic Descriptions
+                    if (finalPerk.id === 'orbitals') {
+                        displayDesc = `(Current: ${gameState.playerStats.orbitals} protection) + 1 Orbital Shield.`;
+                    } else if (finalPerk.id === 'split_shot') {
+                        displayDesc = `(Current: ${gameState.playerStats.splitShotCount} fragments) + 1 Fragment on hit.`;
+                    }
+
+                    if (finalPerk.theme) {
+                        card.style.setProperty('--perk-theme', finalPerk.theme);
+                    }
+
+                    // NO ICON in final result
+                    card.innerHTML = `
+                        <div class="perk-title">${finalPerk.title}</div>
+                        <div class="perk-desc">${displayDesc}</div>
+                    `;
+
+                    // Remove shuffle effect and add lock-in effect
+                    card.classList.remove('perk-shuffling');
+                    card.classList.add('locked-in');
+
+                    // Play Lock Sound
+                    playSound('ui_lock');
+
+                    // Enable interaction
+                    card.style.pointerEvents = 'auto';
+                    card.onclick = () => SpawnManager.selectPerk(finalPerk);
+
+                }, 800 + (index * 300)); // Faster stagger (300ms)
+            });
+
+        }, 500); // 500ms delay after "LEVEL UP" text appears
     }
 
     static selectPerk(perk) {
