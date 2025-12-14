@@ -74,11 +74,11 @@ class BossOmega extends BossBase {
         if (this.phase === 1) {
             if (this.cooldowns.minion <= 0) {
                 this.spawnMinions();
-                this.cooldowns.minion = 120;
+                this.cooldowns.minion = 80;
             }
             if (this.cooldowns.missile <= 0) {
                 this.shootHomingMissile(player);
-                this.cooldowns.missile = 80;
+                this.cooldowns.missile = 60;
             }
         } else {
             // Phase 2: Spiral Bullet Hell

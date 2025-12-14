@@ -42,6 +42,7 @@ const gameState = {
     isStarting: false,
     startTimer: 0,
     activeHealerCount: 0,
+    activeSpawnerCount: 0,
     takenPerks: []
 };
 
@@ -405,6 +406,7 @@ function initGame() {
     gameState.currentLevelStep = 600;
     gameState.difficultyMultiplier = 0;
     gameState.activeHealerCount = 0;
+    gameState.activeSpawnerCount = 0;
     gameState.takenPerks = [];
     // Yeni:
     gameState.singularityTimer = 0;
@@ -509,6 +511,7 @@ function gameOver() {
 // PAUSE FUNCTIONALITY
 function togglePause() {
     if (!gameState.gameActive) return; // Can't pause if game not active
+    if (!levelUpScreen.classList.contains('hidden')) return; // Can't toggle pause during level up
 
     gameState.isPaused = !gameState.isPaused;
 
