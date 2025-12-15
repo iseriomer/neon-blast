@@ -44,16 +44,29 @@ class SpawnManager {
     }
 
     static triggerLevelUp() {
-        if (gameState.level === 14 && !gameState.bossActive) {
-            startBossFight();
-            return; // Normal level up ekranını açma
-        }
-        // --- BOSS 2 CHECK (YENİ) ---
-        if (gameState.level === 29 && !gameState.bossActive) {
-            startBossFight(2); // Boss ID 2
+        // --- BOSS SCHEDULE ---
+        // Level 10: OMEGA CORE (Boss 1)
+        if (gameState.level === 10 && !gameState.bossActive) {
+            startBossFight(1);
             return;
         }
-        if (gameState.level === 44 && !gameState.bossActive) {
+        // Level 20: THE SWARM (Boss 4)
+        if (gameState.level === 20 && !gameState.bossActive) {
+            startBossFight(4);
+            return;
+        }
+        // Level 30: NEXUS PRIME (Boss 2)
+        if (gameState.level === 30 && !gameState.bossActive) {
+            startBossFight(2);
+            return;
+        }
+        // Level 40: CHRONOS (Boss 5)
+        if (gameState.level === 40 && !gameState.bossActive) {
+            startBossFight(5);
+            return;
+        }
+        // Level 50: THE ARCHITECT (Boss 3)
+        if (gameState.level === 50 && !gameState.bossActive) {
             startBossFight(3);
             return;
         }

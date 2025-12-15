@@ -632,7 +632,6 @@ document.getElementById('next-track-btn').addEventListener('click', () => {
     const trackName = musicManager.nextTrack();
     document.getElementById('current-track-name').innerText = trackName;
 });
-
 // Initialize Track Name display
 if (typeof musicManager !== 'undefined') {
     document.getElementById('current-track-name').innerText = musicManager.getCurrentTrackName();

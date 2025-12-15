@@ -106,10 +106,13 @@ function adminMaxFireRate() {
     gameState.playerStats.spread = 0.05;
 }
 
+let adminBossIndex = 0;
 function adminSpawnBoss() {
-    const x = Math.random() * CANVAS.width;
-    const y = Math.random() * CANVAS.height;
-    enemyPool.get(x, y, ENEMY_TYPES.TANK, gameState.difficultyMultiplier + 5);
+    adminBossIndex = (adminBossIndex % 5) + 1;
+    console.log(`Spawning Boss ${adminBossIndex}`);
+    if (window.startBossFight) {
+        startBossFight(adminBossIndex);
+    }
 }
 function adminSpawnSpawner() {
     const x = Math.random() * CANVAS.width;

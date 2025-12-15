@@ -242,6 +242,102 @@ class CollisionManager {
                         }
                     }
                 }
+
+                // Boss 4 - THE SWARM
+                if (typeof boss4 !== 'undefined' && boss4.active && !projectileDestroyed) {
+                    // Main core collision (only if not split)
+                    if (!boss4.isSplit) {
+                        const dx = projectile.x - boss4.x;
+                        const dy = projectile.y - boss4.y;
+                        const distSq = dx * dx + dy * dy;
+                        const minDist = boss4.radius + projectile.radius;
+
+                        if (distSq < minDist * minDist) {
+                            let damage = 20;
+                            if (projectile.isSplit) damage = 10;
+                            if (gameState.playerStats.sniper) damage *= 2;
+
+                            boss4.takeDamage(damage);
+                            spawnParticles(projectile.x, projectile.y, 5, 3, '#00ff88');
+                            playSound('hit');
+                            projectilePool.release(projectile);
+                            projectileDestroyed = true;
+                        }
+                    }
+
+                    // Split cores collision
+                    if (!projectileDestroyed && boss4.splitCores) {
+                        for (let sc = boss4.splitCores.length - 1; sc >= 0; sc--) {
+                            const core = boss4.splitCores[sc];
+                            const dx = projectile.x - core.x;
+                            const dy = projectile.y - core.y;
+                            const distSq = dx * dx + dy * dy;
+                            const minDist = core.radius + projectile.radius;
+
+                            if (distSq < minDist * minDist) {
+                                let damage = 15;
+                                if (gameState.playerStats.sniper) damage *= 2;
+
+                                boss4.takeDamage(damage);
+                                spawnParticles(projectile.x, projectile.y, 5, 3, '#ff4400');
+                                playSound('hit');
+                                projectilePool.release(projectile);
+                                projectileDestroyed = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    // Drone collision
+                    if (!projectileDestroyed && typeof dronePool !== 'undefined') {
+                        const activeDrones = dronePool.getActive();
+                        for (let d = activeDrones.length - 1; d >= 0; d--) {
+                            const drone = activeDrones[d];
+                            if (drone.hp <= 0) continue;
+
+                            const dx = projectile.x - drone.x;
+                            const dy = projectile.y - drone.y;
+                            const distSq = dx * dx + dy * dy;
+                            const minDist = drone.radius + projectile.radius;
+
+                            if (distSq < minDist * minDist) {
+                                let damage = 1;
+                                if (gameState.playerStats.sniper) damage = 2;
+
+                                drone.hp -= damage;
+                                spawnParticles(drone.x, drone.y, 3, 2, '#44ffaa');
+                                playSound('hit');
+
+                                projectile.penetration--;
+                                if (projectile.penetration <= 0) {
+                                    projectilePool.release(projectile);
+                                    projectileDestroyed = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Boss 5 - CHRONOS
+                if (typeof boss5 !== 'undefined' && boss5.active && !projectileDestroyed) {
+                    const dx = projectile.x - boss5.x;
+                    const dy = projectile.y - boss5.y;
+                    const distSq = dx * dx + dy * dy;
+                    const minDist = boss5.radius + projectile.radius;
+
+                    if (distSq < minDist * minDist) {
+                        let damage = 20;
+                        if (projectile.isSplit) damage = 10;
+                        if (gameState.playerStats.sniper) damage *= 2;
+
+                        boss5.takeDamage(damage);
+                        spawnParticles(projectile.x, projectile.y, 5, 3, boss5.getPhaseColor());
+                        playSound('hit');
+                        projectilePool.release(projectile);
+                        projectileDestroyed = true;
+                    }
+                }
             }
 
             if (projectileDestroyed) continue;
