@@ -18,7 +18,7 @@ const POOL_SIZES = {
     PARTICLE: 1000
 };
 
-const MAX_PROJECTILES = 250;
+const MAX_PROJECTILES = 350;
 const MAX_PARTICLES = 800;
 
 // Enemy Types Configuration

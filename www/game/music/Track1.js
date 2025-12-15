@@ -46,17 +46,28 @@ class NeonNightsSynth {
 
     playStep(time) {
         const step = this.beat % 16;      // 1 bar loop (16th notes)
-        const bar = Math.floor(this.beat / 16) % 4; // 4 bar phrases
+        const bar = Math.floor(this.beat / 16) % 8; // 8 bar phrases
 
         // --- DRUMS ---
         // Kick: Four-on-the-floor
         if (step % 4 === 0) {
-            this.playKick(time);
+            // Drop kickoff at the very end (Bar 8, beat 4)
+            if (!(bar === 7 && step === 12)) {
+                this.playKick(time);
+            }
         }
 
         // Snare: Huge gated reverb snare on 2 and 4 (beats 4 and 12 in 16th steps)
         if (step === 4 || step === 12) {
             this.playSnare(time);
+        }
+
+        // Kick/Snare Fills
+        if (bar === 7) {
+            // Fill at the end of the 8th bar
+            if (step === 14 || step === 15) {
+                this.playSnare(time);
+            }
         }
 
         // Hi-Hat: 16th notes, closed
@@ -165,11 +176,12 @@ class NeonNightsSynth {
         // Octave switching rolling bass: Root - Octave - Root - Root
         // 16th notes
 
-        // Progression: E - C - D - E
+        // Progression: E - C - D - E | C - Am - D - Bm
         let freq = this.rootFreq; // E1
-        if (bar === 1) freq = 32.70; // C1
-        if (bar === 2) freq = 36.71; // D1
-        // Bar 3 return to E1
+        if (bar === 1 || bar === 4) freq = 32.70; // C1
+        if (bar === 2 || bar === 6) freq = 36.71; // D1
+        if (bar === 5) freq = 55.00; // A1 (Am)
+        if (bar === 7) freq = 61.74; // B1 (Bm)
 
         // Octave Pattern: Low - High - Low - Low
         let currentFreq = freq;
@@ -218,9 +230,11 @@ class NeonNightsSynth {
         // Dmaj: D F# A
 
         let notes = [];
-        if (bar === 0 || bar === 3) notes = [164.81, 196.00, 246.94]; // E3 G3 B3
-        if (bar === 1) notes = [130.81, 164.81, 196.00]; // C3 E3 G3
-        if (bar === 2) notes = [146.83, 185.00, 220.00]; // D3 F#3 A3
+        if (bar === 0 || bar === 3) notes = [164.81, 196.00, 246.94]; // Em: E3 G3 B3
+        if (bar === 1 || bar === 4) notes = [130.81, 164.81, 196.00]; // Cmaj: C3 E3 G3
+        if (bar === 2 || bar === 6) notes = [146.83, 185.00, 220.00]; // Dmaj: D3 F#3 A3
+        if (bar === 5) notes = [220.00, 261.63, 329.63]; // Am: A3 C4 E4
+        if (bar === 7) notes = [246.94, 293.66, 369.99]; // Bm: B3 D4 F#4
 
         // Play 3 oscillators for chord
         notes.forEach((freq, i) => {
@@ -274,8 +288,10 @@ class NeonNightsSynth {
         // Em Scale: E G B E
         let freqs = [659.25, 783.99, 987.77, 1318.51]; // E5 G5 B5 E6
         // Adjust for chords loosely
-        if (bar === 1) freqs = [523.25, 659.25, 783.99, 1046.50]; // C5 E5 G5 C6
-        if (bar === 2) freqs = [587.33, 739.99, 880.00, 1174.66]; // D5 F#5 A5 D6
+        if (bar === 1 || bar === 4) freqs = [523.25, 659.25, 783.99, 1046.50]; // C
+        if (bar === 2 || bar === 6) freqs = [587.33, 739.99, 880.00, 1174.66]; // D
+        if (bar === 5) freqs = [440.00, 523.25, 659.25, 880.00]; // Am
+        if (bar === 7) freqs = [493.88, 587.33, 739.99, 987.77]; // Bm
 
         const note = freqs[step % 4];
 

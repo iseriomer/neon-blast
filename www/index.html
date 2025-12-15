@@ -54,6 +54,11 @@
                 <span class="checkmark"></span>
                 Music
             </label>
+            <label class="toggle-container">
+                <input type="checkbox" id="joystick-toggle">
+                <span class="checkmark"></span>
+                Joystick Mode
+            </label>
             <div class="slider-container" style="display: flex; flex-direction: column; width: 100%; margin: 10px 0;">
                 <label for="music-volume" style="font-size: 0.8rem; margin-bottom: 5px;">Music Volume</label>
                 <input type="range" id="music-volume" min="0" max="1" step="0.1" value="0.6"
@@ -132,6 +137,17 @@
         </div>
     </div>
 
+    <!-- Joystick Controls -->
+    <div id="joystick-zone"></div>
+    <div id="joystick-base">
+        <div id="joystick-stick"></div>
+    </div>
+
+    <!-- Tracer Overlay -->
+    <svg id="tracer-overlay">
+        <line id="tracer-line" x1="0" y1="0" x2="0" y2="0" />
+    </svg>
+
     <canvas id="gameCanvas"></canvas>
 
     <!-- Load Firebase Leaderboard -->
@@ -181,6 +197,7 @@
     <!-- NEW: Refactored Managers & Skills -->
     <script src="game/managers/CollisionManager.js"></script>
     <script src="game/managers/SpawnManager.js"></script>
+    <script src="game/joystick.js"></script>
     <script src="game/managers/InputManager.js"></script>
     <script src="game/managers/BossManager.js"></script>
     <script src="game/skills/BlackHole.js"></script>

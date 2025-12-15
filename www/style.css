@@ -829,45 +829,7 @@ button.main-btn:active {
     margin-bottom: 40px;
 }
 
-.toggle-container {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 1.5rem;
-    cursor: pointer;
-    user-select: none;
-    margin-top: 10px;
-}
 
-.toggle-container input {
-    display: none;
-}
-
-.checkmark {
-    width: 25px;
-    height: 25px;
-    border: 2px solid #fff;
-    display: inline-block;
-    position: relative;
-    transition: all 0.2s;
-}
-
-.toggle-container input:checked+.checkmark {
-    background: #00ffff;
-    box-shadow: 0 0 10px #00ffff;
-    border-color: #00ffff;
-}
-
-.toggle-container input:checked+.checkmark:after {
-    content: '✔';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: black;
-    font-size: 1rem;
-    font-weight: bold;
-}
 
 /* Perk Entry Animation */
 @keyframes cardEntry {
@@ -982,16 +944,24 @@ button.main-btn:active {
 }
 
 /* FPS Toggle Checkbox */
+/* FPS Toggle & General Toggles - Neon Switch Style */
 .toggle-container {
     display: flex;
     align-items: center;
+    gap: 15px;
     position: relative;
-    padding-left: 35px;
     cursor: pointer;
     font-size: 1.2rem;
     user-select: none;
-    color: #eee;
+    color: #bbb;
     font-family: monospace;
+    margin: 10px 0;
+    transition: color 0.3s;
+}
+
+.toggle-container:hover {
+    color: #fff;
+    text-shadow: 0 0 8px rgba(0, 255, 255, 0.6);
 }
 
 .toggle-container input {
@@ -1002,47 +972,61 @@ button.main-btn:active {
     width: 0;
 }
 
+/* Switch Track */
 .checkmark {
-    position: absolute;
-    left: 0;
-    height: 25px;
-    width: 25px;
-    background-color: #222;
-    border: 2px solid #555;
-    transition: all 0.2s;
+    position: relative;
+    height: 26px;
+    width: 50px;
+    background-color: rgba(10, 10, 20, 0.8);
+    border: 2px solid #444;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
+    flex-shrink: 0;
 }
 
-.toggle-container:hover input~.checkmark {
-    background-color: #333;
-    border-color: #777;
-}
-
-.toggle-container input:checked~.checkmark {
-    background-color: #00ffff;
-    border-color: #00ffff;
-    box-shadow: 0 0 10px #00ffff;
-}
-
-.checkmark:after {
+/* Switch Knob */
+.checkmark:before {
     content: "";
     position: absolute;
+    left: 3px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    background-color: #666;
+    border-radius: 50%;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    /* Bouncy effect */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+/* Checked State - Track */
+.toggle-container input:checked~.checkmark {
+    background-color: rgba(0, 255, 255, 0.15);
+    border-color: #00ffff;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.4), inset 0 0 5px rgba(0, 255, 255, 0.2);
+}
+
+/* Checked State - Knob */
+.toggle-container input:checked~.checkmark:before {
+    left: 27px;
+    /* 50px (w) - 16px (knob) - 4px (border total) - 3px (left pad) */
+    background-color: #fff;
+    box-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+}
+
+/* Remove old checkmark after element */
+.checkmark:after {
     display: none;
 }
 
 .toggle-container input:checked~.checkmark:after {
-    display: block;
+    display: none;
 }
 
 .toggle-container .checkmark:after {
-    left: 9px;
-    top: 5px;
-    width: 5px;
-    height: 10px;
-    border: solid black;
-    border-width: 0 3px 3px 0;
-    -webkit-transform: rotate(45deg);
-    -ms-transform: rotate(45deg);
-    transform: rotate(45deg);
+    display: none;
 }
 
 /* Adjust FPS counter position if needed to not overlap with pause button */
@@ -1093,4 +1077,61 @@ button.main-btn:active {
     text-shadow: 0 0 5px #00ffff;
     flex-grow: 1;
     text-align: center;
+}
+
+/* Joystick Controls */
+#joystick-zone {
+    display: none;
+    /* Hidden by default */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    touch-action: none;
+}
+
+#joystick-base {
+    display: none;
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(0, 255, 255, 0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 11;
+}
+
+#joystick-stick {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 40px;
+    height: 40px;
+    background: rgba(0, 255, 255, 0.5);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 10px #00ffff;
+}
+
+#tracer-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 5;
+    /* Below joystick, above game */
+}
+
+#tracer-line {
+    stroke: rgba(255, 0, 0, 0.4);
+    stroke-width: 2;
+    stroke-dasharray: 10, 10;
+    display: none;
+    /* Controlled by JS */
 }

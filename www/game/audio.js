@@ -32,10 +32,18 @@ function playSound(type) {
         osc.start(now);
         osc.stop(now + 0.1);
     } else if (type === 'hit') {
-        osc.type = 'sawtooth';
+
+        /* osc.type = 'sawtooth';
         osc.frequency.setValueAtTime(200, now);
         osc.frequency.exponentialRampToValueAtTime(10, now + 0.2);
         gain.gain.setValueAtTime(0.1, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.2);
+        osc.start(now);
+        osc.stop(now + 0.2); */
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(150, now);
+        osc.frequency.exponentialRampToValueAtTime(10, now + 0.2);
+        gain.gain.setValueAtTime(0.3, now);
         gain.gain.linearRampToValueAtTime(0, now + 0.2);
         osc.start(now);
         osc.stop(now + 0.2);

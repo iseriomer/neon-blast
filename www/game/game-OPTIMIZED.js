@@ -271,6 +271,9 @@ function animate(timestamp) {
     // BOSS UPDATES
     BossManager.updateAndDraw(dt);
 
+    // TRACER UPDATE (SVG)
+    updateTracerUI();
+
     profiler.start('draw-player');
     drawPlayer(gameState.playerStats, gameState.lastShotTime);
     profiler.end('draw-player');
@@ -300,18 +303,33 @@ function animate(timestamp) {
             CTX.lineWidth = 1;
 
             enemyPool.getActive().forEach(enemy => {
-                const distToLine = Math.abs(
-                    (laserEndY - player.y) * enemy.x -
-                    (laserEndX - player.x) * enemy.y +
-                    laserEndX * player.y - laserEndY * player.x
-                ) / Math.hypot(laserEndY - player.y, laserEndX - player.x);
-                const distToPlayer = Math.hypot(enemy.x - player.x, enemy.y - player.y);
+                // Direction vector of the laser
+                const laserDx = laserEndX - player.x;
+                const laserDy = laserEndY - player.y;
 
-                if (distToLine < enemy.radius + 10 && distToPlayer < 2000) {
-                    enemy.hp -= gameState.playerStats.laserDamage;
+                // Vector from player to enemy
+                const enemyDx = enemy.x - player.x;
+                const enemyDy = enemy.y - player.y;
 
-                    if (enemy.hp <= 0) {
-                        handleEnemyDeath(enemy);
+                // 1. Dot Product Check: Is the enemy in front of the laser?
+                // (dot > 0 means the angle is less than 90 degrees)
+                const dotProduct = laserDx * enemyDx + laserDy * enemyDy;
+
+                if (dotProduct > 0) {
+                    const distToLine = Math.abs(
+                        (laserEndY - player.y) * enemy.x -
+                        (laserEndX - player.x) * enemy.y +
+                        laserEndX * player.y - laserEndY * player.x
+                    ) / Math.hypot(laserEndY - player.y, laserEndX - player.x);
+
+                    const distToPlayer = Math.hypot(enemyDx, enemyDy);
+
+                    if (distToLine < enemy.radius + 10 && distToPlayer < 2000) {
+                        enemy.hp -= gameState.playerStats.laserDamage;
+
+                        if (enemy.hp <= 0) {
+                            handleEnemyDeath(enemy);
+                        }
                     }
                 }
             });
@@ -598,6 +616,18 @@ document.getElementById('prev-track-btn').addEventListener('click', () => {
     document.getElementById('current-track-name').innerText = trackName;
 });
 
+// Joystick Toggle
+document.getElementById('joystick-toggle').addEventListener('change', (e) => {
+    const zone = document.getElementById('joystick-zone');
+    if (e.target.checked) {
+        zone.style.display = 'block';
+        if (window.joystick) window.joystick.active = false; // Reset state
+    } else {
+        zone.style.display = 'none';
+        if (window.joystick) window.joystick.active = false;
+    }
+});
+
 document.getElementById('next-track-btn').addEventListener('click', () => {
     const trackName = musicManager.nextTrack();
     document.getElementById('current-track-name').innerText = trackName;
@@ -606,4 +636,25 @@ document.getElementById('next-track-btn').addEventListener('click', () => {
 // Initialize Track Name display
 if (typeof musicManager !== 'undefined') {
     document.getElementById('current-track-name').innerText = musicManager.getCurrentTrackName();
+}
+
+function updateTracerUI() {
+    const tracerLine = document.getElementById('tracer-line');
+    if (!tracerLine) return;
+
+    if (window.joystick && window.joystick.active) {
+        tracerLine.style.display = 'block';
+        const startX = player.x;
+        const startY = player.y;
+        const length = 1000;
+        const endX = startX + window.joystick.vector.x * length;
+        const endY = startY + window.joystick.vector.y * length;
+
+        tracerLine.setAttribute('x1', startX);
+        tracerLine.setAttribute('y1', startY);
+        tracerLine.setAttribute('x2', endX);
+        tracerLine.setAttribute('y2', endY);
+    } else {
+        tracerLine.style.display = 'none';
+    }
 }

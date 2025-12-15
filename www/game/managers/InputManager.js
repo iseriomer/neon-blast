@@ -7,6 +7,10 @@ let isMouseDown = false;
 
 class InputManager {
     static init() {
+        if (window.joystick) {
+            window.joystick.init();
+        }
+
         // Event Listeners
         CANVAS.addEventListener('touchstart', (e) => {
             e.preventDefault();
@@ -33,10 +37,22 @@ class InputManager {
 
         // Unified Auto-Fire Interval (approx 60 FPS)
         setInterval(() => {
-            if ((isTouching || isMouseDown) && gameState.gameActive && !gameState.isPaused) {
-                const targetX = isTouching ? touchStartX : gameState.lastMouseX;
-                const targetY = isTouching ? touchStartY : gameState.lastMouseY;
-                shoot(targetX, targetY, gameState);
+            if (gameState.gameActive && !gameState.isPaused) {
+                // Check Joystick First
+                if (window.joystick && window.joystick.active) {
+                    const aimDistance = 500; // Arbitrary distance for aim vector
+                    const targetX = player.x + window.joystick.vector.x * aimDistance;
+                    const targetY = player.y + window.joystick.vector.y * aimDistance;
+                    shoot(targetX, targetY, gameState);
+                    return;
+                }
+
+                // Fallback to Touch/Mouse
+                if (isTouching || isMouseDown) {
+                    const targetX = isTouching ? touchStartX : gameState.lastMouseX;
+                    const targetY = isTouching ? touchStartY : gameState.lastMouseY;
+                    shoot(targetX, targetY, gameState);
+                }
             }
         }, 16);
 

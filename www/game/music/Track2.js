@@ -62,11 +62,6 @@ class CyberChaseSynth {
             this.playHiHat(time, step % 4 === 2);
         }
 
-        // Percussion: Glitch noises
-        if (Math.random() < 0.1) {
-            this.playGlitch(time);
-        }
-
         // --- BASS ---
         // 16th note acid bass
         this.playBass(time, step, bar);
@@ -164,21 +159,6 @@ class CyberChaseSynth {
         noise.start(time);
     }
 
-    playGlitch(time) {
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.connect(gain);
-        gain.connect(this.destination);
-
-        osc.type = Math.random() > 0.5 ? 'sawtooth' : 'square';
-        osc.frequency.setValueAtTime(1000 + Math.random() * 2000, time);
-
-        gain.gain.setValueAtTime(0.1, time);
-        gain.gain.linearRampToValueAtTime(0, time + 0.05);
-
-        osc.start(time);
-        osc.stop(time + 0.05);
-    }
 
     playBass(time, step, bar) {
         // Dm - Bb - F - C
