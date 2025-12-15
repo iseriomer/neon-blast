@@ -337,6 +337,35 @@ class CollisionManager {
                         projectilePool.release(projectile);
                         projectileDestroyed = true;
                     }
+
+                    // Clock minion collision
+                    if (!projectileDestroyed && boss5.clockMinions) {
+                        for (let cm = boss5.clockMinions.length - 1; cm >= 0; cm--) {
+                            const minion = boss5.clockMinions[cm];
+                            if (minion.hp <= 0) continue;
+
+                            const mdx = projectile.x - minion.x;
+                            const mdy = projectile.y - minion.y;
+                            const mdistSq = mdx * mdx + mdy * mdy;
+                            const mMinDist = minion.radius + projectile.radius;
+
+                            if (mdistSq < mMinDist * mMinDist) {
+                                let damage = 1;
+                                if (gameState.playerStats.sniper) damage = 2;
+
+                                minion.hp -= damage;
+                                spawnParticles(minion.x, minion.y, 3, 2, boss5.getPhaseColor());
+                                playSound('hit');
+
+                                projectile.penetration--;
+                                if (projectile.penetration <= 0) {
+                                    projectilePool.release(projectile);
+                                    projectileDestroyed = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
                 }
             }
 

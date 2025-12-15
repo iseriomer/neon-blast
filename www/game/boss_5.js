@@ -1,9 +1,9 @@
-// game/boss_5.js - CHRONOS - Time Lord Boss (Level 40)
+// game/boss_5.js - CHRONOS - Time Lord Boss (Level 40) - ENHANCED VERSION
 
 const BOSS_5_DATA = {
     name: 'CHRONOS',
-    hp: 15000,
-    score: 12000,
+    hp: 18000, // Increased HP
+    score: 15000,
     colors: {
         phase1: '#00aaff',
         phase2: '#aa00ff',
@@ -17,65 +17,68 @@ class BossChronos extends BossBase {
         this.name = BOSS_5_DATA.name;
         this.maxHp = BOSS_5_DATA.hp;
         this.score = BOSS_5_DATA.score;
-        this.radius = 60;
+        this.radius = 70; // Bigger hitbox
 
         // Visuals
         this.clockAngle = 0;
         this.hourHand = 0;
         this.minuteHand = 0;
+        this.secondHand = 0; // NEW: Second hand
         this.pulseTimer = 0;
         this.phaseShiftAlpha = 1;
+        this.glitchTimer = 0;
 
         // Combat
         this.state = 'IDLE';
         this.introTimer = 0;
         this.timeZones = [];
         this.echoClones = [];
-        this.rewindProjectiles = [];
+        this.clockMinions = []; // NEW: Orbiting clock minions
         this.isPhaseShifting = false;
         this.phaseShiftTimer = 0;
-
-        // Attack tracking
-        this.lastPositions = []; // For rewind mechanic
+        this.burstCount = 0; // Track burst attacks
 
         // Death Config
-        this.deathExplosionDuration = 3000;
-        this.deathHitstopDuration = 200;
+        this.deathExplosionDuration = 4000;
+        this.deathHitstopDuration = 250;
     }
 
     spawn(x, y) {
         super.spawn(x, y);
         this.x = CANVAS.width / 2;
-        this.y = -150;
+        this.y = -200;
         this.state = 'INTRO';
         this.introTimer = 0;
         this.phase = 1;
         this.isPhaseShifting = false;
         this.phaseShiftAlpha = 1;
+        this.burstCount = 0;
 
         this.timeZones = [];
         this.echoClones = [];
-        this.rewindProjectiles = [];
-        this.lastPositions = [];
+        this.clockMinions = [];
 
-        document.getElementById('boss-name').innerText = "⏱️ TEMPORAL ANOMALY ⏱️";
-        document.getElementById('boss-name').style.color = '#00aaff';
+        // Move player to bottom of screen (like NEXUS PRIME)
+        if (typeof player !== 'undefined') {
+            player.x = CANVAS.width / 2;
+            player.y = CANVAS.height - 100;
+        }
 
-        console.log("⏰ CHRONOS: TIME ITSELF BENDS ⏰");
+        document.getElementById('boss-name').innerText = "⚠️ TEMPORAL RIFT DETECTED ⚠️";
+        document.getElementById('boss-name').style.color = '#ff0000';
+
+        console.log("⏰ CHRONOS: THE MASTER OF TIME AWAKENS ⏰");
     }
 
     onUpdate(player, dt) {
-        // Clock hands animation
-        this.clockAngle += 0.01 * dt;
-        this.hourHand += 0.005 * dt;
-        this.minuteHand += 0.02 * dt;
+        // Clock hands animation - faster in later phases
+        const clockSpeed = this.phase === 3 ? 2 : this.phase === 2 ? 1.5 : 1;
+        this.clockAngle += 0.015 * dt * clockSpeed;
+        this.hourHand += 0.008 * dt * clockSpeed;
+        this.minuteHand += 0.03 * dt * clockSpeed;
+        this.secondHand += 0.1 * dt * clockSpeed;
         this.pulseTimer += dt;
-
-        // Track player positions for rewind
-        if (this.state !== 'INTRO' && typeof player !== 'undefined') {
-            this.lastPositions.push({ x: player.x, y: player.y, time: Date.now() });
-            if (this.lastPositions.length > 120) this.lastPositions.shift();
-        }
+        this.glitchTimer += dt;
 
         // --- INTRO ---
         if (this.state === 'INTRO') {
@@ -86,7 +89,7 @@ class BossChronos extends BossBase {
         // --- PHASE SHIFT (Invulnerability) ---
         if (this.isPhaseShifting) {
             this.phaseShiftTimer -= dt;
-            this.phaseShiftAlpha = 0.2 + Math.sin(this.phaseShiftTimer * 0.3) * 0.15;
+            this.phaseShiftAlpha = 0.15 + Math.sin(this.phaseShiftTimer * 0.5) * 0.15;
 
             if (this.phaseShiftTimer <= 0) {
                 this.isPhaseShifting = false;
@@ -94,71 +97,93 @@ class BossChronos extends BossBase {
             }
             this.updateTimeZones(player, dt);
             this.updateEchoClones(player, dt);
-            return; // Skip other updates during phase shift
+            this.updateClockMinions(player, dt);
+            return;
         }
 
         // --- PHASE TRANSITIONS ---
         const hpPercent = this.hp / this.maxHp;
-        if (hpPercent <= 0.6 && this.phase === 1) this.enterPhase(2);
-        else if (hpPercent <= 0.3 && this.phase === 2) this.enterPhase(3);
+        if (hpPercent <= 0.65 && this.phase === 1) this.enterPhase(2);
+        else if (hpPercent <= 0.30 && this.phase === 2) this.enterPhase(3);
 
         // --- MOVEMENT ---
         this.handleMovement(dt);
 
-        // --- ATTACKS ---
-        this.attackTimer += dt;
+        // --- CONTINUOUS SPAWNING (Challenge!) ---
+        if (this.phase >= 2 && this.pulseTimer % 120 < 1) {
+            this.spawnTimeMinion();
+        }
 
-        if (this.state === 'IDLE' && this.attackTimer > 100) {
+        // --- ATTACKS - Faster cooldown ---
+        this.attackTimer += dt;
+        const attackCooldown = this.phase === 3 ? 60 : this.phase === 2 ? 80 : 100;
+
+        if (this.state === 'IDLE' && this.attackTimer > attackCooldown) {
             this.chooseAttack();
         }
 
         this.updateTimeZones(player, dt);
         this.updateEchoClones(player, dt);
-        this.updateRewindProjectiles(player, dt);
+        this.updateClockMinions(player, dt);
     }
 
     handleIntro(player, dt) {
         this.introTimer += dt;
 
-        if (this.introTimer < 150) {
-            // Descend
-            this.y += (200 - this.y) * 0.02 * dt;
+        if (this.introTimer < 180) {
+            this.y += (180 - this.y) * 0.015 * dt;
 
-            // Time distortion effects
-            if (this.introTimer % 10 < 1) {
-                const glitchTexts = ['CHRONOS', '∞ TIME ∞', '00:00:00', 'REWIND', 'LOOP'];
+            // Epic time distortion effects
+            if (this.introTimer % 8 < 1) {
+                const glitchTexts = ['CHRONOS', '∞ ETERNAL ∞', '00:00:00', 'TIME LORD', 'INFINITY', '⏱️⏱️⏱️'];
                 document.getElementById('boss-name').innerText =
                     glitchTexts[Math.floor(Math.random() * glitchTexts.length)];
+                document.getElementById('boss-name').style.color =
+                    `hsl(${Math.random() * 360}, 80%, 60%)`;
             }
 
-            // Spawn clock particles
-            if (this.introTimer % 8 < 1) {
-                const angle = Math.random() * Math.PI * 2;
-                spawnParticles(
-                    this.x + Math.cos(angle) * 100,
-                    this.y + Math.sin(angle) * 100,
-                    2, 3, '#00aaff'
-                );
+            // Spawn convergence particles
+            if (this.introTimer % 5 < 1) {
+                for (let i = 0; i < 3; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const dist = 300;
+                    spawnParticles(
+                        this.x + Math.cos(angle) * dist,
+                        this.y + Math.sin(angle) * dist,
+                        2, 4, '#00aaff'
+                    );
+                }
             }
-        } else if (this.introTimer < 220) {
-            // Flash clock hands
-            document.getElementById('boss-name').innerText = "CHRONOS AWAKENS";
+        } else if (this.introTimer < 250) {
+            document.getElementById('boss-name').innerText = "⚡ CHRONOS AWAKENS ⚡";
+            document.getElementById('boss-name').style.color = '#00aaff';
+
+            // Screen shake effect
+            if (this.introTimer % 3 < 1) {
+                spawnParticles(this.x, this.y, 5, 5, '#ffffff');
+            }
         } else {
             this.state = 'IDLE';
             document.getElementById('boss-name').innerText = BOSS_5_DATA.name;
             document.getElementById('boss-name').style.color = BOSS_5_DATA.colors.phase1;
-            createExplosion(this.x, this.y, 150, 0);
+            createExplosion(this.x, this.y, 200, 0);
+            if (window.triggerHitstop) triggerHitstop(30);
             if (window.playSound) playSound('levelup');
+
+            // Spawn initial clock minions
+            this.spawnClockMinions(4);
         }
     }
 
     handleMovement(dt) {
-        // Teleport-like movement with smooth transitions
-        const speed = this.phase === 3 ? 0.06 : 0.03;
-        const orbitRadius = 180 + Math.sin(this.pulseTimer * 0.01) * 80;
+        const speed = this.phase === 3 ? 0.08 : this.phase === 2 ? 0.05 : 0.03;
+        const orbitRadius = 150 + Math.sin(this.pulseTimer * 0.015) * 100;
 
-        const targetX = CANVAS.width / 2 + Math.cos(this.pulseTimer * 0.008) * orbitRadius;
-        const targetY = 200 + Math.sin(this.pulseTimer * 0.006) * 100;
+        // More erratic movement in later phases
+        const wobble = this.phase === 3 ? Math.sin(this.pulseTimer * 0.1) * 50 : 0;
+
+        const targetX = CANVAS.width / 2 + Math.cos(this.pulseTimer * 0.01) * orbitRadius + wobble;
+        const targetY = 180 + Math.sin(this.pulseTimer * 0.008) * 80;
 
         this.x += (targetX - this.x) * speed * dt;
         this.y += (targetY - this.y) * speed * dt;
@@ -169,23 +194,81 @@ class BossChronos extends BossBase {
         this.state = 'IDLE';
         this.attackTimer = 0;
 
-        // Phase shift effect
         this.isPhaseShifting = true;
-        this.phaseShiftTimer = 90;
+        this.phaseShiftTimer = 120;
 
         const color = phaseNum === 2 ? BOSS_5_DATA.colors.phase2 : BOSS_5_DATA.colors.phase3;
         document.getElementById('boss-name').style.color = color;
 
         const phaseName = phaseNum === 2 ? 'DISTORTION' : 'SINGULARITY';
-        document.getElementById('boss-name').innerText = `CHRONOS - ${phaseName}`;
+        document.getElementById('boss-name').innerText = `⚡ CHRONOS - ${phaseName} ⚡`;
 
-        createExplosion(this.x, this.y, 400, 0);
+        createExplosion(this.x, this.y, 500, 0);
         if (window.playSound) playSound('powerup');
-        if (window.triggerHitstop) triggerHitstop(50);
+        if (window.triggerHitstop) triggerHitstop(60);
 
-        // Clear old mechanics
+        // Clear and respawn
         this.timeZones = [];
         this.echoClones = [];
+
+        // Phase 2: More clock minions
+        if (phaseNum === 2) {
+            this.spawnClockMinions(6);
+        }
+        // Phase 3: LOTS of minions
+        else if (phaseNum === 3) {
+            this.spawnClockMinions(10);
+            // Spawn enemy wave on phase 3
+            for (let i = 0; i < 15; i++) {
+                setTimeout(() => {
+                    const angle = (i / 15) * Math.PI * 2;
+                    const enemy = enemyPool.get(
+                        this.x + Math.cos(angle) * 200,
+                        this.y + Math.sin(angle) * 200,
+                        ENEMY_TYPES.SPEEDSTER, 2
+                    );
+                    enemy.color = '#ff0066';
+                    enemy.isDead = false;
+                }, i * 50);
+            }
+        }
+    }
+
+    // NEW: Spawn orbiting clock minions
+    spawnClockMinions(count) {
+        for (let i = 0; i < count; i++) {
+            this.clockMinions.push({
+                angle: (i / count) * Math.PI * 2,
+                orbitRadius: 120 + Math.random() * 40,
+                orbitSpeed: 0.02 + Math.random() * 0.01,
+                hp: 3,
+                maxHp: 3,
+                radius: 18,
+                fireTimer: Math.random() * 60,
+                x: 0,
+                y: 0
+            });
+        }
+    }
+
+    // NEW: Spawn time minion enemy
+    spawnTimeMinion() {
+        // Only spawn from top, left, right - NOT bottom (player is there)
+        const side = Math.floor(Math.random() * 3);
+        let x, y;
+
+        switch (side) {
+            case 0: x = Math.random() * CANVAS.width; y = -30; break; // Top
+            case 1: x = CANVAS.width + 30; y = Math.random() * (CANVAS.height * 0.7); break; // Right (upper portion)
+            case 2: x = -30; y = Math.random() * (CANVAS.height * 0.7); break; // Left (upper portion)
+        }
+
+        const enemy = enemyPool.get(x, y, ENEMY_TYPES.BASIC, 1.5);
+        enemy.color = this.getPhaseColor();
+        enemy.radius = 12;
+        enemy.hp = 2;
+        enemy.maxHp = 2;
+        enemy.isDead = false;
     }
 
     chooseAttack() {
@@ -199,10 +282,10 @@ class BossChronos extends BossBase {
 
     getPhaseAttacks() {
         switch (this.phase) {
-            case 1: return ['SLOW_ZONE', 'TIME_BURST', 'CLOCK_HANDS'];
-            case 2: return ['ECHO_CLONE', 'REWIND', 'ACCELERATE'];
-            case 3: return ['TIME_STOP', 'CHAOS_LOOP', 'PHASE_BARRAGE'];
-            default: return ['SLOW_ZONE'];
+            case 1: return ['SPIRAL_BURST', 'CLOCK_SWEEP', 'TIME_WAVE', 'MINION_SPAWN'];
+            case 2: return ['ECHO_ARMY', 'TEMPORAL_STORM', 'ACCELERATE', 'CLOCK_BOMB'];
+            case 3: return ['BULLET_HELL', 'CHAOS_SPIRAL', 'PHASE_BARRAGE', 'DOOMSDAY'];
+            default: return ['SPIRAL_BURST'];
         }
     }
 
@@ -210,293 +293,378 @@ class BossChronos extends BossBase {
         console.log(`CHRONOS ATTACK: ${attack}`);
 
         switch (attack) {
-            case 'SLOW_ZONE':
-                this.attackSlowZone();
-                break;
-            case 'TIME_BURST':
-                this.attackTimeBurst();
-                break;
-            case 'CLOCK_HANDS':
-                this.attackClockHands();
-                break;
-            case 'ECHO_CLONE':
-                this.attackEchoClone();
-                break;
-            case 'REWIND':
-                this.attackRewind();
-                break;
-            case 'ACCELERATE':
-                this.attackAccelerate();
-                break;
-            case 'TIME_STOP':
-                this.attackTimeStop();
-                break;
-            case 'CHAOS_LOOP':
-                this.attackChaosLoop();
-                break;
-            case 'PHASE_BARRAGE':
-                this.attackPhaseBarrage();
-                break;
+            case 'SPIRAL_BURST': this.attackSpiralBurst(); break;
+            case 'CLOCK_SWEEP': this.attackClockSweep(); break;
+            case 'TIME_WAVE': this.attackTimeWave(); break;
+            case 'MINION_SPAWN': this.attackMinionSpawn(); break;
+            case 'ECHO_ARMY': this.attackEchoArmy(); break;
+            case 'TEMPORAL_STORM': this.attackTemporalStorm(); break;
+            case 'ACCELERATE': this.attackAccelerate(); break;
+            case 'CLOCK_BOMB': this.attackClockBomb(); break;
+            case 'BULLET_HELL': this.attackBulletHell(); break;
+            case 'CHAOS_SPIRAL': this.attackChaosSpiral(); break;
+            case 'PHASE_BARRAGE': this.attackPhaseBarrage(); break;
+            case 'DOOMSDAY': this.attackDoomsday(); break;
         }
 
+        const cooldown = this.phase === 3 ? 1500 : 2000;
         setTimeout(() => {
             this.state = 'IDLE';
-        }, 2500);
+        }, cooldown);
     }
 
-    // --- PHASE 1 ATTACKS ---
+    // ═══════════════════════════════════════════════════════
+    // PHASE 1 ATTACKS - Introductory
+    // ═══════════════════════════════════════════════════════
 
-    attackSlowZone() {
-        // Create slow zones that trap the player
-        for (let i = 0; i < 3; i++) {
-            this.timeZones.push({
-                x: Math.random() * (CANVAS.width - 200) + 100,
-                y: Math.random() * (CANVAS.height - 200) + 100,
-                radius: 0,
-                maxRadius: 120,
-                type: 'slow',
-                slowFactor: 0.3,
-                life: 400,
-                color: 'rgba(0, 170, 255, 0.3)'
-            });
-        }
-        if (window.playSound) playSound('shoot');
-    }
-
-    attackTimeBurst() {
-        // Radial burst of projectiles
-        const count = 16;
-        for (let i = 0; i < count; i++) {
-            const angle = (i / count) * Math.PI * 2;
-            const bullet = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
-            bullet.radius = 12;
-            bullet.hp = 2;
-            bullet.color = '#00aaff';
-            bullet.vx = Math.cos(angle) * 4;
-            bullet.vy = Math.sin(angle) * 4;
-
-            bullet.update = function (p, d) {
-                this.x += this.vx * d;
-                this.y += this.vy * d;
-                // Trail effect
-                if (Math.random() < 0.3) {
-                    spawnParticles(this.x, this.y, 1, 2, '#00aaff');
-                }
-                this.draw();
-            };
-        }
-        if (window.playSound) playSound('shoot');
-    }
-
-    attackClockHands() {
-        // Sweeping laser hands like clock
-        for (let i = 0; i < 20; i++) {
+    attackSpiralBurst() {
+        // Spiral pattern of enemies
+        const waves = 3;
+        for (let w = 0; w < waves; w++) {
             setTimeout(() => {
-                const hourAngle = this.hourHand + (i * 0.1);
-                const minuteAngle = this.minuteHand + (i * 0.2);
+                const count = 12;
+                for (let i = 0; i < count; i++) {
+                    const angle = (i / count) * Math.PI * 2 + (w * 0.3);
+                    const enemy = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
+                    enemy.radius = 10;
+                    enemy.hp = 1;
+                    enemy.color = '#00aaff';
+                    enemy.isDead = false;
 
-                // Hour hand bullet
-                const b1 = enemyPool.get(
-                    this.x + Math.cos(hourAngle) * 100,
-                    this.y + Math.sin(hourAngle) * 100,
-                    ENEMY_TYPES.BASIC, 1
-                );
-                b1.radius = 15;
-                b1.color = '#00aaff';
-                b1.hp = 1;
-                b1.update = function (p, d) {
-                    this.x += Math.cos(hourAngle) * 3 * d;
-                    this.y += Math.sin(hourAngle) * 3 * d;
-                    this.draw();
-                };
-
-                // Minute hand bullet
-                const b2 = enemyPool.get(
-                    this.x + Math.cos(minuteAngle) * 60,
-                    this.y + Math.sin(minuteAngle) * 60,
-                    ENEMY_TYPES.BASIC, 1
-                );
-                b2.radius = 8;
-                b2.color = '#88ccff';
-                b2.hp = 1;
-                b2.update = function (p, d) {
-                    this.x += Math.cos(minuteAngle) * 5 * d;
-                    this.y += Math.sin(minuteAngle) * 5 * d;
-                    this.draw();
-                };
-            }, i * 50);
-        }
-    }
-
-    // --- PHASE 2 ATTACKS ---
-
-    attackEchoClone() {
-        // Create echo clones that mirror attacks with delay
-        for (let i = 0; i < 3; i++) {
-            const angle = (i / 3) * Math.PI * 2;
-            this.echoClones.push({
-                x: this.x + Math.cos(angle) * 200,
-                y: this.y + Math.sin(angle) * 200,
-                angle: angle,
-                alpha: 0.6,
-                life: 300,
-                fireTimer: 30 + i * 40
-            });
-        }
-        createExplosion(this.x, this.y, 100, 0);
-    }
-
-    attackRewind() {
-        // Spawn wave of time-echo enemies (player can't move, so spawn shootable targets)
-        const count = 10;
-        for (let i = 0; i < count; i++) {
-            setTimeout(() => {
-                const angle = (i / count) * Math.PI * 2;
-                const enemy = enemyPool.get(
-                    this.x + Math.cos(angle) * 150,
-                    this.y + Math.sin(angle) * 150,
-                    ENEMY_TYPES.BASIC, 1
-                );
-                enemy.radius = 10;
-                enemy.hp = 2;
-                enemy.maxHp = 2;
-                enemy.color = '#aa00ff';
-                enemy.isDead = false;
-                spawnParticles(enemy.x, enemy.y, 3, 3, '#aa00ff');
-            }, i * 80);
-        }
-        if (window.playSound) playSound('shoot');
-    }
-
-    attackAccelerate() {
-        // Create fast zones
-        for (let i = 0; i < 2; i++) {
-            this.timeZones.push({
-                x: this.x + (Math.random() - 0.5) * 400,
-                y: this.y + 200 + Math.random() * 200,
-                radius: 0,
-                maxRadius: 150,
-                type: 'fast',
-                speedFactor: 3,
-                life: 300,
-                color: 'rgba(170, 0, 255, 0.3)'
-            });
-        }
-
-        // Enemies in fast zones move faster!
-        enemyPool.getActive().forEach(enemy => {
-            enemy.speed *= 1.5;
-        });
-    }
-
-    // --- PHASE 3 ATTACKS ---
-
-    attackTimeStop() {
-        // Brief time stop followed by burst damage
-        if (window.triggerHitstop) triggerHitstop(40);
-
-        // Warning indicator
-        createExplosion(this.x, this.y, 200, 0);
-
-        // After time stop, burst of fast projectiles
-        setTimeout(() => {
-            const count = 24;
-            for (let i = 0; i < count; i++) {
-                const angle = (i / count) * Math.PI * 2;
-                const bullet = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
-                bullet.radius = 10;
-                bullet.hp = 1;
-                bullet.color = '#ff0066';
-                bullet.vx = Math.cos(angle) * 8;
-                bullet.vy = Math.sin(angle) * 8;
-                bullet.update = function (p, d) {
-                    this.x += this.vx * d;
-                    this.y += this.vy * d;
-                    this.draw();
-                };
-            }
-            if (window.playSound) playSound('shoot');
-        }, 700);
-    }
-
-    attackChaosLoop() {
-        // Spawns enemies that loop back around
-        for (let i = 0; i < 8; i++) {
-            const angle = (i / 8) * Math.PI * 2;
-            const enemy = enemyPool.get(this.x, this.y, ENEMY_TYPES.SPEEDSTER, 2);
-            enemy.color = '#ff0066';
-
-            const startAngle = angle;
-            let loopTimer = 0;
-
-            enemy.update = function (p, d) {
-                loopTimer += d * 0.03;
-                const loopRadius = 100 + loopTimer * 50;
-                this.x = this.startX + Math.cos(startAngle + loopTimer) * loopRadius;
-                this.y = this.startY + Math.sin(startAngle + loopTimer) * loopRadius;
-                this.draw();
-            };
-            enemy.startX = this.x;
-            enemy.startY = this.y;
-        }
-    }
-
-    attackPhaseBarrage() {
-        // Rapid phase shifting attacks
-        for (let i = 0; i < 15; i++) {
-            setTimeout(() => {
-                // Brief phase shift
-                this.phaseShiftAlpha = 0.3;
-
-                // Teleport and attack
-                const angle = Math.random() * Math.PI * 2;
-                this.x = CANVAS.width / 2 + Math.cos(angle) * 200;
-                this.y = 200 + Math.sin(angle) * 100;
-
-                // Fire at player
-                if (typeof player !== 'undefined') {
-                    const aimAngle = Math.atan2(player.y - this.y, player.x - this.x);
-                    const bullet = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
-                    bullet.radius = 12;
-                    bullet.hp = 2;
-                    bullet.color = '#ff0066';
-                    bullet.vx = Math.cos(aimAngle) * 6;
-                    bullet.vy = Math.sin(aimAngle) * 6;
-                    bullet.update = function (p, d) {
+                    const speed = 4 + w;
+                    enemy.vx = Math.cos(angle) * speed;
+                    enemy.vy = Math.sin(angle) * speed;
+                    enemy.update = function (p, d) {
                         this.x += this.vx * d;
                         this.y += this.vy * d;
                         this.draw();
                     };
                 }
-
-                setTimeout(() => {
-                    this.phaseShiftAlpha = 1;
-                }, 50);
-            }, i * 150);
+                if (window.playSound) playSound('shoot');
+            }, w * 300);
         }
     }
 
-    // --- UPDATERS ---
+    attackClockSweep() {
+        // Sweeping arc of bullets like clock hands
+        const sweepCount = 30;
+        for (let i = 0; i < sweepCount; i++) {
+            setTimeout(() => {
+                const angle = this.hourHand + (i / sweepCount) * Math.PI;
+                const enemy = enemyPool.get(
+                    this.x + Math.cos(angle) * 80,
+                    this.y + Math.sin(angle) * 80,
+                    ENEMY_TYPES.BASIC, 1
+                );
+                enemy.radius = 12;
+                enemy.hp = 1;
+                enemy.color = '#88ccff';
+                enemy.isDead = false;
+                enemy.vx = Math.cos(angle) * 5;
+                enemy.vy = Math.sin(angle) * 5;
+                enemy.update = function (p, d) {
+                    this.x += this.vx * d;
+                    this.y += this.vy * d;
+                    this.draw();
+                };
+            }, i * 30);
+        }
+    }
+
+    attackTimeWave() {
+        // Horizontal wave of enemies
+        const count = 10;
+        for (let i = 0; i < count; i++) {
+            const enemy = enemyPool.get(
+                100 + (CANVAS.width - 200) * (i / count),
+                -30,
+                ENEMY_TYPES.BASIC, 1
+            );
+            enemy.radius = 15;
+            enemy.hp = 2;
+            enemy.maxHp = 2;
+            enemy.color = '#00ffff';
+            enemy.isDead = false;
+        }
+        if (window.playSound) playSound('shoot');
+    }
+
+    attackMinionSpawn() {
+        // Spawn multiple minions around
+        for (let i = 0; i < 8; i++) {
+            setTimeout(() => {
+                const angle = (i / 8) * Math.PI * 2;
+                const dist = 150;
+                const enemy = enemyPool.get(
+                    this.x + Math.cos(angle) * dist,
+                    this.y + Math.sin(angle) * dist,
+                    ENEMY_TYPES.BASIC, 1.2
+                );
+                enemy.radius = 12;
+                enemy.hp = 2;
+                enemy.maxHp = 2;
+                enemy.color = '#00aaff';
+                enemy.isDead = false;
+                spawnParticles(enemy.x, enemy.y, 5, 3, '#00aaff');
+            }, i * 100);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // PHASE 2 ATTACKS - Challenging
+    // ═══════════════════════════════════════════════════════
+
+    attackEchoArmy() {
+        // Multiple echo clones that attack
+        const count = 5;
+        for (let i = 0; i < count; i++) {
+            const angle = (i / count) * Math.PI * 2;
+            this.echoClones.push({
+                x: this.x + Math.cos(angle) * 180,
+                y: this.y + Math.sin(angle) * 180,
+                angle: angle,
+                alpha: 0.7,
+                life: 400,
+                fireTimer: 20 + i * 30,
+                burstMode: true
+            });
+        }
+        createExplosion(this.x, this.y, 100, 0);
+        if (window.playSound) playSound('powerup');
+    }
+
+    attackTemporalStorm() {
+        // Rain of enemies from all directions
+        for (let wave = 0; wave < 4; wave++) {
+            setTimeout(() => {
+                for (let i = 0; i < 6; i++) {
+                    const angle = (i / 6) * Math.PI * 2 + wave * 0.5;
+                    const dist = 400;
+                    const enemy = enemyPool.get(
+                        this.x + Math.cos(angle) * dist,
+                        this.y + Math.sin(angle) * dist,
+                        ENEMY_TYPES.SPEEDSTER, 1.5
+                    );
+                    enemy.color = '#aa00ff';
+                    enemy.isDead = false;
+                }
+            }, wave * 200);
+        }
+    }
+
+    attackAccelerate() {
+        // Speed up all existing enemies + spawn more
+        enemyPool.getActive().forEach(enemy => {
+            if (!enemy.isDead) {
+                enemy.speed = (enemy.speed || 1) * 1.8;
+            }
+        });
+
+        // Spawn fast enemies
+        for (let i = 0; i < 10; i++) {
+            const angle = (i / 10) * Math.PI * 2;
+            const enemy = enemyPool.get(
+                this.x + Math.cos(angle) * 100,
+                this.y + Math.sin(angle) * 100,
+                ENEMY_TYPES.SPEEDSTER, 2
+            );
+            enemy.color = '#ffaa00';
+            enemy.isDead = false;
+        }
+
+        createExplosion(this.x, this.y, 150, 0);
+    }
+
+    attackClockBomb() {
+        // Delayed explosion zones
+        for (let i = 0; i < 5; i++) {
+            const zoneX = Math.random() * (CANVAS.width - 200) + 100;
+            const zoneY = Math.random() * (CANVAS.height - 200) + 100;
+
+            this.timeZones.push({
+                x: zoneX,
+                y: zoneY,
+                radius: 0,
+                maxRadius: 100,
+                type: 'bomb',
+                life: 180,
+                color: 'rgba(255, 0, 100, 0.3)',
+                spawned: false
+            });
+
+            // After delay, spawn enemies at zone
+            setTimeout(() => {
+                for (let j = 0; j < 5; j++) {
+                    const angle = (j / 5) * Math.PI * 2;
+                    const enemy = enemyPool.get(
+                        zoneX + Math.cos(angle) * 30,
+                        zoneY + Math.sin(angle) * 30,
+                        ENEMY_TYPES.BASIC, 1
+                    );
+                    enemy.radius = 10;
+                    enemy.hp = 1;
+                    enemy.color = '#ff0066';
+                    enemy.isDead = false;
+                }
+                createExplosion(zoneX, zoneY, 80, 0);
+            }, 1500);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // PHASE 3 ATTACKS - BRUTAL
+    // ═══════════════════════════════════════════════════════
+
+    attackBulletHell() {
+        // Massive bullet hell pattern
+        this.burstCount++;
+        const totalWaves = 8;
+
+        for (let w = 0; w < totalWaves; w++) {
+            setTimeout(() => {
+                const bulletCount = 20;
+                for (let i = 0; i < bulletCount; i++) {
+                    const angle = (i / bulletCount) * Math.PI * 2 + (w * 0.2);
+                    const enemy = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
+                    enemy.radius = 8;
+                    enemy.hp = 1;
+                    enemy.color = '#ff0066';
+                    enemy.isDead = false;
+
+                    const speed = 3 + (w % 2) * 2;
+                    enemy.vx = Math.cos(angle) * speed;
+                    enemy.vy = Math.sin(angle) * speed;
+                    enemy.update = function (p, d) {
+                        this.x += this.vx * d;
+                        this.y += this.vy * d;
+                        this.draw();
+                    };
+                }
+            }, w * 150);
+        }
+    }
+
+    attackChaosSpiral() {
+        // Double spiral pattern
+        const arms = 2;
+        const bulletsPerArm = 25;
+
+        for (let arm = 0; arm < arms; arm++) {
+            for (let i = 0; i < bulletsPerArm; i++) {
+                setTimeout(() => {
+                    const baseAngle = (arm / arms) * Math.PI * 2;
+                    const spiralAngle = baseAngle + (i / bulletsPerArm) * Math.PI * 3;
+
+                    const enemy = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
+                    enemy.radius = 10;
+                    enemy.hp = 1;
+                    enemy.color = arm === 0 ? '#ff0066' : '#aa00ff';
+                    enemy.isDead = false;
+
+                    enemy.vx = Math.cos(spiralAngle) * 4;
+                    enemy.vy = Math.sin(spiralAngle) * 4;
+                    enemy.update = function (p, d) {
+                        this.x += this.vx * d;
+                        this.y += this.vy * d;
+                        this.draw();
+                    };
+                }, i * 40 + arm * 20);
+            }
+        }
+    }
+
+    attackPhaseBarrage() {
+        // Rapid teleport attacks with enemy spawns
+        for (let i = 0; i < 12; i++) {
+            setTimeout(() => {
+                // Teleport boss
+                this.phaseShiftAlpha = 0.2;
+                const angle = Math.random() * Math.PI * 2;
+                this.x = CANVAS.width / 2 + Math.cos(angle) * 180;
+                this.y = 180 + Math.sin(angle) * 80;
+
+                // Spawn enemies at new position
+                for (let j = 0; j < 4; j++) {
+                    const spawnAngle = (j / 4) * Math.PI * 2;
+                    const enemy = enemyPool.get(
+                        this.x + Math.cos(spawnAngle) * 60,
+                        this.y + Math.sin(spawnAngle) * 60,
+                        ENEMY_TYPES.BASIC, 1
+                    );
+                    enemy.radius = 10;
+                    enemy.hp = 1;
+                    enemy.color = '#ff0066';
+                    enemy.isDead = false;
+                }
+
+                spawnParticles(this.x, this.y, 10, 4, '#ff0066');
+
+                setTimeout(() => {
+                    this.phaseShiftAlpha = 1;
+                }, 80);
+            }, i * 120);
+        }
+    }
+
+    attackDoomsday() {
+        // Ultimate attack - massive enemy spawn + screen chaos
+        if (window.triggerHitstop) triggerHitstop(50);
+        createExplosion(this.x, this.y, 300, 0);
+
+        // Spawn enemies from center
+        for (let wave = 0; wave < 5; wave++) {
+            setTimeout(() => {
+                const count = 12 + wave * 3;
+                for (let i = 0; i < count; i++) {
+                    const angle = (i / count) * Math.PI * 2;
+                    const enemy = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
+                    enemy.radius = 8 + wave;
+                    enemy.hp = 1;
+                    enemy.color = wave % 2 === 0 ? '#ff0066' : '#aa00ff';
+                    enemy.isDead = false;
+
+                    const speed = 3 + wave * 0.5;
+                    enemy.vx = Math.cos(angle) * speed;
+                    enemy.vy = Math.sin(angle) * speed;
+                    enemy.update = function (p, d) {
+                        this.x += this.vx * d;
+                        this.y += this.vy * d;
+                        this.draw();
+                    };
+                }
+                if (window.playSound) playSound('shoot');
+            }, wave * 300);
+        }
+
+        // Also spawn from edges
+        for (let i = 0; i < 20; i++) {
+            setTimeout(() => {
+                // Only spawn from top, left, right - NOT bottom (player is there)
+                const side = Math.floor(Math.random() * 3);
+                let x, y;
+                switch (side) {
+                    case 0: x = Math.random() * CANVAS.width; y = -20; break; // Top
+                    case 1: x = CANVAS.width + 20; y = Math.random() * (CANVAS.height * 0.7); break; // Right
+                    case 2: x = -20; y = Math.random() * (CANVAS.height * 0.7); break; // Left
+                }
+                const enemy = enemyPool.get(x, y, ENEMY_TYPES.SPEEDSTER, 2);
+                enemy.color = '#ff3300';
+                enemy.isDead = false;
+            }, i * 80);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // UPDATERS
+    // ═══════════════════════════════════════════════════════
 
     updateTimeZones(player, dt) {
         for (let i = this.timeZones.length - 1; i >= 0; i--) {
             const zone = this.timeZones[i];
             zone.life -= dt;
 
-            // Grow
             if (zone.radius < zone.maxRadius) {
-                zone.radius += 2 * dt;
-            }
-
-            // Time zones are now just visual/decorative since player can't move
-            // They spawn enemies when active
-            if (zone.life < zone.maxRadius && zone.life % 60 < 1 && !zone.spawned) {
-                zone.spawned = true;
-                const enemy = enemyPool.get(zone.x, zone.y, ENEMY_TYPES.BASIC, 1);
-                enemy.radius = 12;
-                enemy.hp = 1;
-                enemy.color = zone.type === 'slow' ? '#00aaff' : '#aa00ff';
-                enemy.isDead = false;
+                zone.radius += 3 * dt;
             }
 
             if (zone.life <= 0) {
@@ -509,32 +677,32 @@ class BossChronos extends BossBase {
         for (let i = this.echoClones.length - 1; i >= 0; i--) {
             const clone = this.echoClones[i];
             clone.life -= dt;
-            clone.angle += 0.01 * dt;
+            clone.angle += 0.015 * dt;
 
-            // Orbit around boss
-            clone.x = this.x + Math.cos(clone.angle) * 180;
-            clone.y = this.y + Math.sin(clone.angle) * 180;
+            clone.x = this.x + Math.cos(clone.angle) * 160;
+            clone.y = this.y + Math.sin(clone.angle) * 160;
 
-            // Fire
+            // Aggressive firing
             clone.fireTimer -= dt;
             if (clone.fireTimer <= 0 && typeof player !== 'undefined') {
-                clone.fireTimer = 80;
+                clone.fireTimer = clone.burstMode ? 40 : 60;
+
                 const aimAngle = Math.atan2(player.y - clone.y, player.x - clone.x);
-                const bullet = enemyPool.get(clone.x, clone.y, ENEMY_TYPES.BASIC, 1);
-                bullet.radius = 8;
-                bullet.hp = 1;
-                bullet.color = 'rgba(170, 0, 255, 0.7)';
-                bullet.vx = Math.cos(aimAngle) * 4;
-                bullet.vy = Math.sin(aimAngle) * 4;
-                bullet.update = function (p, d) {
+                const enemy = enemyPool.get(clone.x, clone.y, ENEMY_TYPES.BASIC, 1);
+                enemy.radius = 10;
+                enemy.hp = 1;
+                enemy.color = this.getPhaseColor();
+                enemy.isDead = false;
+                enemy.vx = Math.cos(aimAngle) * 5;
+                enemy.vy = Math.sin(aimAngle) * 5;
+                enemy.update = function (p, d) {
                     this.x += this.vx * d;
                     this.y += this.vy * d;
                     this.draw();
                 };
             }
 
-            // Fade out
-            clone.alpha = Math.min(0.6, clone.life / 100);
+            clone.alpha = Math.min(0.7, clone.life / 100);
 
             if (clone.life <= 0) {
                 this.echoClones.splice(i, 1);
@@ -542,8 +710,53 @@ class BossChronos extends BossBase {
         }
     }
 
-    updateRewindProjectiles(player, dt) {
-        // Placeholder for advanced rewind mechanics
+    updateClockMinions(player, dt) {
+        for (let i = this.clockMinions.length - 1; i >= 0; i--) {
+            const minion = this.clockMinions[i];
+
+            // Orbit around boss
+            minion.angle += minion.orbitSpeed * dt;
+            minion.x = this.x + Math.cos(minion.angle) * minion.orbitRadius;
+            minion.y = this.y + Math.sin(minion.angle) * minion.orbitRadius;
+
+            // Fire at player
+            minion.fireTimer -= dt;
+            if (minion.fireTimer <= 0 && typeof player !== 'undefined') {
+                minion.fireTimer = 80;
+                const aimAngle = Math.atan2(player.y - minion.y, player.x - minion.x);
+                const enemy = enemyPool.get(minion.x, minion.y, ENEMY_TYPES.BASIC, 1);
+                enemy.radius = 8;
+                enemy.hp = 1;
+                enemy.color = this.getPhaseColor();
+                enemy.isDead = false;
+                enemy.vx = Math.cos(aimAngle) * 4;
+                enemy.vy = Math.sin(aimAngle) * 4;
+                enemy.update = function (p, d) {
+                    this.x += this.vx * d;
+                    this.y += this.vy * d;
+                    this.draw();
+                };
+            }
+
+            // Player collision with minion
+            if (typeof player !== 'undefined' && gameState.gameActive) {
+                const dist = Math.hypot(player.x - minion.x, player.y - minion.y);
+                if (dist < minion.radius + player.radius) {
+                    if (gameState.playerStats.shield > 0) {
+                        gameState.playerStats.shield--;
+                        updateShieldIndicator(gameState.playerStats.shield);
+                        minion.hp = 0;
+                    } else if (!gameState.godMode) {
+                        startDeathSequence();
+                    }
+                }
+            }
+
+            if (minion.hp <= 0) {
+                spawnParticles(minion.x, minion.y, 8, 3, this.getPhaseColor());
+                this.clockMinions.splice(i, 1);
+            }
+        }
     }
 
     takeDamage(amount) {
@@ -555,22 +768,29 @@ class BossChronos extends BossBase {
         super.die();
         this.timeZones = [];
         this.echoClones = [];
+        this.clockMinions = [];
 
-        // Epic time-freeze death
-        if (window.triggerHitstop) triggerHitstop(100);
+        // Return player to center of screen
+        if (typeof player !== 'undefined') {
+            player.x = CANVAS.width / 2;
+            player.y = CANVAS.height / 2;
+        }
 
-        // Radial explosion wave
-        for (let wave = 0; wave < 5; wave++) {
+        // EPIC death sequence
+        if (window.triggerHitstop) triggerHitstop(150);
+
+        // Multiple explosion waves
+        for (let wave = 0; wave < 8; wave++) {
             setTimeout(() => {
-                for (let i = 0; i < 12; i++) {
-                    const angle = (i / 12) * Math.PI * 2;
+                for (let i = 0; i < 16; i++) {
+                    const angle = (i / 16) * Math.PI * 2 + wave * 0.2;
                     createExplosion(
-                        this.x + Math.cos(angle) * (100 + wave * 80),
-                        this.y + Math.sin(angle) * (100 + wave * 80),
-                        80, 0
+                        this.x + Math.cos(angle) * (80 + wave * 60),
+                        this.y + Math.sin(angle) * (80 + wave * 60),
+                        100, 0
                     );
                 }
-            }, wave * 200);
+            }, wave * 150);
         }
     }
 
@@ -583,8 +803,7 @@ class BossChronos extends BossBase {
             CTX.fillStyle = zone.color;
             CTX.fill();
 
-            // Pulsing border
-            CTX.strokeStyle = zone.type === 'slow' ? '#00aaff' : '#aa00ff';
+            CTX.strokeStyle = zone.type === 'bomb' ? '#ff0066' : this.getPhaseColor();
             CTX.lineWidth = 3;
             CTX.setLineDash([10, 5]);
             CTX.stroke();
@@ -597,24 +816,54 @@ class BossChronos extends BossBase {
             CTX.save();
             CTX.globalAlpha = clone.alpha;
             CTX.translate(clone.x, clone.y);
-            CTX.rotate(clone.angle);
 
-            CTX.shadowBlur = 15;
-            CTX.shadowColor = '#aa00ff';
-            CTX.fillStyle = '#aa00ff';
+            CTX.shadowBlur = 20;
+            CTX.shadowColor = this.getPhaseColor();
+            CTX.fillStyle = this.getPhaseColor();
 
-            // Ghost clock shape
             CTX.beginPath();
-            CTX.arc(0, 0, 30, 0, Math.PI * 2);
+            CTX.arc(0, 0, 35, 0, Math.PI * 2);
             CTX.fill();
 
-            // Clock hands
+            // Mini clock
             CTX.strokeStyle = '#fff';
             CTX.lineWidth = 2;
             CTX.beginPath();
             CTX.moveTo(0, 0);
-            CTX.lineTo(Math.cos(this.hourHand) * 15, Math.sin(this.hourHand) * 15);
+            CTX.lineTo(Math.cos(this.minuteHand) * 20, Math.sin(this.minuteHand) * 20);
             CTX.stroke();
+
+            CTX.restore();
+        });
+
+        // Draw clock minions
+        this.clockMinions.forEach(minion => {
+            CTX.save();
+            CTX.translate(minion.x, minion.y);
+
+            CTX.shadowBlur = 15;
+            CTX.shadowColor = this.getPhaseColor();
+
+            // Gear shape
+            CTX.fillStyle = this.getPhaseColor();
+            CTX.beginPath();
+            for (let i = 0; i < 8; i++) {
+                const angle = (i / 8) * Math.PI * 2 + this.clockAngle;
+                const r = i % 2 === 0 ? minion.radius : minion.radius * 0.7;
+                const x = Math.cos(angle) * r;
+                const y = Math.sin(angle) * r;
+                if (i === 0) CTX.moveTo(x, y);
+                else CTX.lineTo(x, y);
+            }
+            CTX.closePath();
+            CTX.fill();
+
+            // HP bar
+            if (minion.hp < minion.maxHp) {
+                const hpPercent = minion.hp / minion.maxHp;
+                CTX.fillStyle = hpPercent > 0.5 ? '#00ff00' : '#ff0000';
+                CTX.fillRect(-10, -minion.radius - 8, 20 * hpPercent, 4);
+            }
 
             CTX.restore();
         });
@@ -624,36 +873,55 @@ class BossChronos extends BossBase {
         CTX.globalAlpha = this.phaseShiftAlpha;
         CTX.translate(this.x, this.y);
 
-        // Outer time ring
+        // Glitch effect in phase 3
+        if (this.phase === 3 && Math.random() < 0.1) {
+            CTX.translate((Math.random() - 0.5) * 10, (Math.random() - 0.5) * 10);
+        }
+
+        // Outer rotating ring
+        CTX.save();
+        CTX.rotate(this.clockAngle);
         CTX.strokeStyle = this.getPhaseColor();
-        CTX.lineWidth = 4;
-        CTX.setLineDash([15, 8]);
+        CTX.lineWidth = 5;
+        CTX.setLineDash([20, 10]);
         CTX.beginPath();
-        CTX.arc(0, 0, this.radius + 25, 0, Math.PI * 2);
+        CTX.arc(0, 0, this.radius + 30, 0, Math.PI * 2);
         CTX.stroke();
         CTX.setLineDash([]);
+        CTX.restore();
+
+        // Inner rotating ring (opposite direction)
+        CTX.save();
+        CTX.rotate(-this.clockAngle * 1.5);
+        CTX.strokeStyle = this.getPhaseColor();
+        CTX.lineWidth = 3;
+        CTX.setLineDash([10, 15]);
+        CTX.beginPath();
+        CTX.arc(0, 0, this.radius + 15, 0, Math.PI * 2);
+        CTX.stroke();
+        CTX.setLineDash([]);
+        CTX.restore();
 
         // Clock face
-        CTX.shadowBlur = 30;
+        CTX.shadowBlur = 40;
         CTX.shadowColor = this.getPhaseColor();
 
-        // Outer circle
-        CTX.fillStyle = '#111';
+        CTX.fillStyle = '#0a0a0a';
         CTX.beginPath();
         CTX.arc(0, 0, this.radius, 0, Math.PI * 2);
         CTX.fill();
 
         CTX.strokeStyle = this.getPhaseColor();
-        CTX.lineWidth = 5;
+        CTX.lineWidth = 6;
         CTX.stroke();
 
         // Clock markings
-        CTX.strokeStyle = '#fff';
-        CTX.lineWidth = 2;
+        CTX.strokeStyle = '#ffffff';
+        CTX.lineWidth = 3;
         for (let i = 0; i < 12; i++) {
             const angle = (i / 12) * Math.PI * 2 - Math.PI / 2;
-            const inner = this.radius - 15;
-            const outer = this.radius - 5;
+            const inner = this.radius - 18;
+            const outer = this.radius - 6;
             CTX.beginPath();
             CTX.moveTo(Math.cos(angle) * inner, Math.sin(angle) * inner);
             CTX.lineTo(Math.cos(angle) * outer, Math.sin(angle) * outer);
@@ -662,7 +930,7 @@ class BossChronos extends BossBase {
 
         // Hour hand
         CTX.strokeStyle = this.getPhaseColor();
-        CTX.lineWidth = 6;
+        CTX.lineWidth = 8;
         CTX.lineCap = 'round';
         CTX.beginPath();
         CTX.moveTo(0, 0);
@@ -673,20 +941,41 @@ class BossChronos extends BossBase {
         CTX.stroke();
 
         // Minute hand
-        CTX.strokeStyle = '#fff';
-        CTX.lineWidth = 4;
+        CTX.strokeStyle = '#ffffff';
+        CTX.lineWidth = 5;
         CTX.beginPath();
         CTX.moveTo(0, 0);
         CTX.lineTo(
-            Math.cos(this.minuteHand - Math.PI / 2) * (this.radius * 0.65),
-            Math.sin(this.minuteHand - Math.PI / 2) * (this.radius * 0.65)
+            Math.cos(this.minuteHand - Math.PI / 2) * (this.radius * 0.6),
+            Math.sin(this.minuteHand - Math.PI / 2) * (this.radius * 0.6)
         );
         CTX.stroke();
 
-        // Center dot
-        CTX.fillStyle = this.getPhaseColor();
+        // Second hand
+        CTX.strokeStyle = '#ff0000';
+        CTX.lineWidth = 2;
         CTX.beginPath();
-        CTX.arc(0, 0, 8, 0, Math.PI * 2);
+        CTX.moveTo(0, 0);
+        CTX.lineTo(
+            Math.cos(this.secondHand - Math.PI / 2) * (this.radius * 0.7),
+            Math.sin(this.secondHand - Math.PI / 2) * (this.radius * 0.7)
+        );
+        CTX.stroke();
+
+        // Center gem
+        const gemGlow = 0.5 + Math.sin(this.pulseTimer * 0.1) * 0.3;
+        CTX.shadowBlur = 20;
+        CTX.shadowColor = this.getPhaseColor();
+        CTX.fillStyle = this.getPhaseColor();
+        CTX.globalAlpha = gemGlow;
+        CTX.beginPath();
+        CTX.arc(0, 0, 12, 0, Math.PI * 2);
+        CTX.fill();
+
+        CTX.globalAlpha = 1;
+        CTX.fillStyle = '#ffffff';
+        CTX.beginPath();
+        CTX.arc(0, 0, 6, 0, Math.PI * 2);
         CTX.fill();
 
         CTX.restore();
