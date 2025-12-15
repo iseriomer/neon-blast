@@ -46,27 +46,27 @@ class SpawnManager {
     static triggerLevelUp() {
         // --- BOSS SCHEDULE ---
         // Level 10: OMEGA CORE (Boss 1)
-        if (gameState.level === 10 && !gameState.bossActive) {
+        if (gameState.level === 9 && !gameState.bossActive) {
             startBossFight(1);
             return;
         }
         // Level 20: THE SWARM (Boss 4)
-        if (gameState.level === 20 && !gameState.bossActive) {
-            startBossFight(4);
-            return;
-        }
-        // Level 30: NEXUS PRIME (Boss 2)
-        if (gameState.level === 30 && !gameState.bossActive) {
+        if (gameState.level === 19 && !gameState.bossActive) {
             startBossFight(2);
             return;
         }
+        // Level 30: NEXUS PRIME (Boss 2)
+        if (gameState.level === 29 && !gameState.bossActive) {
+            startBossFight(4);
+            return;
+        }
         // Level 40: CHRONOS (Boss 5)
-        if (gameState.level === 40 && !gameState.bossActive) {
+        if (gameState.level === 39 && !gameState.bossActive) {
             startBossFight(5);
             return;
         }
         // Level 50: THE ARCHITECT (Boss 3)
-        if (gameState.level === 50 && !gameState.bossActive) {
+        if (gameState.level === 44 && !gameState.bossActive) {
             startBossFight(3);
             return;
         }

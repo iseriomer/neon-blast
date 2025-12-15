@@ -2,7 +2,7 @@
 
 const BOSS_5_DATA = {
     name: 'CHRONOS',
-    hp: 18000, // Increased HP
+    hp: 70000, // Increased HP
     score: 15000,
     colors: {
         phase1: '#00aaff',

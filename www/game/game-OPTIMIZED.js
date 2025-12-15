@@ -612,6 +612,8 @@ document.getElementById('music-volume').addEventListener('input', (e) => {
 });
 
 document.getElementById('prev-track-btn').addEventListener('click', () => {
+    const switchSound = new Audio('game/music/switchTrack.mp3');
+    switchSound.play();
     const trackName = musicManager.prevTrack();
     document.getElementById('current-track-name').innerText = trackName;
 });
@@ -629,6 +631,8 @@ document.getElementById('joystick-toggle').addEventListener('change', (e) => {
 });
 
 document.getElementById('next-track-btn').addEventListener('click', () => {
+    const switchSound = new Audio('game/music/switchTrack.mp3');
+    switchSound.play();
     const trackName = musicManager.nextTrack();
     document.getElementById('current-track-name').innerText = trackName;
 });

@@ -78,8 +78,8 @@ async function loadLeaderboard() {
         if (el) el.innerHTML = '<li>Yükleniyor...</li>';
     });
 
-    // Skora göre azalan sırala, ilk 5'i al
-    const q = query(scoresCollection, orderBy("score", "desc"), limit(5));
+    // Skora göre azalan sırala, ilk 10'u al
+    const q = query(scoresCollection, orderBy("score", "desc"), limit(10));
 
     try {
         const querySnapshot = await getDocs(q);

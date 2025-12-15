@@ -15,6 +15,20 @@ class CyberChaseSynth {
         // D Minor (D, E, F, G, A, Bb, C)
         // Frequencies for D2
         this.root = 73.42;
+
+        // Pre-generate noise buffers for better performance
+        this.snareBuffer = this.createNoiseBuffer(0.1);
+        this.hihatBuffer = this.createNoiseBuffer(0.1);
+    }
+
+    createNoiseBuffer(duration) {
+        const bufferSize = this.ctx.sampleRate * duration;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+            data[i] = Math.random() * 2 - 1;
+        }
+        return buffer;
     }
 
     start() {
@@ -116,13 +130,9 @@ class CyberChaseSynth {
         mod.stop(time + 0.2);
         osc.stop(time + 0.2);
 
-        // Add noise layer
-        const bufferSize = this.ctx.sampleRate * 0.1;
-        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-        const data = buffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+        // Add noise layer - using cached buffer for performance
         const noise = this.ctx.createBufferSource();
-        noise.buffer = buffer;
+        noise.buffer = this.snareBuffer;
         const nGain = this.ctx.createGain();
         noise.connect(nGain);
         nGain.connect(this.destination);
@@ -132,16 +142,9 @@ class CyberChaseSynth {
     }
 
     playHiHat(time, open) {
-        // High pass noise
-        const bufferSize = this.ctx.sampleRate * 0.1;
-        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-        const data = buffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) {
-            data[i] = Math.random() * 2 - 1;
-        }
-
+        // High pass noise - using cached buffer for performance
         const noise = this.ctx.createBufferSource();
-        noise.buffer = buffer;
+        noise.buffer = this.hihatBuffer;
 
         const filter = this.ctx.createBiquadFilter();
         filter.type = 'highpass';

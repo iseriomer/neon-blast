@@ -14,6 +14,20 @@ class NeonNightsSynth {
 
         // E Minor Scale
         this.rootFreq = 41.20; // E1
+
+        // Pre-generate noise buffers for better performance
+        this.snareBuffer = this.createNoiseBuffer(0.25);
+        this.hihatBuffer = this.createNoiseBuffer(0.1);
+    }
+
+    createNoiseBuffer(duration) {
+        const bufferSize = this.ctx.sampleRate * duration;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+            data[i] = (Math.random() * 2 - 1) * 0.8;
+        }
+        return buffer;
     }
 
     start() {
@@ -110,16 +124,9 @@ class NeonNightsSynth {
     }
 
     playSnare(time) {
-        // White noise burst
-        const bufferSize = this.ctx.sampleRate * 0.25;
-        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-        const data = buffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) {
-            data[i] = (Math.random() * 2 - 1) * 0.8;
-        }
-
+        // White noise burst - using cached buffer for performance
         const noise = this.ctx.createBufferSource();
-        noise.buffer = buffer;
+        noise.buffer = this.snareBuffer;
 
         // Gated Reverb effect simulation (just a squared envelope)
         const noiseGain = this.ctx.createGain();

@@ -2,7 +2,7 @@
 
 const BOSS_3_DATA = {
     name: 'THE ARCHITECT',
-    hp: 20000,
+    hp: 90000,
     score: 50000,
     phases: [
         { threshold: 1.0, color: '#00ff88', name: 'CONSTRUCT' },

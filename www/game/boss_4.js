@@ -2,7 +2,7 @@
 
 const BOSS_4_DATA = {
     name: 'THE SWARM',
-    hp: 10000,
+    hp: 50000,
     score: 8000,
     colors: {
         hive: '#00ff88',
@@ -317,7 +317,8 @@ class BossSwarm extends BossBase {
                 angle: angle,
                 radius: 30,
                 hp: this.hp / 5,
-                fireTimer: 0
+                fireTimer: 0,
+                forming: true // No collision while forming
             });
         }
 
@@ -416,6 +417,14 @@ class BossSwarm extends BossBase {
             core.y += (core.targetY - core.y) * 0.03 * dt;
             core.angle += 0.05 * dt;
 
+            // Check if core has reached its target position (disable forming state)
+            if (core.forming) {
+                const distToTarget = Math.hypot(core.x - core.targetX, core.y - core.targetY);
+                if (distToTarget < 30) {
+                    core.forming = false;
+                }
+            }
+
             // Fire at player
             core.fireTimer += dt;
             if (core.fireTimer > 60) {
@@ -434,14 +443,16 @@ class BossSwarm extends BossBase {
                 };
             }
 
-            // Player collision
-            const dist = Math.hypot(player.x - core.x, player.y - core.y);
-            if (dist < core.radius + player.radius) {
-                if (gameState.playerStats.shield > 0) {
-                    gameState.playerStats.shield--;
-                    updateShieldIndicator(gameState.playerStats.shield);
-                } else if (!gameState.godMode) {
-                    startDeathSequence();
+            // Player collision - only when not forming
+            if (!core.forming) {
+                const dist = Math.hypot(player.x - core.x, player.y - core.y);
+                if (dist < core.radius + player.radius) {
+                    if (gameState.playerStats.shield > 0) {
+                        gameState.playerStats.shield--;
+                        updateShieldIndicator(gameState.playerStats.shield);
+                    } else if (!gameState.godMode) {
+                        startDeathSequence();
+                    }
                 }
             }
         });
