@@ -212,24 +212,24 @@ class CollisionManager {
                         projectileDestroyed = true;
                     }
 
-                    // Boss 3 shapes
-                    if (!projectileDestroyed && typeof bossShapePool !== 'undefined') {
-                        const activeShapes = bossShapePool.getActive();
-                        for (let s = activeShapes.length - 1; s >= 0; s--) {
-                            const shape = activeShapes[s];
-                            if (shape.hp === undefined || shape.hp <= 0) continue;
+                    // Boss 3 entities (The Omega)
+                    if (!projectileDestroyed && typeof omegaPool !== 'undefined') {
+                        const activeEntities = omegaPool.getActive();
+                        for (let eIdx = activeEntities.length - 1; eIdx >= 0; eIdx--) {
+                            const entity = activeEntities[eIdx];
+                            if (entity.hp <= 0 || !entity.active) continue;
 
-                            const shapeDx = projectile.x - shape.x;
-                            const shapeDy = projectile.y - shape.y;
-                            const shapeDistSq = shapeDx * shapeDx + shapeDy * shapeDy;
-                            const shapeMinDist = shape.size / 2 + projectile.radius;
+                            const eDx = projectile.x - entity.x;
+                            const eDy = projectile.y - entity.y;
+                            const eDistSq = eDx * eDx + eDy * eDy;
+                            const eMinDist = entity.radius + projectile.radius;
 
-                            if (shapeDistSq < shapeMinDist * shapeMinDist) {
-                                let shapeDamage = 1;
-                                if (gameState.playerStats.sniper) shapeDamage = 2;
+                            if (eDistSq < eMinDist * eMinDist) {
+                                let dmg = 1;
+                                if (gameState.playerStats.sniper) dmg = 2;
 
-                                shape.hp -= shapeDamage;
-                                spawnParticles(shape.x, shape.y, 3, 2, '#00ff88');
+                                entity.hp -= dmg;
+                                spawnParticles(entity.x, entity.y, 3, 2, entity.color);
                                 playSound('hit');
 
                                 projectile.penetration--;
@@ -288,35 +288,7 @@ class CollisionManager {
                         }
                     }
 
-                    // Drone collision
-                    if (!projectileDestroyed && typeof dronePool !== 'undefined') {
-                        const activeDrones = dronePool.getActive();
-                        for (let d = activeDrones.length - 1; d >= 0; d--) {
-                            const drone = activeDrones[d];
-                            if (drone.hp <= 0) continue;
 
-                            const dx = projectile.x - drone.x;
-                            const dy = projectile.y - drone.y;
-                            const distSq = dx * dx + dy * dy;
-                            const minDist = drone.radius + projectile.radius;
-
-                            if (distSq < minDist * minDist) {
-                                let damage = 1;
-                                if (gameState.playerStats.sniper) damage = 2;
-
-                                drone.hp -= damage;
-                                spawnParticles(drone.x, drone.y, 3, 2, '#44ffaa');
-                                playSound('hit');
-
-                                projectile.penetration--;
-                                if (projectile.penetration <= 0) {
-                                    projectilePool.release(projectile);
-                                    projectileDestroyed = true;
-                                    break;
-                                }
-                            }
-                        }
-                    }
                 }
 
                 // Boss 5 - CHRONOS
@@ -513,7 +485,7 @@ class CollisionManager {
         spawnParticles(enemy.x, enemy.y, 8, 5, enemy.color, 2);
 
         // Level atlama kontrolü
-        updateProgressBar(gameState.score, gameState.nextLevelThreshold);
+        updateProgressBar(gameState.score, gameState.nextLevelThreshold, gameState.previousLevelThreshold);
         if (gameState.score >= gameState.nextLevelThreshold && !gameState.bossActive) {
             triggerLevelUp();
         }

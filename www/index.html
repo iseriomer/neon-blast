@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 
 <head>
     <meta charset="UTF-8">
@@ -17,7 +17,7 @@
                 <div id="xp-fill"></div>
             </div>
             <div id="xp-info-row">
-                <div id="level-indicator">Level: 1</div>
+                <div id="level-indicator" data-i18n="level">Level: 1</div>
                 <div id="xp-text">0 / 1000</div>
             </div>
         </div>
@@ -37,30 +37,37 @@
 
     <!-- Pause Menu (Hidden by default) -->
     <div id="pause-menu" class="hidden">
-        <h2>PAUSED</h2>
+        <h2 data-i18n="paused">PAUSED</h2>
         <div class="pause-options">
+            <div style="display:flex; justify-content:center; margin-bottom:15px;">
+                <button onclick="Localization.setLanguage('tr')"
+                    style="background:#222; border:1px solid #00ffff; color:#00ffff; cursor:pointer; padding:5px 10px; margin:0 5px;">TR</button>
+                <button onclick="Localization.setLanguage('en')"
+                    style="background:#222; border:1px solid #00ffff; color:#00ffff; cursor:pointer; padding:5px 10px; margin:0 5px;">EN</button>
+            </div>
             <label class="toggle-container">
                 <input type="checkbox" id="fps-toggle">
                 <span class="checkmark"></span>
-                Show FPS
+                <span data-i18n="show_fps">Show FPS</span>
             </label>
             <label class="toggle-container">
                 <input type="checkbox" id="sfx-toggle" checked>
                 <span class="checkmark"></span>
-                SFX
+                <span data-i18n="sfx">SFX</span>
             </label>
             <label class="toggle-container">
                 <input type="checkbox" id="music-toggle">
                 <span class="checkmark"></span>
-                Music
+                <span data-i18n="music">Music</span>
             </label>
             <label class="toggle-container">
                 <input type="checkbox" id="joystick-toggle">
                 <span class="checkmark"></span>
-                Joystick Mode
+                <span data-i18n="joystick">Joystick Mode</span>
             </label>
             <div class="slider-container" style="display: flex; flex-direction: column; width: 100%; margin: 10px 0;">
-                <label for="music-volume" style="font-size: 0.8rem; margin-bottom: 5px;">Music Volume</label>
+                <label for="music-volume" style="font-size: 0.8rem; margin-bottom: 5px;" data-i18n="music_volume">Music
+                    Volume</label>
                 <input type="range" id="music-volume" min="0" max="1" step="0.1" value="0.6"
                     style="width: 100%; cursor: pointer;">
             </div>
@@ -70,15 +77,23 @@
                 <button id="next-track-btn" class="arrow-btn">❯</button>
             </div>
         </div>
-        <button class="main-btn" id="resume-btn">RESUME</button>
+        <button class="main-btn" id="resume-btn" data-i18n="resume_btn">RESUME</button>
     </div>
 
     <div id="start-screen">
         <h1>NEON BLAST</h1>
-        <p>Protect the center. Destroy enemies.<br>Fill the XP bar to EVOLVE.</p>
-        <button class="main-btn" id="start-btn">START GAME</button>
+        <p data-i18n="start_desc">Protect the center. Destroy enemies.<br>Fill the XP bar to EVOLVE.</p>
+        <button class="main-btn" id="start-btn" data-i18n="start_btn">START GAME</button>
         <button class="main-btn" id="leaderboard-btn"
-            style="margin-top: 20px; background: #0088ff; border-color: #00ffff; color: #000;">LEADERBOARD</button>
+            style="margin-top: 20px; background: #0088ff; border-color: #00ffff; color: #000;"
+            data-i18n="leaderboard_btn">LEADERBOARD</button>
+
+        <div class="lang-selector" style="margin-top: 20px;">
+            <button onclick="Localization.setLanguage('tr')"
+                style="background:none; border:1px solid #00ffff; color:#00ffff; cursor:pointer; padding:5px 10px; margin:0 5px;">TR</button>
+            <button onclick="Localization.setLanguage('en')"
+                style="background:none; border:1px solid #00ffff; color:#00ffff; cursor:pointer; padding:5px 10px; margin:0 5px;">EN</button>
+        </div>
     </div>
 
     <!-- Leaderboard Screen (New) -->
@@ -96,28 +111,31 @@
 
     <!-- Game Over Screen -->
     <div id="game-over-screen" class="hidden">
-        <h1 style="color: #ff0055; -webkit-text-fill-color: #ff0055; text-shadow: 5px 5px 0 #800000;">GAME OVER</h1>
+        <h1 style="color: #ff0055; -webkit-text-fill-color: #ff0055; text-shadow: 5px 5px 0 #800000;"
+            data-i18n="game_over">GAME OVER</h1>
         <p id="final-score">Score: 0</p>
 
         <div id="leaderboard-section">
-            <input type="text" id="player-name-input" placeholder="ENTER INITIALS" maxlength="10">
-            <button class="main-btn" id="submit-score-btn" style="padding: 10px 30px; font-size: 1rem;">SAVE
+            <input type="text" id="player-name-input" placeholder="ENTER INITIALS" maxlength="10"
+                data-i18n="enter_initials">
+            <button class="main-btn" id="submit-score-btn" style="padding: 10px 30px; font-size: 1rem;"
+                data-i18n="save_score">SAVE
                 SCORE</button>
 
             <div class="leaderboard-container">
                 <h3>TOP 10 PLAYERS</h3>
                 <ul id="leaderboard-list">
-                    <li>Loading...</li>
+                    <li data-i18n="loading">Loading...</li>
                 </ul>
             </div>
         </div>
-        <button class="main-btn" id="restart-btn" style="margin-top: 20px;">PLAY AGAIN</button>
+        <button class="main-btn" id="restart-btn" style="margin-top: 20px;" data-i18n="play_again">PLAY AGAIN</button>
     </div>
 
     <!-- Level Up / Perk Selection Screen -->
     <div id="levelup-screen" class="hidden">
-        <h2>LEVEL UP!</h2>
-        <p>Choose a perk:</p>
+        <h2 data-i18n="level_up">LEVEL UP!</h2>
+        <p data-i18n="choose_perk">Choose a perk:</p>
         <div class="perk-container" id="perk-list"></div>
     </div>
 
@@ -157,6 +175,7 @@
     <!-- 1. Constants and utilities first -->
     <script src="game/constants.js"></script>
     <script src="game/audio.js"></script>
+    <script src="game/lang.js"></script>
 
     <!-- 2. NEW: Performance profiler -->
     <script src="game/performance-profiler.js"></script>

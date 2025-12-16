@@ -180,12 +180,12 @@ class SpawnManager {
                     const card = cardElements[index];
 
                     // Set Final Content
-                    let displayDesc = finalPerk.desc;
+                    let displayDesc = Localization.t(finalPerk.desc);
                     // Dynamic Descriptions
                     if (finalPerk.id === 'orbitals') {
-                        displayDesc = `(Current: ${gameState.playerStats.orbitals} protection) + 1 Orbital Shield.`;
+                        displayDesc = Localization.t('perk_orbitals_desc_dynamic', { value: gameState.playerStats.orbitals });
                     } else if (finalPerk.id === 'split_shot') {
-                        displayDesc = `(Current: ${gameState.playerStats.splitShotCount} fragments) + 1 Fragment on hit.`;
+                        displayDesc = Localization.t('perk_split_shot_desc_dynamic', { value: gameState.playerStats.splitShotCount });
                     }
 
                     if (finalPerk.theme) {
@@ -194,7 +194,7 @@ class SpawnManager {
 
                     // NO ICON in final result
                     card.innerHTML = `
-                        <div class="perk-title">${finalPerk.title}</div>
+                        <div class="perk-title">${Localization.t(finalPerk.title)}</div>
                         <div class="perk-desc">${displayDesc}</div>
                     `;
 
@@ -221,12 +221,13 @@ class SpawnManager {
         perk.apply(gameState.playerStats);
         gameState.level++;
         gameState.currentLevelStep = Math.floor(gameState.currentLevelStep * 1.1) + 200;
+        gameState.previousLevelThreshold = gameState.nextLevelThreshold;
         gameState.nextLevelThreshold += gameState.currentLevelStep;
         gameState.difficultyMultiplier += 0.5;
 
         updateLevelIndicator(gameState.level);
         updateShieldIndicator(gameState.playerStats.shield);
-        updateProgressBar(gameState.score, gameState.nextLevelThreshold);
+        updateProgressBar(gameState.score, gameState.nextLevelThreshold, gameState.previousLevelThreshold);
         updateXPBarColor(gameState.playerStats.color);
         levelUpScreen.classList.add('hidden');
         gameState.isPaused = false;

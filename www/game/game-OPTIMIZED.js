@@ -22,6 +22,7 @@ const gameState = {
     score: 0,
     level: 1,
     nextLevelThreshold: 600,
+    previousLevelThreshold: 0,
     currentLevelStep: 600,
     bossActive: false,
     gameActive: false,
@@ -428,6 +429,7 @@ function initGame() {
     gameState.score = 0;
     gameState.level = 1;
     gameState.nextLevelThreshold = 600;
+    gameState.previousLevelThreshold = 0;
     gameState.currentLevelStep = 600;
     gameState.difficultyMultiplier = 0;
     gameState.activeHealerCount = 0;
@@ -517,13 +519,13 @@ function gameOver() {
     gameState.isPaused = true;
     if (gameState.spawnInterval) clearInterval(gameState.spawnInterval);
 
-    finalScoreEl.innerText = `Total Score: ${gameState.score} - Level: ${gameState.level}`;
+    finalScoreEl.innerText = `${Localization.t('score')}: ${gameState.score} - ${Localization.t('level')}: ${gameState.level}`;
     window.lastGameScore = gameState.score;
     window.lastGameLevel = gameState.level;
 
     document.getElementById('submit-score-btn').style.display = 'inline-block';
     document.getElementById('submit-score-btn').disabled = false;
-    document.getElementById('submit-score-btn').innerText = 'SAVE SCORE';
+    document.getElementById('submit-score-btn').innerText = Localization.t('save_score');
     document.getElementById('player-name-input').style.display = 'inline-block';
 
     if (window.fetchLeaderboard) {

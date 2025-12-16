@@ -29,6 +29,7 @@ class Enemy {
         // FIX: Boss 2 assigns custom update methods and physics to enemies.
         // We must clear these when recycling the enemy from the pool.
         delete this.update;
+        delete this.draw;
         this.vx = 0;
         this.vy = 0;
         this.isChasing = false;

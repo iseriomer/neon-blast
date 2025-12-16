@@ -3,16 +3,16 @@
 const ALL_PERKS = [
     {
         id: 'rapid_fire',
-        title: 'Rapid Fire',
-        desc: 'Increases fire rate by 20%.',
+        title: 'perk_rapid_fire_title',
+        desc: 'perk_rapid_fire_desc',
         icon: '⚡',
         theme: '#00ffff',
         apply: (stats) => { stats.fireRate *= 0.8; }
     },
     {
         id: 'machine_gun',
-        title: 'Machine Gun',
-        desc: 'Greatly increases fire rate but less spread',
+        title: 'perk_machine_gun_title',
+        desc: 'perk_machine_gun_desc',
         icon: '🦾',
         theme: '#ff00ff',
         apply: (stats) => {
@@ -25,8 +25,8 @@ const ALL_PERKS = [
     },
     {
         id: 'sniper',
-        title: 'Sniper Shot',
-        desc: 'Increases bullet speed and piercing, decreases fire rate.',
+        title: 'perk_sniper_title',
+        desc: 'perk_sniper_desc',
         icon: '🎯',
         theme: '#00ff00',
         apply: (stats) => {
@@ -37,8 +37,8 @@ const ALL_PERKS = [
     },
     {
         id: 'double_shot',
-        title: 'Double Barrel',
-        desc: 'Fires +1 extra bullet per shot.', //bu perkin bir sınırı olsun max shotcount sayısı olsun yani, bu sayıya ulaşınca bu perk çıkamasın bidaha
+        title: 'perk_double_shot_title',
+        desc: 'perk_double_shot_desc', //bu perkin bir sınırı olsun max shotcount sayısı olsun yani, bu sayıya ulaşınca bu perk çıkamasın bidaha
         icon: '✌️',
         theme: '#ffff00',
         apply: (stats) => {
@@ -48,8 +48,8 @@ const ALL_PERKS = [
     },
     {
         id: 'freeze',
-        title: 'Frost Bite',
-        desc: 'Slows down enemies on hit.',
+        title: 'perk_freeze_title',
+        desc: 'perk_freeze_desc',
         icon: '❄️',
         theme: '#0088ff',
         apply: (stats) => {
@@ -59,16 +59,16 @@ const ALL_PERKS = [
     },
     {
         id: 'knockback',
-        title: 'Knockback',
-        desc: 'Bullets push enemies back.',
+        title: 'perk_knockback_title',
+        desc: 'perk_knockback_desc',
         icon: '🥊',
         theme: '#ff8800',
         apply: (stats) => { stats.knockback += 5; } //knockback oyuncudan uzağa doğru olsun her zaman.
     },
     {
         id: 'side_cannons',
-        title: 'Side Cannons',
-        desc: 'Fires additional shots to the left and right.',
+        title: 'perk_side_cannons_title',
+        desc: 'perk_side_cannons_desc',
         icon: '⚓',
         theme: '#ff00cc',
         singleUse: true,
@@ -76,24 +76,24 @@ const ALL_PERKS = [
     },
     {
         id: 'orbitals',
-        title: 'Orbital Shield',
-        desc: 'A protective orb orbits around you dealing damage.',
+        title: 'perk_orbitals_title',
+        desc: 'perk_orbitals_desc',
         icon: '🪐',
         theme: '#8800ff',
         apply: (stats) => { stats.orbitals += 1; } // orbitals olunca kaç tane yörünge koruma olacağını ayarlar. perk ekranında da örneğin "(şuanki yörünge koruma sayısı) + 1" yörünge koruma olarak yaz.
     },
     {
         id: 'orbital_size',
-        title: 'Massive Orbitals',
-        desc: 'Increases the size of Orbital Shields by 50%.',
+        title: 'perk_orbital_size_title',
+        desc: 'perk_orbital_size_desc',
         icon: '⚛️',
         theme: '#aa44ff',
         apply: (stats) => { stats.orbitalSizeMultiplier *= 1.5; }
     },
     {
         id: 'screen_wrap',
-        title: 'Wormhole Bullets',
-        desc: 'Bullets wrap around the screen once.',
+        title: 'perk_screen_wrap_title',
+        desc: 'perk_screen_wrap_desc',
         icon: '🌀',
         theme: '#4b0082',
         singleUse: true,
@@ -101,8 +101,8 @@ const ALL_PERKS = [
     },
     {
         id: 'execute',
-        title: 'Executioner',
-        desc: 'Instantly destroys enemies below 20% HP.',
+        title: 'perk_execute_title',
+        desc: 'perk_execute_desc',
         icon: '☠️',
         theme: '#ff0000',
         singleUse: true,
@@ -111,8 +111,8 @@ const ALL_PERKS = [
 
     {
         id: 'homing',
-        title: 'Homing Missiles',
-        desc: 'Bullets home in on nearby enemies.',
+        title: 'perk_homing_title',
+        desc: 'perk_homing_desc',
         icon: '🚀',
         theme: '#00ff88',
         apply: (stats) => {
@@ -122,8 +122,8 @@ const ALL_PERKS = [
     },
     {
         id: 'ricochet',
-        title: 'Ricochet',
-        desc: 'Bullets bounce off walls.',
+        title: 'perk_ricochet_title',
+        desc: 'perk_ricochet_desc',
         icon: '🎱',
         theme: '#ff0088',
         singleUse: true,
@@ -131,16 +131,16 @@ const ALL_PERKS = [
     },
     {
         id: 'split_shot',
-        title: 'Frag Shot',
-        desc: 'Bullets split into smaller pieces on impact.',
+        title: 'perk_split_shot_title',
+        desc: 'perk_split_shot_desc',
         icon: '🎇',
         theme: '#ffaa88',
         apply: (stats) => { stats.splitShotCount += 1; } //bunu splitshot olunca kaç parçaya ayrılcağını ayarlamak için kullan perk ekranında da örneğin "(şuanki parça sayısı) + 1" parçaya ayrılır şeklinde yaz. 
     },
     {
         id: 'back_shot',
-        title: 'Rear Guard',
-        desc: 'Fires an additional bullet backwards.',
+        title: 'perk_back_shot_title',
+        desc: 'perk_back_shot_desc',
         icon: '🔙',
         theme: '#888888',
         singleUse: true,
@@ -148,16 +148,16 @@ const ALL_PERKS = [
     },
     {
         id: 'giant_bullet',
-        title: 'Cannonball',
-        desc: 'Bullets become 30% larger and easier to hit.',
+        title: 'perk_giant_bullet_title',
+        desc: 'perk_giant_bullet_desc',
         icon: '🌑',
         theme: '#eeeeee',
         apply: (stats) => { stats.shotSize *= 1.3; }
     },
     {
         id: 'shotgun',
-        title: 'Shotgun',
-        desc: 'Fires +2 more bullets but spreads more.',
+        title: 'perk_shotgun_title',
+        desc: 'perk_shotgun_desc',
         icon: '💥',
         theme: '#cc8800',
         apply: (stats) => {
@@ -167,8 +167,8 @@ const ALL_PERKS = [
     },
     {
         id: 'chain_lightning',
-        title: 'Chain Lightning',
-        desc: 'Electricity arcs to 2 nearby enemies on hit.',
+        title: 'perk_chain_lightning_title',
+        desc: 'perk_chain_lightning_desc',
         icon: '🌩️',
         theme: '#ffff00',
         apply: (stats) => {
@@ -179,8 +179,8 @@ const ALL_PERKS = [
     },
     {
         id: 'chain_lightning_count',
-        title: 'High Voltage',
-        desc: 'Lightning arcs to +1 more enemy.',
+        title: 'perk_chain_lightning_count_title',
+        desc: 'perk_chain_lightning_count_desc',
         icon: '⚡',
         theme: '#ffff88',
         apply: (stats) => {
@@ -189,8 +189,8 @@ const ALL_PERKS = [
     },
     {
         id: 'chain_lightning_damage',
-        title: 'Overload',
-        desc: 'Increases lightning damage.',
+        title: 'perk_chain_lightning_damage_title',
+        desc: 'perk_chain_lightning_damage_desc',
         icon: '🔋',
         theme: '#ffdd00',
         apply: (stats) => {
@@ -199,8 +199,8 @@ const ALL_PERKS = [
     },
     {
         id: 'explosive_shot',
-        title: 'Explosive Round',
-        desc: 'Deals area damage when destroying enemies.',
+        title: 'perk_explosive_shot_title',
+        desc: 'perk_explosive_shot_desc',
         icon: '🧨',
         theme: '#ff2200',
         apply: (stats) => {
@@ -210,8 +210,8 @@ const ALL_PERKS = [
     },
     {
         id: 'energy_shield',
-        title: 'Energy Shield',
-        desc: 'Grants +1 Shield. Clears screen on break! (Max 2)',
+        title: 'perk_energy_shield_title',
+        desc: 'perk_energy_shield_desc',
         icon: '🛡️',
         theme: '#00ffff',
         apply: (stats) => {
@@ -222,8 +222,8 @@ const ALL_PERKS = [
     },
     {
         id: 'laser_beam',
-        title: 'Orbital Laser',
-        desc: 'Adds a rotating laser beam. (Stackable)',
+        title: 'perk_laser_beam_title',
+        desc: 'perk_laser_beam_desc',
         icon: '🔦',
         theme: '#ff0000',
         apply: (stats) => {
@@ -233,16 +233,16 @@ const ALL_PERKS = [
     },
     {
         id: 'singularity',
-        title: 'Singularity',
-        desc: 'Spawns a black hole every 30s that sucks in enemies.',
+        title: 'perk_singularity_title',
+        desc: 'perk_singularity_desc',
         icon: '⚫',
         theme: '#8a2be2',
         apply: (stats) => { stats.singularity = true; } //1 kere alınırsa bidaha çıkmasın perk seçmede. singularite sırasında yeni düşman spawn olmasın.
     },
     {
         id: 'critical_lens',
-        title: 'Critical Lens',
-        desc: 'Increases Critical Chance by 10% and Critical Damage by 50%.',
+        title: 'perk_critical_lens_title',
+        desc: 'perk_critical_lens_desc',
         icon: '🔍',
         theme: '#ff00ff',
         apply: (stats) => {
@@ -255,8 +255,8 @@ const ALL_PERKS = [
 
     {
         id: 'laser_damage',
-        title: 'Focused Beam',
-        desc: 'Increases Orbital Laser damage by %100.',
+        title: 'perk_laser_damage_title',
+        desc: 'perk_laser_damage_desc',
         icon: '🔅',
         theme: '#ff5555',
         apply: (stats) => {

@@ -10,7 +10,7 @@ const BOSS_TYPES = {
     }
 };
 
-class BossOmega extends BossBase {
+class BossOmegaCore extends BossBase {
     constructor() {
         super();
         this.name = BOSS_TYPES.OMEGA.name;
@@ -162,4 +162,4 @@ class BossOmega extends BossBase {
 }
 
 // Rename to 'boss' variable for backward compatibility until Manager is refactored
-const boss = new BossOmega();
+const boss = new BossOmegaCore();

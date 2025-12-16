@@ -11,10 +11,13 @@ const perkListEl = document.getElementById('perk-list');
 const finalScoreEl = document.getElementById('final-score');
 const fpsCounterEl = document.getElementById('fps-counter');
 
-function updateProgressBar(score, nextLevelThreshold) {
-    const xpPercentage = (score / nextLevelThreshold) * 100;
+function updateProgressBar(score, nextLevelThreshold, previousLevelThreshold = 0) {
+    // Calculate progress within current level (starts from 0 after level up)
+    const currentProgress = score - previousLevelThreshold;
+    const levelRange = nextLevelThreshold - previousLevelThreshold;
+    const xpPercentage = (currentProgress / levelRange) * 100;
     xpFillEl.style.width = `${Math.min(xpPercentage, 100)}%`;
-    xpTextEl.innerText = `${score} / ${nextLevelThreshold}`;
+    xpTextEl.innerText = `${currentProgress} / ${levelRange}`;
 }
 
 function updateXPBarColor(color) {
@@ -35,8 +38,11 @@ function updateShieldIndicator(shield) {
     }
 }
 
+let currentLevelDisplayed = 1;
+
 function updateLevelIndicator(level) {
-    levelEl.innerText = `Level: ${level}`;
+    currentLevelDisplayed = level;
+    levelEl.innerText = `${Localization.t('level')}: ${level}`;
 }
 
 // FPS Counter
@@ -51,11 +57,18 @@ function updateFPS() {
 
     if (elapsed >= 1000) {
         fps = Math.round((frameCount * 1000) / elapsed);
-        fpsCounterEl.innerText = `FPS: ${fps}`;
+        fpsCounterEl.innerText = `${Localization.t('fps')}: ${fps}`;
         frameCount = 0;
         lastFrameTime = currentTime;
     }
 }
+
+// Global function for Localization system to call
+window.updateUIForLanguage = function () {
+    updateLevelIndicator(currentLevelDisplayed);
+    // FPS will update automatically on next frame
+    // Any other manual updates?
+};
 
 function showLevelUpAnimation() {
     // Check if an existing animation is running and remove it to prevent overlap
@@ -66,7 +79,7 @@ function showLevelUpAnimation() {
 
     const levelUpAnim = document.createElement('div');
     levelUpAnim.id = 'levelup-floating-text';
-    levelUpAnim.innerText = 'LEVEL UP!';
+    levelUpAnim.innerText = Localization.t('level_up');
 
     // Dynamic styles for the element
     levelUpAnim.style.cssText = `

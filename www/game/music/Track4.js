@@ -1,242 +1,246 @@
-// Track 4: Tech Groove
-// Advanced Lookahead Scheduler provided by User
+// Track 4: Neon Horizon
+// Genre: Generative Cyberpunk / Dystopian Synthwave
+// Description: Driving procedural basslines, evolving arpeggios, and aggressive neon atmosphere.
+// Vibe: Fast-paced, Dark, Energetic.
 
-class TechGrooveSynth {
+class NeonHorizonSynth {
     constructor(ctx, destination) {
         this.ctx = ctx;
-        this.musicGain = destination;
-        this.tempo = 128;
+        this.destination = destination;
         this.isPlaying = false;
+        this.tempo = 125; // BPM
         this.nextNoteTime = 0;
-        this.beat = 0;
-        this.bgmInterval = null;
+        this.timerID = null;
+        this.beatCount = 0;
+        this.measureCount = 0;
 
-        // A Minor Scale (approx frequencies)
-        this.scale = [
-            55.00,  // A1
-            65.41,  // C2
-            73.42,  // D2
-            82.41,  // E2
-            98.00,  // G2
-            110.00, // A2
-            130.81, // C3
-            146.83  // D3
-        ];
+        // Master Bus with Compressor (to glue sounds together and prevent clipping)
+        this.masterBus = this.ctx.createDynamicsCompressor();
+        this.masterBus.threshold.value = -20;
+        this.masterBus.knee.value = 30;
+        this.masterBus.ratio.value = 12;
+        this.masterBus.attack.value = 0.003;
+        this.masterBus.release.value = 0.25;
+        this.masterBus.connect(this.destination);
+
+        // Scales (D Minor natural & harmonic flavors)
+        this.scaleLow = [36.71, 41.20, 43.65, 49.00, 55.00, 65.41]; // D1, E1, F1, G1, A1, C2
+        this.scaleHigh = [293.66, 349.23, 392.00, 440.00, 523.25, 587.33, 698.46]; // High synth notes
+
+        // State Machine for song structure
+        this.intensity = 0; // 0: Intro, 1: Build, 2: Drop, 3: Chaos
     }
 
     start() {
+        if (this.isPlaying) return;
         this.isPlaying = true;
         this.nextNoteTime = this.ctx.currentTime + 0.1;
-        this.beat = 0;
+        this.measureCount = 0;
+        this.intensity = 0;
         this.scheduler();
     }
 
     stop() {
         this.isPlaying = false;
-        if (this.bgmInterval) clearTimeout(this.bgmInterval);
+        clearTimeout(this.timerID);
     }
 
-    // Lookahead scheduler for precise timing
+    // The heart of the rhythm
     scheduler() {
-        if (!this.isPlaying) return;
-
-        const lookahead = 25.0; // ms
-        const scheduleAheadTime = 0.1; // seconds
+        // while there are notes that will need to play before the next interval,
+        // schedule them and advance the pointer.
+        const secondsPerBeat = 60.0 / this.tempo;
+        const scheduleAheadTime = 0.1; // How far ahead to schedule audio (sec)
 
         while (this.nextNoteTime < this.ctx.currentTime + scheduleAheadTime) {
-            this.playStep(this.nextNoteTime);
-            const secondsPerBeat = 60.0 / this.tempo;
-            this.nextNoteTime += 0.25 * secondsPerBeat; // 16th notes
-            this.beat = (this.beat + 1) % 16;
+            this.scheduleBeat(this.beatCount, this.nextNoteTime);
+            this.nextNoteTime += secondsPerBeat / 4; // 16th notes
+            this.beatCount++;
+
+            if (this.beatCount % 16 === 0) {
+                this.measureCount++;
+                this.evolveSongStructure();
+            }
         }
 
-        this.bgmInterval = setTimeout(() => this.scheduler(), lookahead);
-    }
-
-    playStep(time) {
-        const beat = this.beat;
-
-        // 1. KICK (On beats 0, 4, 8, 12 + variance)
-        if (beat % 4 === 0) {
-            this.playKick(time);
-        }
-
-        // 2. SNARE (On beats 4, 12 - Backbeat)
-        if (beat % 8 === 4) {
-            this.playSnare(time);
-        }
-
-        // 3. HI-HAT (16th notes, accented off-beats)
-        if (beat % 2 === 0) {
-            this.playHiHat(time, beat % 4 === 2); // Accent off-beats
-        }
-
-        // 4. BASSLINE (Rolling 16ths, sidechained)
-        this.playBass(time, beat);
-
-        // 5. ARPEGGIO / MELODY (Sparse)
-        if (beat % 4 === 0 && Math.random() > 0.4) {
-            this.playArp(time, beat);
+        if (this.isPlaying) {
+            this.timerID = setTimeout(() => this.scheduler(), 25);
         }
     }
 
-    // --- SYNTHESIZERS ---
+    // Logic to make the song "A Masterpiece" that changes over time
+    evolveSongStructure() {
+        // Every 8 measures, change intensity or shift focus
+        if (this.measureCount % 8 === 0) {
+            this.intensity = (this.intensity + 1) % 4;
+            // Add randomness to prevent pure loops
+            if (Math.random() > 0.7) this.intensity = 2; // Force drop sometimes
+        }
+    }
+
+    scheduleBeat(beatNumber, time) {
+        const step = beatNumber % 16;
+
+        // 1. KICK DRUM (Four on the floor)
+        // Only plays in intensity 1, 2, 3
+        if (this.intensity > 0) {
+            if (step === 0 || step === 4 || step === 8 || step === 12) {
+                this.playKick(time);
+            }
+        }
+
+        // 2. DRIVING BASS (The "Rolling" Bassline)
+        // Plays off-beat 16th notes
+        if (step !== 0 && step !== 4 && step !== 8 && step !== 12) {
+            // Procedural note selection based on D Minor
+            const rootFreq = 36.71; // D1
+            let freq = rootFreq;
+
+            // Occasionally switch chord logic
+            if (this.measureCount % 4 === 3) freq = 43.65; // F1
+            if (this.measureCount % 8 === 7) freq = 32.70; // C1
+
+            this.playBass(time, freq);
+        }
+
+        // 3. ARPEGGIATOR (Neon Rain)
+        // More active in higher intensity
+        if (this.intensity >= 1) {
+            if (step % 2 === 0) { // 8th notes
+                // Pick a random note from high scale, but biased towards harmony
+                const note = this.scaleHigh[Math.floor(Math.random() * this.scaleHigh.length)];
+                // Panning effect simulated by slightly different volumes if we had stereo (kept simple here)
+                this.playArp(time, note, step);
+            }
+        }
+
+        // 4. LEAD / FX (The "Glitch" Elements)
+        // Random sparse hits
+        if (this.intensity === 3 || (this.intensity === 2 && step === 0)) {
+            if (Math.random() > 0.85) {
+                this.playGlitch(time);
+            }
+        }
+    }
+
+    // --- SYNTHESIS INSTRUMENTS ---
 
     playKick(time) {
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
+
         osc.connect(gain);
-        gain.connect(this.musicGain);
+        gain.connect(this.masterBus);
 
         osc.frequency.setValueAtTime(150, time);
         osc.frequency.exponentialRampToValueAtTime(0.01, time + 0.5);
 
-        gain.gain.setValueAtTime(1, time);
-        gain.gain.exponentialRampToValueAtTime(0.01, time + 0.5);
+        gain.gain.setValueAtTime(1.0, time);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.5);
 
         osc.start(time);
         osc.stop(time + 0.5);
     }
 
-    playSnare(time) {
-        // Noise Burst
-        const bufferSize = this.ctx.sampleRate * 0.2; // 0.2s duration
-        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-        const data = buffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) {
-            data[i] = Math.random() * 2 - 1;
-        }
-
-        const noise = this.ctx.createBufferSource();
-        noise.buffer = buffer;
-
-        const noiseFilter = this.ctx.createBiquadFilter();
-        noiseFilter.type = 'highpass';
-        noiseFilter.frequency.value = 1000;
-
-        const noiseGain = this.ctx.createGain();
-        noise.connect(noiseFilter);
-        noiseFilter.connect(noiseGain);
-        noiseGain.connect(this.musicGain);
-
-        noiseGain.gain.setValueAtTime(0.7, time);
-        noiseGain.gain.exponentialRampToValueAtTime(0.01, time + 0.2);
-
-        noise.start(time);
-        // Add body tone
-        const osc = this.ctx.createOscillator();
-        const oscGain = this.ctx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(200, time);
-        osc.connect(oscGain);
-        oscGain.connect(this.musicGain);
-        oscGain.gain.setValueAtTime(0.5, time);
-        oscGain.gain.exponentialRampToValueAtTime(0.01, time + 0.1);
-        osc.start(time);
-        osc.stop(time + 0.1);
-    }
-
-    playHiHat(time, accent) {
-        const bufferSize = this.ctx.sampleRate * 0.05;
-        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-        const data = buffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) {
-            data[i] = Math.random() * 2 - 1;
-        }
-        const noise = this.ctx.createBufferSource();
-        noise.buffer = buffer;
-        const filter = this.ctx.createBiquadFilter();
-        filter.type = 'highpass';
-        filter.frequency.value = 8000;
-        const gain = this.ctx.createGain();
-
-        noise.connect(filter);
-        filter.connect(gain);
-        gain.connect(this.musicGain);
-
-        const vol = accent ? 0.3 : 0.1;
-        gain.gain.setValueAtTime(vol, time);
-        gain.gain.exponentialRampToValueAtTime(0.01, time + 0.05);
-
-        noise.start(time);
-    }
-
-    playBass(time, step) {
-        // Simple rolling bass following root notes
-        const osc = this.ctx.createOscillator();
+    playBass(time, freq) {
+        // Dual Sawtooth for "Reese" bass feel
+        const osc1 = this.ctx.createOscillator();
+        const osc2 = this.ctx.createOscillator();
         const filter = this.ctx.createBiquadFilter();
         const gain = this.ctx.createGain();
 
-        osc.type = 'sawtooth';
-        // Base note changes every 16 steps (1 bar)
-        const noteIdx = Math.floor(step / 16) % 2 === 0 ? 0 : 3; // Toggle root notes
-        let freq = this.scale[noteIdx];
+        osc1.type = 'sawtooth';
+        osc2.type = 'sawtooth';
 
-        // Octave jump for rhythmic interest
-        if (step % 4 === 2) freq *= 2;
-
-        osc.frequency.value = freq;
+        osc1.frequency.value = freq;
+        osc2.frequency.value = freq + 0.5; // Detune for thickness
 
         filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(200, time);
-        filter.frequency.exponentialRampToValueAtTime(800, time + 0.05); // Pluck effect
-        filter.frequency.exponentialRampToValueAtTime(200, time + 0.2);
+        filter.frequency.setValueAtTime(400, time);
+        filter.frequency.exponentialRampToValueAtTime(100, time + 0.15); // Plucky filter
 
-        osc.connect(filter);
+        osc1.connect(filter);
+        osc2.connect(filter);
         filter.connect(gain);
-        gain.connect(this.musicGain);
+        gain.connect(this.masterBus);
 
-        gain.gain.setValueAtTime(0.5, time);
-        // Sidechain effect (ducking on kick beats)
-        if (step % 4 === 0) {
-            gain.gain.setValueAtTime(0.1, time);
-            gain.gain.linearRampToValueAtTime(0.5, time + 0.1);
-        }
-        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.2);
+        gain.gain.setValueAtTime(0.4, time);
+        gain.gain.exponentialRampToValueAtTime(0.01, time + 0.2);
 
-        osc.start(time);
-        osc.stop(time + 0.2);
+        osc1.start(time);
+        osc2.start(time);
+        osc1.stop(time + 0.2);
+        osc2.stop(time + 0.2);
     }
 
-    playArp(time, step) {
+    playArp(time, freq, step) {
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
-        const delay = this.ctx.createDelay();
-        const feedback = this.ctx.createGain();
+        const pan = this.ctx.createStereoPanner ? this.ctx.createStereoPanner() : null;
 
         osc.type = 'square';
-        // Pick random note from scale
-        const note = this.scale[Math.floor(Math.random() * this.scale.length)] * 4; // High octave
-        osc.frequency.value = note;
+        osc.frequency.value = freq;
 
-        // Delay setup
-        delay.delayTime.value = 0.3; // Dotted 8th-ish
-        feedback.gain.value = 0.4;
+        // Simple Ping-Pong effect based on step
+        if (pan) {
+            pan.pan.value = (step % 4 === 0) ? -0.6 : 0.6;
+            osc.connect(gain);
+            gain.connect(pan);
+            pan.connect(this.masterBus);
+        } else {
+            osc.connect(gain);
+            gain.connect(this.masterBus);
+        }
 
-        osc.connect(gain);
-        gain.connect(this.musicGain); // Dry
-        gain.connect(delay);          // Wet send
-        delay.connect(feedback);
-        feedback.connect(delay);
-        delay.connect(this.musicGain);
-
-        gain.gain.setValueAtTime(0.05, time);
+        gain.gain.setValueAtTime(0, time);
+        gain.gain.linearRampToValueAtTime(0.1, time + 0.01);
         gain.gain.exponentialRampToValueAtTime(0.001, time + 0.3);
 
         osc.start(time);
         osc.stop(time + 0.3);
     }
+
+    playGlitch(time) {
+        // High pitched FM noise
+        const carrier = this.ctx.createOscillator();
+        const modulator = this.ctx.createOscillator();
+        const modGain = this.ctx.createGain();
+        const mainGain = this.ctx.createGain();
+
+        modulator.frequency.value = Math.random() * 1000;
+        modulator.connect(modGain);
+        modGain.gain.value = 500;
+        modGain.connect(carrier.frequency);
+
+        carrier.type = 'sine';
+        carrier.frequency.setValueAtTime(800, time);
+        carrier.frequency.linearRampToValueAtTime(200, time + 0.2); // Slide down
+
+        carrier.connect(mainGain);
+        mainGain.connect(this.masterBus);
+
+        mainGain.gain.setValueAtTime(0.15, time);
+        mainGain.gain.exponentialRampToValueAtTime(0.001, time + 0.2);
+
+        carrier.start(time);
+        modulator.start(time);
+        carrier.stop(time + 0.2);
+        modulator.stop(time + 0.2);
+    }
 }
 
 const Track4 = {
-    name: "Tech Groove",
+    name: "Neon Horizon",
     playFunction: (ctx, destination) => {
-        const synth = new TechGrooveSynth(ctx, destination);
+        const synth = new NeonHorizonSynth(ctx, destination);
         synth.start();
-        return () => synth.stop();
+        return () => {
+            synth.stop();
+        };
     }
 };
 
+// Manager entegrasyonu
 if (typeof musicManager !== 'undefined') {
     musicManager.addTrack(Track4.name, Track4.playFunction);
 }

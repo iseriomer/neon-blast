@@ -57,7 +57,7 @@ class Joystick {
         this.center.y = y;
 
         // Reset stick
-        this.stickElement.style.transform = `translate(0px, 0px)`;
+        this.stickElement.style.transform = `translate(-50%, -50%) translate(0px, 0px)`;
     }
 
     handleMove(e) {
@@ -81,7 +81,7 @@ class Joystick {
         const stickY = Math.sin(angle) * cappedDistance;
 
         // Update visual
-        this.stickElement.style.transform = `translate(${stickX}px, ${stickY}px)`;
+        this.stickElement.style.transform = `translate(-50%, -50%) translate(${stickX}px, ${stickY}px)`;
 
         // Update logical vector
         // Normalize 0-1 based on how far we pulled (optional, or just use angle)
@@ -103,7 +103,7 @@ class Joystick {
 
         // Hide joystick
         this.baseElement.style.display = 'none';
-        this.stickElement.style.transform = `translate(0px, 0px)`;
+        this.stickElement.style.transform = `translate(-50%, -50%) translate(0px, 0px)`;
     }
 }
 

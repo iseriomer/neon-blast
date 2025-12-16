@@ -92,12 +92,12 @@ function adminKillAll() {
         enemyPool.release(enemy);
     });
     gameState.score += enemies.length * 50;
-    updateProgressBar(gameState.score, gameState.nextLevelThreshold);
+    updateProgressBar(gameState.score, gameState.nextLevelThreshold, gameState.previousLevelThreshold);
 }
 
 function adminAddScore() {
     gameState.score += 5000;
-    updateProgressBar(gameState.score, gameState.nextLevelThreshold);
+    updateProgressBar(gameState.score, gameState.nextLevelThreshold, gameState.previousLevelThreshold);
     if (gameState.score >= gameState.nextLevelThreshold) triggerLevelUp();
 }
 

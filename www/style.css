@@ -1129,7 +1129,7 @@ button.main-btn:active {
 }
 
 #tracer-line {
-    stroke: rgba(255, 0, 0, 0.4);
+    stroke: #fff;
     stroke-width: 2;
     stroke-dasharray: 10, 10;
     display: none;

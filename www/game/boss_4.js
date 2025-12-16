@@ -2,7 +2,7 @@
 
 const BOSS_4_DATA = {
     name: 'THE SWARM',
-    hp: 50000,
+    hp: 90000,
     score: 8000,
     colors: {
         hive: '#00ff88',
@@ -10,36 +10,6 @@ const BOSS_4_DATA = {
         drone: '#44ffaa'
     }
 };
-
-// Drone Pool for Swarm
-class SwarmDrone {
-    constructor() {
-        this.reset();
-    }
-
-    reset() {
-        this.x = 0;
-        this.y = 0;
-        this.angle = 0;
-        this.orbitRadius = 100;
-        this.orbitSpeed = 0.02;
-        this.hp = 3;
-        this.maxHp = 3;
-        this.radius = 15;
-        this.isShield = false;
-        this.active = true;
-        this.pulseTimer = 0;
-        this.type = 'orbit'; // orbit, attack, shield
-        this.vx = 0;
-        this.vy = 0;
-    }
-}
-
-const dronePool = new ObjectPool(
-    () => new SwarmDrone(),
-    (drone) => drone.reset(),
-    50
-);
 
 class BossSwarm extends BossBase {
     constructor() {
@@ -62,6 +32,9 @@ class BossSwarm extends BossBase {
         this.isSplit = false;
         this.splitCores = [];
 
+        // Minion tracking (New)
+        this.drones = [];
+
         // Cooldowns
         this.cooldowns = {
             spawnDrone: 0,
@@ -83,19 +56,11 @@ class BossSwarm extends BossBase {
         this.isSplit = false;
         this.splitCores = [];
         this.swarmFormation = 'ORBIT';
-
-        dronePool.releaseAll();
+        this.drones = []; // Reset local tracker
 
         // Spawn initial shield drones
         for (let i = 0; i < 8; i++) {
-            const drone = dronePool.get();
-            drone.angle = (i / 8) * Math.PI * 2;
-            drone.orbitRadius = 120;
-            drone.orbitSpeed = 0.015;
-            drone.isShield = true;
-            drone.type = 'orbit';
-            drone.hp = 5;
-            drone.maxHp = 5;
+            this.spawnDrone('orbit', (i / 8) * Math.PI * 2, 120, true);
         }
 
         document.getElementById('boss-name').innerText = "⚠️ HIVE SIGNAL DETECTED ⚠️";
@@ -104,15 +69,119 @@ class BossSwarm extends BossBase {
         console.log("🐝 THE SWARM HAS AWAKENED 🐝");
     }
 
+    // New Helper: Spawn Drone via enemyPool
+    spawnDrone(type = 'orbit', angle = 0, orbitRadius = 150, isShield = false) {
+        // ENEMY_TYPES.BASIC is used as a base
+        const drone = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
+
+        // Custom Properties for Boss Logic
+        drone.bossRef = this; // Reference back to boss
+        drone.swarmType = type; // 'orbit', 'attack', 'laser'
+        drone.orbitAngle = angle; // Renamed to avoid conflict with physics angle
+        drone.orbitRadius = orbitRadius;
+        drone.orbitSpeed = isShield ? 0.015 : 0.025;
+        drone.isShieldDrone = isShield;
+
+        drone.radius = 15;
+        drone.hp = isShield ? 5 : 7;
+        drone.maxHp = drone.hp;
+        drone.color = isShield ? '#00ffff' : BOSS_4_DATA.colors.drone;
+
+        // Physics Override
+        drone.vx = 0;
+        drone.vy = 0;
+        drone.pulseTimer = 0;
+
+        // OVERRIDE UPDATE logic
+        drone.update = function (player, dt) {
+            // Check if boss is dead or inactive
+            if (!this.bossRef || !this.bossRef.active || this.bossRef.hp <= 0) {
+                this.hp = 0; // Self destruct if boss is gone
+                return;
+            }
+
+            this.pulseTimer += dt;
+
+            if (this.swarmType === 'orbit') {
+                // Orbital movement
+                this.orbitAngle += this.orbitSpeed * dt;
+                this.x = this.bossRef.x + Math.cos(this.orbitAngle) * this.orbitRadius;
+                this.y = this.bossRef.y + Math.sin(this.orbitAngle) * this.orbitRadius;
+            } else if (this.swarmType === 'attack') {
+                // Rush at player
+                this.x += this.vx * dt;
+                this.y += this.vy * dt;
+
+                // Return after going too far
+                if (Math.hypot(this.x - this.bossRef.x, this.y - this.bossRef.y) > 500) {
+                    this.swarmType = 'orbit';
+                    this.vx = 0;
+                    this.vy = 0;
+                }
+            } else if (this.swarmType === 'laser') {
+                // Laser mode - draw laser to boss
+                this.laserTimer -= dt;
+                this.orbitAngle += this.orbitSpeed * dt;
+                this.x = this.bossRef.x + Math.cos(this.orbitAngle) * this.orbitRadius;
+                this.y = this.bossRef.y + Math.sin(this.orbitAngle) * this.orbitRadius;
+
+                if (this.laserTimer <= 0) {
+                    this.swarmType = 'orbit';
+                }
+            }
+        };
+
+        // OVERRIDE DRAW logic
+        drone.draw = function () {
+            CTX.save();
+            CTX.translate(this.x, this.y);
+
+            // Glow
+            const glow = this.isShieldDrone ? 20 : 10;
+            CTX.shadowBlur = glow;
+            CTX.shadowColor = this.isShieldDrone ? '#00ffff' : '#44ffaa';
+
+            // Body
+            CTX.fillStyle = this.isShieldDrone ? '#00ffff' : '#44ffaa'; // Fixed color usage
+            CTX.beginPath();
+
+            // Hexagon shape for drones
+            for (let i = 0; i < 6; i++) {
+                const a = (i / 6) * Math.PI * 2 + this.pulseTimer * 0.1;
+                const dx = Math.cos(a) * this.radius;
+                const dy = Math.sin(a) * this.radius;
+                if (i === 0) CTX.moveTo(dx, dy);
+                else CTX.lineTo(dx, dy);
+            }
+            CTX.closePath();
+            CTX.fill();
+
+            // HP indicator
+            if (this.hp < this.maxHp) {
+                const hpPercent = this.hp / this.maxHp;
+                CTX.fillStyle = hpPercent > 0.5 ? '#00ff00' : '#ff0000';
+                CTX.fillRect(-10, -this.radius - 8, 20 * hpPercent, 4);
+            }
+
+            CTX.restore();
+        };
+
+        this.drones.push(drone);
+        return drone;
+    }
+
     onUpdate(player, dt) {
         this.coreAngle += 0.02 * dt;
         this.pulseTimer += dt;
         this.glowIntensity = 0.5 + Math.sin(this.pulseTimer * 0.1) * 0.3;
 
+        // Clean up dead drones from local list
+        this.drones = this.drones.filter(d => !d.isDead && d.hp > 0);
+
         // --- INTRO ---
         if (this.state === 'INTRO') {
             this.handleIntro(player, dt);
-            this.updateDrones(player, dt);
+            // Drones update themselves via enemyPool
             return;
         }
 
@@ -124,7 +193,7 @@ class BossSwarm extends BossBase {
         // --- MOVEMENT ---
         if (!this.isSplit) {
             const targetX = CANVAS.width / 2 + Math.cos(this.pulseTimer * 0.005) * 200;
-            const targetY = 180 + Math.sin(this.pulseTimer * 0.008) * 80;
+            const targetY = 120 + Math.sin(this.pulseTimer * 0.008) * 40;
             this.x += (targetX - this.x) * 0.02 * dt;
             this.y += (targetY - this.y) * 0.02 * dt;
         }
@@ -138,10 +207,10 @@ class BossSwarm extends BossBase {
         }
 
         // Shield Drone Logic - Blocks damage when active
-        const shieldDrones = dronePool.getActive().filter(d => d.isShield && d.type === 'orbit');
+        const shieldDrones = this.drones.filter(d => d.isShieldDrone && d.swarmType === 'orbit');
         this.shieldActive = shieldDrones.length > 0;
 
-        this.updateDrones(player, dt);
+        // Drones are updated by enemyPool system now
         this.updateSplitCores(player, dt);
     }
 
@@ -152,7 +221,7 @@ class BossSwarm extends BossBase {
             this.y += (180 - this.y) * 0.015 * dt;
 
             // Drones spiral in
-            dronePool.getActive().forEach((drone, i) => {
+            this.drones.forEach((drone, i) => {
                 drone.orbitRadius = Math.max(100, 400 - this.introTimer * 1.5);
             });
 
@@ -229,16 +298,13 @@ class BossSwarm extends BossBase {
 
     attackSpawnDrones() {
         const count = 5 + Math.floor(Math.random() * 3);
+        const existingCount = this.drones.length;
+        // Limit total drones to avoid chaos
+        if (existingCount > 30) return;
+
         for (let i = 0; i < count; i++) {
             setTimeout(() => {
-                const drone = dronePool.get();
-                drone.angle = (i / count) * Math.PI * 2;
-                drone.orbitRadius = 150;
-                drone.orbitSpeed = 0.025;
-                drone.type = 'orbit';
-                drone.hp = 2;
-                drone.maxHp = 2;
-                drone.isShield = false;
+                this.spawnDrone('orbit', (i / count) * Math.PI * 2, 150, false);
                 spawnParticles(this.x, this.y, 5, 3, '#44ffaa');
                 if (window.playSound) playSound('shoot');
             }, i * 100);
@@ -249,14 +315,9 @@ class BossSwarm extends BossBase {
         // Spawn wave of enemies instead of laser (player can't dodge)
         const count = 8;
         for (let i = 0; i < count; i++) {
-            const drone = dronePool.get();
-            drone.angle = (i / count) * Math.PI * 2;
-            drone.orbitRadius = 200;
+            const angle = (i / count) * Math.PI * 2;
+            const drone = this.spawnDrone('orbit', angle, 200, false);
             drone.orbitSpeed = 0.03;
-            drone.type = 'orbit';
-            drone.hp = 2;
-            drone.maxHp = 2;
-            drone.isShield = false;
         }
         createExplosion(this.x, this.y, 50, 0);
         if (window.playSound) playSound('shoot');
@@ -264,6 +325,7 @@ class BossSwarm extends BossBase {
 
     attackSwarmCloud() {
         // Release swarm enemies that player must shoot
+        // These are just regular enemies, standard pool usage, no drone override needed
         for (let i = 0; i < 12; i++) {
             const angle = (i / 12) * Math.PI * 2;
             const enemy = enemyPool.get(
@@ -272,10 +334,9 @@ class BossSwarm extends BossBase {
                 ENEMY_TYPES.BASIC, 1
             );
             enemy.radius = 8;
-            enemy.hp = 1;
-            enemy.maxHp = 1;
+            enemy.hp = 4;
+            enemy.maxHp = 4;
             enemy.color = '#44ffaa';
-            enemy.isDead = false;
         }
         if (window.playSound) playSound('shoot');
     }
@@ -295,7 +356,7 @@ class BossSwarm extends BossBase {
         if (window.triggerHitstop) triggerHitstop(30);
 
         // Make all drones aggressive
-        dronePool.getActive().forEach(drone => {
+        this.drones.forEach(drone => {
             drone.orbitSpeed *= 2;
         });
     }
@@ -327,9 +388,8 @@ class BossSwarm extends BossBase {
     }
 
     attackDroneRush() {
-        const drones = dronePool.getActive();
-        drones.forEach(drone => {
-            drone.type = 'attack';
+        this.drones.forEach(drone => {
+            drone.swarmType = 'attack';
             if (typeof player !== 'undefined') {
                 const angle = Math.atan2(player.y - this.y, player.x - this.x);
                 drone.vx = Math.cos(angle) * 8;
@@ -355,56 +415,6 @@ class BossSwarm extends BossBase {
     }
 
     // --- UPDATERS ---
-
-    updateDrones(player, dt) {
-        dronePool.update((drone) => {
-            if (drone.type === 'orbit') {
-                // Orbital movement
-                drone.angle += drone.orbitSpeed * dt;
-                drone.x = this.x + Math.cos(drone.angle) * drone.orbitRadius;
-                drone.y = this.y + Math.sin(drone.angle) * drone.orbitRadius;
-            } else if (drone.type === 'attack') {
-                // Rush at player
-                drone.x += drone.vx * dt;
-                drone.y += drone.vy * dt;
-
-                // Return after going too far
-                if (Math.hypot(drone.x - this.x, drone.y - this.y) > 500) {
-                    drone.type = 'orbit';
-                    drone.vx = 0;
-                    drone.vy = 0;
-                }
-            } else if (drone.type === 'laser') {
-                // Laser mode - draw laser to boss
-                drone.laserTimer -= dt;
-                drone.angle += drone.orbitSpeed * dt;
-                drone.x = this.x + Math.cos(drone.angle) * drone.orbitRadius;
-                drone.y = this.y + Math.sin(drone.angle) * drone.orbitRadius;
-
-                if (drone.laserTimer <= 0) {
-                    drone.type = 'orbit';
-                }
-            }
-
-            drone.pulseTimer += dt;
-
-            // Player collision
-            if (gameState.gameActive) {
-                const dist = Math.hypot(player.x - drone.x, player.y - drone.y);
-                if (dist < drone.radius + player.radius) {
-                    if (gameState.playerStats.shield > 0) {
-                        gameState.playerStats.shield--;
-                        updateShieldIndicator(gameState.playerStats.shield);
-                        drone.hp = 0; // Destroy drone on hit
-                    } else if (!gameState.godMode) {
-                        startDeathSequence();
-                    }
-                }
-            }
-
-            return drone.hp <= 0;
-        });
-    }
 
     updateSplitCores(player, dt) {
         if (!this.isSplit) return;
@@ -432,14 +442,15 @@ class BossSwarm extends BossBase {
                 const angle = Math.atan2(player.y - core.y, player.x - core.x);
                 const bullet = enemyPool.get(core.x, core.y, ENEMY_TYPES.BASIC, 1);
                 bullet.radius = 10;
-                bullet.hp = 1;
+                bullet.hp = 4;
+                bullet.maxHp = 4;
                 bullet.color = '#ff4400';
                 bullet.vx = Math.cos(angle) * 5;
                 bullet.vy = Math.sin(angle) * 5;
                 bullet.update = function (p, d) {
                     this.x += this.vx * d;
                     this.y += this.vy * d;
-                    this.draw();
+                    this.draw(); // Standard enemy draw is fine, or custom if needed
                 };
             }
 
@@ -469,7 +480,7 @@ class BossSwarm extends BossBase {
         if (this.state === 'INTRO') return;
 
         // Shield drones block damage
-        const shieldDrones = dronePool.getActive().filter(d => d.isShield);
+        const shieldDrones = this.drones.filter(d => d.isShieldDrone && d.swarmType === 'orbit');
         if (shieldDrones.length > 0 && Math.random() < 0.7) {
             // Damage shield drone instead
             const drone = shieldDrones[0];
@@ -477,6 +488,7 @@ class BossSwarm extends BossBase {
             spawnParticles(drone.x, drone.y, 3, 2, '#00ff88');
             if (drone.hp <= 0) {
                 createExplosion(drone.x, drone.y, 30, 0);
+                // Death handled by enemyPool checks in update or CollisionManager
             }
             return;
         }
@@ -486,7 +498,9 @@ class BossSwarm extends BossBase {
 
     die() {
         super.die();
-        dronePool.releaseAll();
+        // Drones will be cleaned up naturally by game logic (or we can force kill them)
+        // this.drones.forEach(d => d.hp = 0); // Optional: kill all minions on boss death
+
         this.isSplit = false;
         this.splitCores = [];
 
@@ -505,15 +519,16 @@ class BossSwarm extends BossBase {
 
     onDraw() {
         // Draw lasers between drones
-        const drones = dronePool.getActive();
-        if (drones.some(d => d.type === 'laser')) {
+        if (this.drones.some(d => d.swarmType === 'laser')) {
             CTX.strokeStyle = `rgba(0, 255, 136, ${0.3 + Math.sin(this.pulseTimer * 0.2) * 0.2})`;
             CTX.lineWidth = 3;
 
-            for (let i = 0; i < drones.length; i++) {
-                const d1 = drones[i];
-                const d2 = drones[(i + 1) % drones.length];
-                if (d1.type === 'laser' && d2.type === 'laser') {
+            for (let i = 0; i < this.drones.length; i++) {
+                const d1 = this.drones[i];
+                const d2 = this.drones[(i + 1) % this.drones.length];
+                // Only connect if both are valid and exist in our list
+                // (Though if they are in list they should be valid)
+                if (d1.swarmType === 'laser' && d2.swarmType === 'laser') {
                     CTX.beginPath();
                     CTX.moveTo(d1.x, d1.y);
                     CTX.lineTo(d2.x, d2.y);
@@ -534,41 +549,6 @@ class BossSwarm extends BossBase {
                 }
             }
         }
-
-        // Draw drones
-        drones.forEach(drone => {
-            CTX.save();
-            CTX.translate(drone.x, drone.y);
-
-            // Glow
-            const glow = drone.isShield ? 20 : 10;
-            CTX.shadowBlur = glow;
-            CTX.shadowColor = drone.isShield ? '#00ffff' : '#44ffaa';
-
-            // Body
-            CTX.fillStyle = drone.isShield ? '#00ffff' : BOSS_4_DATA.colors.drone;
-            CTX.beginPath();
-
-            // Hexagon shape for drones
-            for (let i = 0; i < 6; i++) {
-                const angle = (i / 6) * Math.PI * 2 + drone.pulseTimer * 0.1;
-                const x = Math.cos(angle) * drone.radius;
-                const y = Math.sin(angle) * drone.radius;
-                if (i === 0) CTX.moveTo(x, y);
-                else CTX.lineTo(x, y);
-            }
-            CTX.closePath();
-            CTX.fill();
-
-            // HP indicator
-            if (drone.hp < drone.maxHp) {
-                const hpPercent = drone.hp / drone.maxHp;
-                CTX.fillStyle = hpPercent > 0.5 ? '#00ff00' : '#ff0000';
-                CTX.fillRect(-10, -drone.radius - 8, 20 * hpPercent, 4);
-            }
-
-            CTX.restore();
-        });
 
         // Draw split cores
         this.splitCores.forEach(core => {

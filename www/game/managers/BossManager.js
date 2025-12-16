@@ -77,7 +77,7 @@ class BossManager {
                 // This could be moved to BossBase property 'pushForce'
                 let pushForce = 200;
                 if (bossEntity.name === 'NEXUS PRIME') pushForce = 300;
-                if (bossEntity.name === 'THE ARCHITECT') pushForce = 250;
+                if (bossEntity.name === 'THE OMEGA') pushForce = 300;
 
                 const angle = Math.atan2(player.y - bossEntity.y, player.x - bossEntity.x);
                 player.x += Math.cos(angle) * pushForce;
