@@ -479,7 +479,7 @@ class BossOmega extends BossBase {
                 const ang = Math.atan2(player.y - enemy.y, player.x - enemy.x);
                 enemy.vx = Math.cos(ang) * 6;
                 enemy.vy = Math.sin(ang) * 6;
-                enemy.update = function (p, d) { this.x += this.vx * d; this.y += this.vy * d; this.draw(); }
+                enemy.update = function (p, d) { this.x += this.vx * d; this.y += this.vy * d; }
             }
         }
     }
@@ -950,7 +950,7 @@ class BossOmega extends BossBase {
             player.x = CANVAS.width / 2;
             player.y = CANVAS.height / 2;
         }
-    }   
+    }
 
     // -------------------------------------------------------------------------
     // DRAW
@@ -1113,3 +1113,4 @@ class BossOmega extends BossBase {
 }
 
 const boss3 = new BossOmega();
+window.boss3 = boss3; // FIX: Expose to window for CollisionManager

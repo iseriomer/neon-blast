@@ -207,6 +207,9 @@ const Localization = {
     },
 
     apply() {
+        // Update document language for CSS text-transform (fixes i -> İ issue in English)
+        document.documentElement.lang = this.currentLang;
+
         // Update static DOM elements with data-i18n attribute
         const elements = document.querySelectorAll('[data-i18n]');
         elements.forEach(el => {

@@ -255,6 +255,9 @@ function animate(timestamp) {
     /* if (Math.random() < 0.01) console.log("Animate - dt:", dt, "Enemies:", enemyPool.getActiveCount()); */
 
     profiler.start('frame');
+
+    // OPTIMIZED: Input Handling (Synced with Game Loop)
+    InputManager.update(gameState);
     gameState.animationId = requestAnimationFrame(animate);
 
     updateFPS();
@@ -465,6 +468,18 @@ function initGame() {
     }
     if (typeof bossShapePool !== 'undefined') {
         bossShapePool.releaseAll();
+    }
+    // Fix: Reset Boss 4 & 5
+    if (typeof boss4 !== 'undefined') {
+        boss4.active = false;
+        boss4.isSplit = false;
+        boss4.splitCores = [];
+        boss4.drones = []; // Clear local tracking
+    }
+    if (typeof boss5 !== 'undefined') {
+        boss5.active = false;
+        if (boss5.clockMinions) boss5.clockMinions = [];
+        boss5.minions = [];
     }
     document.getElementById('boss-hud').style.display = 'none';
 

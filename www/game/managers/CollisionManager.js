@@ -1,11 +1,37 @@
 
 // CollisionManager.js - Handles all collision detection
+// REFACTORED: Modular, maintainable, DRY code
 
 class CollisionManager {
+    // ═══════════════════════════════════════════════════════════════════
+    // BOSS REGISTRY - All bosses register here for automatic collision
+    // ═══════════════════════════════════════════════════════════════════
+    static bossRegistry = [];
+
+    static registerBoss(boss) {
+        if (!this.bossRegistry.includes(boss)) {
+            this.bossRegistry.push(boss);
+        }
+    }
+
+    static unregisterBoss(boss) {
+        const index = this.bossRegistry.indexOf(boss);
+        if (index > -1) {
+            this.bossRegistry.splice(index, 1);
+        }
+    }
+
+    static clearBossRegistry() {
+        this.bossRegistry = [];
+    }
+
     static init() {
         // Any setup if needed
     }
 
+    // ═══════════════════════════════════════════════════════════════════
+    // MAIN CHECK - Now just coordinates smaller methods
+    // ═══════════════════════════════════════════════════════════════════
     static check() {
         profiler.start('collisions');
 
@@ -22,18 +48,47 @@ class CollisionManager {
 
         // Build spatial grid (only if we have enemies)
         if (enemies.length > 0) {
-            profiler.start('spatial-grid-build');
-            enemySpatialGrid.clear();
-            for (const enemy of enemies) {
-                enemySpatialGrid.insert(enemy);
-            }
-            profiler.end('spatial-grid-build');
+            this.buildSpatialGrid(enemies);
         }
 
-        // ═══════════════════════════════════════════════════════
-        // PLAYER COLLISION (Always check, even with no projectiles)
-        // ═══════════════════════════════════════════════════════
+        // Player collision
+        if (this.checkPlayerCollisions(enemies)) {
+            profiler.end('collisions');
+            return; // Player died, stop processing
+        }
+
+        // Healer system
+        this.updateHealerSystem(enemies);
+
+        // Spawner counting
+        gameState.activeSpawnerCount = enemies.filter(e => e.type.name === 'Spawner').length;
+
+        // Projectile collisions
+        if (projectiles.length > 0) {
+            this.checkProjectileCollisions(projectiles, enemies);
+        }
+
+        profiler.end('collisions');
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // SPATIAL GRID
+    // ═══════════════════════════════════════════════════════════════════
+    static buildSpatialGrid(enemies) {
+        profiler.start('spatial-grid-build');
+        enemySpatialGrid.clear();
+        for (const enemy of enemies) {
+            enemySpatialGrid.insert(enemy);
+        }
+        profiler.end('spatial-grid-build');
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // PLAYER COLLISION
+    // ═══════════════════════════════════════════════════════════════════
+    static checkPlayerCollisions(enemies) {
         profiler.start('player-collision');
+
         for (let i = enemies.length - 1; i >= 0; i--) {
             const enemy = enemies[i];
             const distPlayer = Math.hypot(player.x - enemy.x, player.y - enemy.y);
@@ -44,7 +99,7 @@ class CollisionManager {
                     spawnParticles(enemy.x, enemy.y, 10, 5, enemy.color);
                     continue;
                 }
-                // Check for Black Hole protection (if global variable exists)
+
                 const isBlackHoleActive = typeof blackHole !== 'undefined' && blackHole !== null;
 
                 if (gameState.playerStats.shield > 0 && !isBlackHoleActive) {
@@ -56,406 +111,421 @@ class CollisionManager {
                     enemyPool.releaseAll();
                     playSound('levelup');
                     if (window.triggerHitstop) window.triggerHitstop(10);
-                    break;
+                    profiler.end('player-collision');
+                    return false;
                 } else {
                     startDeathSequence();
                     profiler.end('player-collision');
-                    profiler.end('collisions');
-                    return;
+                    return true; // Player died
                 }
             }
         }
-        profiler.end('player-collision');
 
-        // ═══════════════════════════════════════════════════════
-        // HEALER SYSTEM
-        // ═══════════════════════════════════════════════════════
+        profiler.end('player-collision');
+        return false;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // HEALER SYSTEM
+    // ═══════════════════════════════════════════════════════════════════
+    static updateHealerSystem(enemies) {
         profiler.start('healer-system');
+
         const healers = enemies.filter(e => e.type.name === 'Healer');
         gameState.activeHealerCount = healers.length;
 
-        if (healers.length > 0) {
-            for (const healer of healers) {
-                const healRange = 350;
-                const nearbyEnemies = enemySpatialGrid.query(healer.x, healer.y, healRange);
-
-                for (const enemy of nearbyEnemies) {
-                    if (enemy.id === healer.id) continue;
-
-                    const distSq = (enemy.x - healer.x) ** 2 + (enemy.y - healer.y) ** 2;
-                    if (distSq < healRange * healRange) {
-                        // Draw Link (Visual connection)
-                        const dist = Math.sqrt(distSq);
-
-                        CTX.save();
-                        CTX.beginPath();
-                        CTX.moveTo(healer.x, healer.y);
-                        CTX.lineTo(enemy.x, enemy.y);
-
-                        // 1. Base Line (Constant weak connection)
-                        CTX.strokeStyle = `rgba(255, 215, 0, ${0.15 * (1 - dist / healRange)})`; // Gold fade
-                        CTX.lineWidth = 1;
-                        CTX.stroke();
-
-                        // 2. Flowing Energy (Animated Dash - The "Stream" effect)
-                        // Negative offset makes it flow FROM healer TO enemy
-                        const flowSpeed = performance.now() / 10;
-                        CTX.setLineDash([15, 30]); // Segment, Gap
-                        CTX.lineDashOffset = -flowSpeed;
-
-                        CTX.lineWidth = 2;
-                        CTX.strokeStyle = `rgba(255, 255, 100, ${0.6 * (1 - dist / healRange)})`; // Brighter gold
-                        CTX.stroke();
-
-                        CTX.setLineDash([]);
-                        CTX.restore();
-
-                        // Healing Logic
-                        if (enemy.hp < enemy.maxHp) {
-                            enemy.hp += 0.03;
-                            if (enemy.hp > enemy.maxHp) enemy.hp = enemy.maxHp;
-
-                            // Visual heal particles (sending energy)
-                            if (Math.random() < 0.05) {
-                                const ratio = Math.random();
-                                const px = healer.x + (enemy.x - healer.x) * ratio;
-                                const py = healer.y + (enemy.y - healer.y) * ratio;
-                                spawnParticles(px, py, 1, 2, '#ffd700', 0.5);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        profiler.end('healer-system');
-
-        // ═══════════════════════════════════════════════════════
-        // SPAWNER COUNTING (Limit Logic)
-        // ═══════════════════════════════════════════════════════
-        const spawners = enemies.filter(e => e.type.name === 'Spawner');
-        gameState.activeSpawnerCount = spawners.length;
-
-        // ═══════════════════════════════════════════════════════
-        // PROJECTILE COLLISION (Only if we have projectiles)
-        // ═══════════════════════════════════════════════════════
-        if (projectiles.length === 0) {
-            profiler.end('collisions');
+        if (healers.length === 0) {
+            profiler.end('healer-system');
             return;
         }
 
+        const healRange = 350;
+
+        for (const healer of healers) {
+            const nearbyEnemies = enemySpatialGrid.query(healer.x, healer.y, healRange);
+
+            for (const enemy of nearbyEnemies) {
+                if (enemy.id === healer.id) continue;
+
+                const distSq = (enemy.x - healer.x) ** 2 + (enemy.y - healer.y) ** 2;
+                if (distSq >= healRange * healRange) continue;
+
+                const dist = Math.sqrt(distSq);
+                this.drawHealerLink(healer, enemy, dist, healRange);
+                this.applyHealing(healer, enemy, dist, healRange);
+            }
+        }
+
+        profiler.end('healer-system');
+    }
+
+    static drawHealerLink(healer, enemy, dist, healRange) {
+        CTX.save();
+        CTX.beginPath();
+        CTX.moveTo(healer.x, healer.y);
+        CTX.lineTo(enemy.x, enemy.y);
+
+        // Base Line
+        CTX.strokeStyle = `rgba(255, 215, 0, ${0.15 * (1 - dist / healRange)})`;
+        CTX.lineWidth = 1;
+        CTX.stroke();
+
+        // Flowing Energy
+        const flowSpeed = performance.now() / 10;
+        CTX.setLineDash([15, 30]);
+        CTX.lineDashOffset = -flowSpeed;
+        CTX.lineWidth = 2;
+        CTX.strokeStyle = `rgba(255, 255, 100, ${0.6 * (1 - dist / healRange)})`;
+        CTX.stroke();
+
+        CTX.setLineDash([]);
+        CTX.restore();
+    }
+
+    static applyHealing(healer, enemy, dist, healRange) {
+        if (enemy.hp >= enemy.maxHp) return;
+
+        enemy.hp += 0.03;
+        if (enemy.hp > enemy.maxHp) enemy.hp = enemy.maxHp;
+
+        // Visual heal particles
+        if (Math.random() < 0.05) {
+            const ratio = Math.random();
+            const px = healer.x + (enemy.x - healer.x) * ratio;
+            const py = healer.y + (enemy.y - healer.y) * ratio;
+            spawnParticles(px, py, 1, 2, '#ffd700', 0.5);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // PROJECTILE COLLISIONS
+    // ═══════════════════════════════════════════════════════════════════
+    static checkProjectileCollisions(projectiles, enemies) {
         profiler.start('projectile-collision');
 
         for (let j = projectiles.length - 1; j >= 0; j--) {
             const projectile = projectiles[j];
-            let projectileDestroyed = false;
+            let destroyed = false;
 
-            // ─────────────────────────────────────────────────────
-            // BOSS COLLISION CHECKS
-            // ─────────────────────────────────────────────────────
+            // Boss collisions (using registry)
             if (gameState.bossActive) {
-                // Boss 1
-                if (typeof boss !== 'undefined' && boss.active && !projectileDestroyed) {
-                    const dx = projectile.x - boss.x;
-                    const dy = projectile.y - boss.y;
-                    const distSq = dx * dx + dy * dy; // Avoid sqrt for performance
-                    const minDist = boss.radius + projectile.radius;
-
-                    if (distSq < minDist * minDist) {
-                        let damage = 20;
-                        if (projectile.isSplit) damage = 10;
-                        if (gameState.playerStats.sniper) damage *= 2;
-
-                        boss.takeDamage(damage);
-                        spawnParticles(projectile.x, projectile.y, 5, 3, '#8a2be2');
-                        playSound('hit');
-                        projectilePool.release(projectile);
-                        projectileDestroyed = true;
-                    }
-                }
-
-                // Boss 2
-                if (typeof boss2 !== 'undefined' && boss2.active && !projectileDestroyed) {
-                    const dx = projectile.x - boss2.x;
-                    const dy = projectile.y - boss2.y;
-                    const distSq = dx * dx + dy * dy;
-                    const minDist = boss2.radius + projectile.radius;
-
-                    if (distSq < minDist * minDist) {
-                        let damage = 20;
-                        if (projectile.isSplit) damage = 10;
-                        if (gameState.playerStats.sniper) damage *= 2;
-
-                        boss2.takeDamage(damage);
-                        spawnParticles(projectile.x, projectile.y, 5, 3, '#00ffff');
-                        playSound('hit');
-                        projectilePool.release(projectile);
-                        projectileDestroyed = true;
-                    }
-                }
-
-                // Boss 3
-                if (typeof boss3 !== 'undefined' && boss3.active && !projectileDestroyed) {
-                    const dx = projectile.x - boss3.x;
-                    const dy = projectile.y - boss3.y;
-                    const distSq = dx * dx + dy * dy;
-                    const minDist = boss3.radius + projectile.radius;
-
-                    if (distSq < minDist * minDist) {
-                        let damage = 20;
-                        if (projectile.isSplit) damage = 10;
-                        if (gameState.playerStats.sniper) damage *= 2;
-
-                        boss3.takeDamage(damage);
-                        spawnParticles(projectile.x, projectile.y, 5, 3, '#00ff88');
-                        playSound('hit');
-                        projectilePool.release(projectile);
-                        projectileDestroyed = true;
-                    }
-
-                    // Boss 3 entities (The Omega)
-                    if (!projectileDestroyed && typeof omegaPool !== 'undefined') {
-                        const activeEntities = omegaPool.getActive();
-                        for (let eIdx = activeEntities.length - 1; eIdx >= 0; eIdx--) {
-                            const entity = activeEntities[eIdx];
-                            if (entity.hp <= 0 || !entity.active) continue;
-
-                            const eDx = projectile.x - entity.x;
-                            const eDy = projectile.y - entity.y;
-                            const eDistSq = eDx * eDx + eDy * eDy;
-                            const eMinDist = entity.radius + projectile.radius;
-
-                            if (eDistSq < eMinDist * eMinDist) {
-                                let dmg = 1;
-                                if (gameState.playerStats.sniper) dmg = 2;
-
-                                entity.hp -= dmg;
-                                spawnParticles(entity.x, entity.y, 3, 2, entity.color);
-                                playSound('hit');
-
-                                projectile.penetration--;
-                                if (projectile.penetration <= 0) {
-                                    projectilePool.release(projectile);
-                                    projectileDestroyed = true;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Boss 4 - THE SWARM
-                if (typeof boss4 !== 'undefined' && boss4.active && !projectileDestroyed) {
-                    // Main core collision (only if not split)
-                    if (!boss4.isSplit) {
-                        const dx = projectile.x - boss4.x;
-                        const dy = projectile.y - boss4.y;
-                        const distSq = dx * dx + dy * dy;
-                        const minDist = boss4.radius + projectile.radius;
-
-                        if (distSq < minDist * minDist) {
-                            let damage = 20;
-                            if (projectile.isSplit) damage = 10;
-                            if (gameState.playerStats.sniper) damage *= 2;
-
-                            boss4.takeDamage(damage);
-                            spawnParticles(projectile.x, projectile.y, 5, 3, '#00ff88');
-                            playSound('hit');
-                            projectilePool.release(projectile);
-                            projectileDestroyed = true;
-                        }
-                    }
-
-                    // Split cores collision
-                    if (!projectileDestroyed && boss4.splitCores) {
-                        for (let sc = boss4.splitCores.length - 1; sc >= 0; sc--) {
-                            const core = boss4.splitCores[sc];
-                            const dx = projectile.x - core.x;
-                            const dy = projectile.y - core.y;
-                            const distSq = dx * dx + dy * dy;
-                            const minDist = core.radius + projectile.radius;
-
-                            if (distSq < minDist * minDist) {
-                                let damage = 15;
-                                if (gameState.playerStats.sniper) damage *= 2;
-
-                                boss4.takeDamage(damage);
-                                spawnParticles(projectile.x, projectile.y, 5, 3, '#ff4400');
-                                playSound('hit');
-                                projectilePool.release(projectile);
-                                projectileDestroyed = true;
-                                break;
-                            }
-                        }
-                    }
-
-
-                }
-
-                // Boss 5 - CHRONOS
-                if (typeof boss5 !== 'undefined' && boss5.active && !projectileDestroyed) {
-                    const dx = projectile.x - boss5.x;
-                    const dy = projectile.y - boss5.y;
-                    const distSq = dx * dx + dy * dy;
-                    const minDist = boss5.radius + projectile.radius;
-
-                    if (distSq < minDist * minDist) {
-                        let damage = 20;
-                        if (projectile.isSplit) damage = 10;
-                        if (gameState.playerStats.sniper) damage *= 2;
-
-                        boss5.takeDamage(damage);
-                        spawnParticles(projectile.x, projectile.y, 5, 3, boss5.getPhaseColor());
-                        playSound('hit');
-                        projectilePool.release(projectile);
-                        projectileDestroyed = true;
-                    }
-
-                    // Clock minion collision
-                    if (!projectileDestroyed && boss5.clockMinions) {
-                        for (let cm = boss5.clockMinions.length - 1; cm >= 0; cm--) {
-                            const minion = boss5.clockMinions[cm];
-                            if (minion.hp <= 0) continue;
-
-                            const mdx = projectile.x - minion.x;
-                            const mdy = projectile.y - minion.y;
-                            const mdistSq = mdx * mdx + mdy * mdy;
-                            const mMinDist = minion.radius + projectile.radius;
-
-                            if (mdistSq < mMinDist * mMinDist) {
-                                let damage = 1;
-                                if (gameState.playerStats.sniper) damage = 2;
-
-                                minion.hp -= damage;
-                                spawnParticles(minion.x, minion.y, 3, 2, boss5.getPhaseColor());
-                                playSound('hit');
-
-                                projectile.penetration--;
-                                if (projectile.penetration <= 0) {
-                                    projectilePool.release(projectile);
-                                    projectileDestroyed = true;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
+                destroyed = this.checkBossCollisions(projectile);
             }
 
-            if (projectileDestroyed) continue;
-
-            // ─────────────────────────────────────────────────────
-            // ENEMY COLLISION (Use spatial grid)
-            // ─────────────────────────────────────────────────────
-            const nearbyEnemies = enemySpatialGrid.getNearby(projectile);
-
-            for (const enemy of nearbyEnemies) {
-                if (projectile.hitList.includes(enemy.id)) continue;
-
-                const dx = projectile.x - enemy.x;
-                const dy = projectile.y - enemy.y;
-                const distSq = dx * dx + dy * dy;
-                const minDist = enemy.radius + projectile.radius;
-
-                if (distSq < minDist * minDist) {
-                    projectile.hitList.push(enemy.id);
-                    projectile.penetration--;
-
-                    // Shield Aura Check REMOVED
-
-                    let damage = 1;
-                    let isCritical = Math.random() < gameState.playerStats.critChance;
-
-                    if (isCritical) {
-                        damage *= gameState.playerStats.critMultiplier;
-                        // Updated Critical Visuals
-                        if (typeof spawnShockwave === 'function') spawnShockwave(enemy.x, enemy.y, '#ff00ff');
-                        if (typeof spawnCritStars === 'function') spawnCritStars(enemy.x, enemy.y, '#ffffff');
-                    }
-
-                    if (gameState.playerStats.execute && enemy.hp / enemy.maxHp < 0.2) {
-                        damage = 999;
-                        spawnParticles(enemy.x, enemy.y, 10, 3, 'red', 2);
-                    }
-                    enemy.hp -= damage;
-
-                    if (gameState.playerStats.knockback > 0) {
-                        // Knockback her zaman oyuncudan uzağa doğru
-                        const angle = Math.atan2(enemy.y - player.y, enemy.x - player.x);
-                        enemy.x += Math.cos(angle) * gameState.playerStats.knockback;
-                        enemy.y += Math.sin(angle) * gameState.playerStats.knockback;
-                    }
-
-                    if (gameState.playerStats.freeze > 0) {
-                        enemy.freezeTimer = gameState.playerStats.freeze;
-                    }
-
-
-
-                    playSound('hit');
-
-                    const particleCount = Math.min(enemy.radius * 0.3, 10);
-                    spawnParticles(projectile.x, projectile.y, particleCount, 3, enemy.color);
-
-                    if (gameState.playerStats.splitShotCount > 0 && !projectile.isSplit) {
-                        const splitCount = gameState.playerStats.splitShotCount + 1;
-                        for (let s = 0; s < splitCount; s++) {
-                            const splitAngle = Math.random() * Math.PI * 2;
-                            const splitVel = {
-                                x: Math.cos(splitAngle) * gameState.playerStats.shotSpeed * 0.8,
-                                y: Math.sin(splitAngle) * gameState.playerStats.shotSpeed * 0.8
-                            };
-                            projectilePool.get(projectile.x, projectile.y, splitVel, true, gameState.playerStats);
-                        }
-                    }
-
-                    if (projectile.penetration <= 0) {
-                        projectilePool.release(projectile);
-                        projectileDestroyed = true;
-                    }
-
-                    if (gameState.playerStats.chainLightning > 0) {
-                        const lightningRange = Math.min(400, CANVAS.width * 0.4);
-                        const potentialTargets = enemySpatialGrid.query(enemy.x, enemy.y, lightningRange);
-
-                        let chainTargets = [];
-                        for (const t of potentialTargets) {
-                            if (t.id !== enemy.id && t.hp > 0) {
-                                const dist = Math.hypot(t.x - enemy.x, t.y - enemy.y);
-                                if (dist < lightningRange) {
-                                    chainTargets.push({ enemy: t, dist: dist });
-                                }
-                            }
-                        }
-
-                        chainTargets.sort((a, b) => a.dist - b.dist);
-                        const chainCount = Math.min(gameState.playerStats.chainLightning, chainTargets.length);
-
-                        for (let c = 0; c < chainCount; c++) {
-                            const target = chainTargets[c].enemy;
-                            target.hp -= (gameState.playerStats.chainLightningDamage || 1);
-
-                            if (typeof spawnChainLightning === 'function') spawnChainLightning(enemy.x, enemy.y, target.x, target.y);
-                            spawnParticles(target.x, target.y, 5, 2, '#00ffff');
-
-                            if (target.hp <= 0) {
-                                CollisionManager.handleEnemyDeath(target);
-                            }
-                        }
-                    }
-
-                    if (enemy.hp <= 0) {
-                        CollisionManager.handleEnemyDeath(enemy);
-                    }
-
-                    if (projectileDestroyed) break;
-                }
+            // Enemy collisions
+            if (!destroyed) {
+                this.checkEnemyCollisions(projectile);
             }
         }
 
         profiler.end('projectile-collision');
-        profiler.end('collisions');
     }
 
+    // ═══════════════════════════════════════════════════════════════════
+    // BOSS COLLISION - Uses registry for all bosses
+    // ═══════════════════════════════════════════════════════════════════
+    static checkBossCollisions(projectile) {
+        // First check legacy global bosses (backward compatibility)
+        const legacyBosses = [
+            { ref: 'boss', color: '#8a2be2' },
+            { ref: 'boss2', color: '#00ffff' },
+            { ref: 'boss3', color: '#00ff88', hasEntities: true },
+            { ref: 'boss4', color: '#00ff88', hasSplitCores: true },
+            { ref: 'boss5', color: null, hasClockMinions: true } // color from getPhaseColor()
+        ];
+
+        for (const bossInfo of legacyBosses) {
+            const boss = window[bossInfo.ref];
+            if (!boss || !boss.active) continue;
+
+            const color = bossInfo.color || (boss.getPhaseColor ? boss.getPhaseColor() : '#ffffff');
+
+            // Special case: Boss4 split mode
+            if (bossInfo.ref === 'boss4' && boss.isSplit) {
+                if (this.checkBoss4SplitCores(projectile, boss)) return true;
+                continue;
+            }
+
+            // Main boss hit
+            if (this.checkSingleBossHit(projectile, boss, color)) {
+                return true;
+            }
+
+            // Boss3 entities (OmegaPool)
+            if (bossInfo.hasEntities && typeof omegaPool !== 'undefined') {
+                if (this.checkOmegaEntities(projectile)) return true;
+            }
+
+            // Boss4 split cores
+            if (bossInfo.hasSplitCores && boss.splitCores) {
+                if (this.checkBoss4SplitCores(projectile, boss)) return true;
+            }
+
+            // Boss5 clock minions
+            if (bossInfo.hasClockMinions && boss.clockMinions) {
+                if (this.checkClockMinions(projectile, boss)) return true;
+            }
+        }
+
+        // Check registered bosses (for future extensibility)
+        for (const boss of this.bossRegistry) {
+            if (!boss.active) continue;
+            const color = boss.getPhaseColor ? boss.getPhaseColor() : (boss.color || '#ffffff');
+            if (this.checkSingleBossHit(projectile, boss, color)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // HELPER: Calculate projectile damage
+    // ═══════════════════════════════════════════════════════════════════
+    static calculateProjectileDamage(projectile) {
+        let damage = 20;
+        if (projectile.isSplit) damage = 10;
+        if (gameState.playerStats.sniper) damage *= 2;
+        return damage;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // HELPER: Single boss hit check
+    // ═══════════════════════════════════════════════════════════════════
+    static checkSingleBossHit(projectile, boss, particleColor) {
+        const dx = projectile.x - boss.x;
+        const dy = projectile.y - boss.y;
+        const distSq = dx * dx + dy * dy;
+        const minDist = boss.radius + projectile.radius;
+
+        if (distSq < minDist * minDist) {
+            const damage = this.calculateProjectileDamage(projectile);
+            boss.takeDamage(damage);
+            spawnParticles(projectile.x, projectile.y, 5, 3, particleColor);
+            playSound('hit');
+            projectilePool.release(projectile);
+            return true;
+        }
+        return false;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // HELPER: Omega entities (Boss3)
+    // ═══════════════════════════════════════════════════════════════════
+    static checkOmegaEntities(projectile) {
+        const activeEntities = omegaPool.getActive();
+
+        for (let eIdx = activeEntities.length - 1; eIdx >= 0; eIdx--) {
+            const entity = activeEntities[eIdx];
+            if (entity.hp <= 0 || !entity.active) continue;
+
+            const dx = projectile.x - entity.x;
+            const dy = projectile.y - entity.y;
+            const distSq = dx * dx + dy * dy;
+            const minDist = entity.radius + projectile.radius;
+
+            if (distSq < minDist * minDist) {
+                let dmg = gameState.playerStats.sniper ? 2 : 1;
+                entity.hp -= dmg;
+                spawnParticles(entity.x, entity.y, 3, 2, entity.color);
+                playSound('hit');
+
+                projectile.penetration--;
+                if (projectile.penetration <= 0) {
+                    projectilePool.release(projectile);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // HELPER: Boss4 split cores
+    // ═══════════════════════════════════════════════════════════════════
+    static checkBoss4SplitCores(projectile, boss4) {
+        if (!boss4.splitCores) return false;
+
+        for (let sc = boss4.splitCores.length - 1; sc >= 0; sc--) {
+            const core = boss4.splitCores[sc];
+            const dx = projectile.x - core.x;
+            const dy = projectile.y - core.y;
+            const distSq = dx * dx + dy * dy;
+            const minDist = core.radius + projectile.radius;
+
+            if (distSq < minDist * minDist) {
+                let damage = 15;
+                if (gameState.playerStats.sniper) damage *= 2;
+
+                boss4.takeDamage(damage);
+                spawnParticles(projectile.x, projectile.y, 5, 3, '#ff4400');
+                playSound('hit');
+                projectilePool.release(projectile);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // HELPER: Boss5 clock minions
+    // ═══════════════════════════════════════════════════════════════════
+    static checkClockMinions(projectile, boss5) {
+        if (!boss5.clockMinions) return false;
+
+        for (let cm = boss5.clockMinions.length - 1; cm >= 0; cm--) {
+            const minion = boss5.clockMinions[cm];
+            if (minion.hp <= 0) continue;
+
+            const dx = projectile.x - minion.x;
+            const dy = projectile.y - minion.y;
+            const distSq = dx * dx + dy * dy;
+            const minDist = minion.radius + projectile.radius;
+
+            if (distSq < minDist * minDist) {
+                let damage = gameState.playerStats.sniper ? 2 : 1;
+                minion.hp -= damage;
+                spawnParticles(minion.x, minion.y, 3, 2, boss5.getPhaseColor());
+                playSound('hit');
+
+                projectile.penetration--;
+                if (projectile.penetration <= 0) {
+                    projectilePool.release(projectile);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // ENEMY COLLISION
+    // ═══════════════════════════════════════════════════════════════════
+    static checkEnemyCollisions(projectile) {
+        const nearbyEnemies = enemySpatialGrid.getNearby(projectile);
+
+        for (const enemy of nearbyEnemies) {
+            if (projectile.hitList.includes(enemy.id)) continue;
+
+            const dx = projectile.x - enemy.x;
+            const dy = projectile.y - enemy.y;
+            const distSq = dx * dx + dy * dy;
+            const minDist = enemy.radius + projectile.radius;
+
+            if (distSq < minDist * minDist) {
+                projectile.hitList.push(enemy.id);
+                projectile.penetration--;
+
+                // Calculate damage
+                let damage = 1;
+                let isCritical = Math.random() < gameState.playerStats.critChance;
+
+                if (isCritical) {
+                    damage *= gameState.playerStats.critMultiplier;
+                    if (typeof spawnShockwave === 'function') spawnShockwave(enemy.x, enemy.y, '#ff00ff');
+                    if (typeof spawnCritStars === 'function') spawnCritStars(enemy.x, enemy.y, '#ffffff');
+                }
+
+                if (gameState.playerStats.execute && enemy.hp / enemy.maxHp < 0.2) {
+                    damage = 999;
+                    spawnParticles(enemy.x, enemy.y, 10, 3, 'red', 2);
+                }
+
+                enemy.hp -= damage;
+
+                // Apply knockback
+                if (gameState.playerStats.knockback > 0) {
+                    const angle = Math.atan2(enemy.y - player.y, enemy.x - player.x);
+                    enemy.x += Math.cos(angle) * gameState.playerStats.knockback;
+                    enemy.y += Math.sin(angle) * gameState.playerStats.knockback;
+                }
+
+                // Apply freeze
+                if (gameState.playerStats.freeze > 0) {
+                    enemy.freezeTimer = gameState.playerStats.freeze;
+                }
+
+                playSound('hit');
+                const particleCount = Math.min(enemy.radius * 0.3, 10);
+                spawnParticles(projectile.x, projectile.y, particleCount, 3, enemy.color);
+
+                // Split shot
+                if (gameState.playerStats.splitShotCount > 0 && !projectile.isSplit) {
+                    this.createSplitShots(projectile);
+                }
+
+                // Chain lightning
+                if (gameState.playerStats.chainLightning > 0) {
+                    this.applyChainLightning(enemy);
+                }
+
+                // Check enemy death
+                if (enemy.hp <= 0) {
+                    this.handleEnemyDeath(enemy);
+                }
+
+                // Check projectile destruction
+                if (projectile.penetration <= 0) {
+                    projectilePool.release(projectile);
+                    return;
+                }
+            }
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // HELPER: Split shots
+    // ═══════════════════════════════════════════════════════════════════
+    static createSplitShots(projectile) {
+        const splitCount = gameState.playerStats.splitShotCount + 1;
+        for (let s = 0; s < splitCount; s++) {
+            const splitAngle = Math.random() * Math.PI * 2;
+            const splitVel = {
+                x: Math.cos(splitAngle) * gameState.playerStats.shotSpeed * 0.8,
+                y: Math.sin(splitAngle) * gameState.playerStats.shotSpeed * 0.8
+            };
+            projectilePool.get(projectile.x, projectile.y, splitVel, true, gameState.playerStats);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // HELPER: Chain lightning
+    // ═══════════════════════════════════════════════════════════════════
+    static applyChainLightning(sourceEnemy) {
+        const lightningRange = Math.min(400, CANVAS.width * 0.4);
+        const potentialTargets = enemySpatialGrid.query(sourceEnemy.x, sourceEnemy.y, lightningRange);
+
+        let chainTargets = [];
+        for (const t of potentialTargets) {
+            if (t.id !== sourceEnemy.id && t.hp > 0) {
+                const dist = Math.hypot(t.x - sourceEnemy.x, t.y - sourceEnemy.y);
+                if (dist < lightningRange) {
+                    chainTargets.push({ enemy: t, dist: dist });
+                }
+            }
+        }
+
+        chainTargets.sort((a, b) => a.dist - b.dist);
+        const chainCount = Math.min(gameState.playerStats.chainLightning, chainTargets.length);
+
+        for (let c = 0; c < chainCount; c++) {
+            const target = chainTargets[c].enemy;
+            target.hp -= (gameState.playerStats.chainLightningDamage || 1);
+
+            if (typeof spawnChainLightning === 'function') {
+                spawnChainLightning(sourceEnemy.x, sourceEnemy.y, target.x, target.y);
+            }
+            spawnParticles(target.x, target.y, 5, 2, '#00ffff');
+
+            if (target.hp <= 0) {
+                this.handleEnemyDeath(target);
+            }
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // ENEMY DEATH
+    // ═══════════════════════════════════════════════════════════════════
     static handleEnemyDeath(enemy) {
         // Eğer zaten öldüyse veya havuzda değilse işlem yapma
         if ((enemy.hp > 0 && !enemyPool.active.includes(enemy)) || enemy.isDead) return;
@@ -465,6 +535,7 @@ class CollisionManager {
         if (!gameState.bossActive) {
             gameState.score += enemy.type.score;
         }
+
         // Splitter Mantığı
         if (enemy.type.name === 'Splitter') {
             const splitCount = 2 + Math.floor(Math.random() * 2);
@@ -476,9 +547,9 @@ class CollisionManager {
             }
         }
 
-        // Patlama (Explosive Radius) Mantığı - Zincirleme patlama için buraya aldık
+        // Patlama mantığı
         if (gameState.playerStats.explosiveRadius > 0) {
-            CollisionManager.createExplosion(enemy.x, enemy.y, gameState.playerStats.explosiveRadius, 7);
+            this.createExplosion(enemy.x, enemy.y, gameState.playerStats.explosiveRadius, 7);
         }
 
         enemyPool.release(enemy);
@@ -491,45 +562,37 @@ class CollisionManager {
         }
     }
 
-    // YENİ: Patlama Fonksiyonu (Hem mayın hem perk için ortak)
+    // ═══════════════════════════════════════════════════════════════════
+    // EXPLOSION
+    // ═══════════════════════════════════════════════════════════════════
     static createExplosion(x, y, radius, damage) {
         // Görsel Efekt
         CTX.beginPath();
         CTX.arc(x, y, radius, 0, Math.PI * 2);
-        CTX.fillStyle = 'rgba(255, 60, 0, 0.2)'; // Daha belirgin renk
+        CTX.fillStyle = 'rgba(255, 60, 0, 0.2)';
         CTX.fill();
-        // Grid'i bük! (Gücü 50, Yarıçapı 300 yaptık)
-        /* backgroundEffect.applyForce(x, y, 150, 300); */
-        // Şok dalgası efekti
+
         spawnParticles(x, y, Math.min(radius / 3, 20), 4, '#ff4400', 3);
 
-        // Hasar Mantığı - DÜZELTME BURADA
-        // Grid üzerinden geniş alan sorgusu yapıyoruz
+        // Hasar Mantığı
         const nearbyTargets = enemySpatialGrid.query(x, y, radius);
 
         for (const target of nearbyTargets) {
-            // Kendimize hasar vermeyelim (mesafe kontrolü zaten spatial grid içinde kaba yapılıyor, burada hassas ölçüm şart)
             const dist = Math.hypot(target.x - x, target.y - y);
 
             if (dist < radius + target.radius) {
                 target.hp -= damage;
                 spawnParticles(target.x, target.y, 2, 2, '#ffffff', 2);
 
-                // KRİTİK DÜZELTME: Canı bittiyse anında öldür!
                 if (target.hp <= 0) {
-                    // Recursive (özyinelemeli) patlama olmaması için patlamadan ölen bir daha patlamasın diyebilirsin
-                    // Ama kaos istiyorsan handleEnemyDeath çağırabilirsin. 
-                    // Sonsuz döngüyü önlemek için basitçe release yapıyoruz:
                     gameState.score += target.type.score;
                     enemyPool.release(target);
-                    /* handleEnemyDeath(target);
-                    spawnParticles(target.x, target.y, 5, 3, target.color, 1.5); */
                 }
             }
         }
     }
 }
 
-// Expose globals for backward compatibility if needed, or use CollisionManager.xxx
-window.handleEnemyDeath = CollisionManager.handleEnemyDeath;
-window.createExplosion = CollisionManager.createExplosion;
+// Expose globals for backward compatibility
+window.handleEnemyDeath = CollisionManager.handleEnemyDeath.bind(CollisionManager);
+window.createExplosion = CollisionManager.createExplosion.bind(CollisionManager);

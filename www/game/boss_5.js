@@ -338,7 +338,6 @@ class BossChronos extends BossBase {
                     enemy.update = function (p, d) {
                         this.x += this.vx * d;
                         this.y += this.vy * d;
-                        this.draw();
                     };
                 }
                 if (window.playSound) playSound('shoot');
@@ -367,7 +366,6 @@ class BossChronos extends BossBase {
                 enemy.update = function (p, d) {
                     this.x += this.vx * d;
                     this.y += this.vy * d;
-                    this.draw();
                 };
             }, i * 30);
         }
@@ -541,7 +539,6 @@ class BossChronos extends BossBase {
                     enemy.update = function (p, d) {
                         this.x += this.vx * d;
                         this.y += this.vy * d;
-                        this.draw();
                     };
                 }
             }, w * 150);
@@ -571,7 +568,6 @@ class BossChronos extends BossBase {
                     enemy.update = function (p, d) {
                         this.x += this.vx * d;
                         this.y += this.vy * d;
-                        this.draw();
                     };
                 }, i * 40 + arm * 20);
             }
@@ -636,7 +632,6 @@ class BossChronos extends BossBase {
                     enemy.update = function (p, d) {
                         this.x += this.vx * d;
                         this.y += this.vy * d;
-                        this.draw();
                     };
                 }
                 if (window.playSound) playSound('shoot');
@@ -706,7 +701,6 @@ class BossChronos extends BossBase {
                 enemy.update = function (p, d) {
                     this.x += this.vx * d;
                     this.y += this.vy * d;
-                    this.draw();
                 };
             }
 
@@ -743,7 +737,6 @@ class BossChronos extends BossBase {
                 enemy.update = function (p, d) {
                     this.x += this.vx * d;
                     this.y += this.vy * d;
-                    this.draw();
                 };
             }
 

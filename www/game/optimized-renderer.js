@@ -5,9 +5,22 @@ const RenderOptimizer = {
     // Settings
     useShadows: false, // Shadows are EXPENSIVE - disable in late game
     batchRendering: true,
+    qualityCheckTimer: 0,
+
+    // Reusable containers to prevent GC (Zero-Allocation approach)
+    _projGroups: {},
+    _partGroups: { default: [], shockwave: [], star: [] },
+    _partColorGroups: {},
+    _strokeColorGroups: {},
+    _alphaBuckets: {}, // Reusable alpha buckets
 
     // Toggle shadows based on object count
     autoAdjustQuality() {
+        // Throttle: Only check every 60 frames (approx 1 sec)
+        this.qualityCheckTimer++;
+        if (this.qualityCheckTimer < 60) return;
+        this.qualityCheckTimer = 0;
+
         const totalObjects =
             (projectilePool?.getActiveCount() || 0) +
             (enemyPool?.getActiveCount() || 0) +
@@ -17,23 +30,37 @@ const RenderOptimizer = {
         this.useShadows = totalObjects < 200;
     },
 
+    // Helper to clear an object's arrays without deleting keys (Pooling)
+    _clearGroups(groups) {
+        for (const key in groups) {
+            groups[key].length = 0;
+        }
+    },
+
     // Batch draw projectiles (MASSIVE performance gain)
     drawProjectilesBatched(projectiles) {
         if (!this.batchRendering || projectiles.length === 0) return;
 
-        // Group by color for batching
-        const byColor = {};
-        for (const proj of projectiles) {
-            if (!byColor[proj.color]) byColor[proj.color] = [];
-            byColor[proj.color].push(proj);
+        // 1. Clear & Reuse Groups
+        this._clearGroups(this._projGroups);
+
+        // 2. Group by color
+        for (let i = 0; i < projectiles.length; i++) {
+            const proj = projectiles[i];
+            if (!this._projGroups[proj.color]) {
+                this._projGroups[proj.color] = [];
+            }
+            this._projGroups[proj.color].push(proj);
         }
 
-        // Draw each color group in ONE path
-        for (const color in byColor) {
-            const group = byColor[color];
+        // 3. Draw each color group
+        for (const color in this._projGroups) {
+            const group = this._projGroups[color];
+            if (group.length === 0) continue;
 
             CTX.beginPath();
-            for (const proj of group) {
+            for (let i = 0; i < group.length; i++) {
+                const proj = group[i];
                 CTX.moveTo(proj.x + proj.radius, proj.y);
                 CTX.arc(proj.x, proj.y, proj.radius, 0, Math.PI * 2);
             }
@@ -54,32 +81,41 @@ const RenderOptimizer = {
     drawParticlesBatched(particles) {
         if (!this.batchRendering || particles.length === 0) return;
 
-        // Group by Type first
-        const byType = { default: [], shockwave: [], star: [] };
+        // Reset Typed Groups
+        this._partGroups.default.length = 0;
+        this._partGroups.shockwave.length = 0;
+        this._partGroups.star.length = 0;
 
+        // Group by Type
         for (let i = 0; i < particles.length; i++) {
             const p = particles[i];
             const type = p.type || 'default';
-            if (!byType[type]) byType[type] = [];
-            byType[type].push(p);
+            // Safety check if new types added dynamically
+            if (this._partGroups[type]) {
+                this._partGroups[type].push(p);
+            } else {
+                // Fallback for unknown types (create if needed, but risky for GC)
+                // Better to map to default
+                this._partGroups.default.push(p);
+            }
         }
 
         // 1. Draw Default Particles (Squares)
-        if (byType.default.length > 0) {
-            this.drawDefaultParticles(byType.default);
+        if (this._partGroups.default.length > 0) {
+            this.drawDefaultParticles(this._partGroups.default);
         }
 
         // 2. Draw Shockwaves (Rings)
-        if (byType.shockwave.length > 0) {
-            this.renderStrokeBatch(byType.shockwave, 3, (ctx, p) => {
+        if (this._partGroups.shockwave.length > 0) {
+            this.renderStrokeBatch(this._partGroups.shockwave, 3, (ctx, p) => {
                 ctx.moveTo(p.x + p.radius, p.y);
                 ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
             });
         }
 
-        // 3. Draw Stars (Spikes/Lines) - NO SAVE/RESTORE!
-        if (byType.star.length > 0) {
-            this.renderStrokeBatch(byType.star, 2, (ctx, p) => {
+        // 3. Draw Stars (Spikes/Lines)
+        if (this._partGroups.star.length > 0) {
+            this.renderStrokeBatch(this._partGroups.star, 2, (ctx, p) => {
                 const c = Math.cos(p.rotation);
                 const s = Math.sin(p.rotation);
                 const r = p.radius;
@@ -97,33 +133,42 @@ const RenderOptimizer = {
     },
 
     drawDefaultParticles(particles) {
-        const byColor = {};
+        // Reuse color groups
+        this._clearGroups(this._partColorGroups);
 
         for (let i = 0; i < particles.length; i++) {
             const p = particles[i];
-            if (!byColor[p.color]) byColor[p.color] = [];
-            byColor[p.color].push(p);
+            if (!this._partColorGroups[p.color]) {
+                this._partColorGroups[p.color] = [];
+            }
+            this._partColorGroups[p.color].push(p);
         }
 
-        for (const color in byColor) {
-            const group = byColor[color];
-            const alphaBuckets = {};
+        for (const color in this._partColorGroups) {
+            const group = this._partColorGroups[color];
+            if (group.length === 0) continue;
+
+            // Reuse alpha buckets
+            this._clearGroups(this._alphaBuckets);
 
             for (let i = 0; i < group.length; i++) {
                 const p = group[i];
-                // Use slightly coarser buckets for filled particles
                 const alphaKey = Math.max(0.1, Math.round(p.alpha * 5) / 5);
-                if (!alphaBuckets[alphaKey]) alphaBuckets[alphaKey] = [];
-                alphaBuckets[alphaKey].push(p);
+                // Convert key to string implies GC? Keys are strings. 
+                // However, caching limited number of keys (0.2, 0.4 etc) is fine.
+                if (!this._alphaBuckets[alphaKey]) this._alphaBuckets[alphaKey] = [];
+                this._alphaBuckets[alphaKey].push(p);
             }
 
             CTX.fillStyle = color;
 
-            for (const alpha in alphaBuckets) {
+            for (const alpha in this._alphaBuckets) {
+                const bucket = this._alphaBuckets[alpha];
+                if (bucket.length === 0) continue;
+
                 CTX.globalAlpha = parseFloat(alpha);
                 CTX.beginPath();
 
-                const bucket = alphaBuckets[alpha];
                 for (let i = 0; i < bucket.length; i++) {
                     const p = bucket[i];
                     CTX.rect(p.x - p.radius, p.y - p.radius, p.radius * 2, p.radius * 2);
@@ -137,34 +182,45 @@ const RenderOptimizer = {
 
     // Helper for Batched Strokes (Shockwaves, Stars) to reduce draw calls
     renderStrokeBatch(particles, lineWidth, pathCallback) {
-        const byColor = {};
-        for (const p of particles) {
-            if (!byColor[p.color]) byColor[p.color] = [];
-            byColor[p.color].push(p);
+        this._clearGroups(this._strokeColorGroups);
+
+        for (let i = 0; i < particles.length; i++) {
+            const p = particles[i];
+            if (!this._strokeColorGroups[p.color]) {
+                this._strokeColorGroups[p.color] = [];
+            }
+            this._strokeColorGroups[p.color].push(p);
         }
 
         CTX.lineWidth = lineWidth;
 
-        for (const color in byColor) {
-            const group = byColor[color];
-            const alphaBuckets = {};
+        for (const color in this._strokeColorGroups) {
+            const group = this._strokeColorGroups[color];
+            if (group.length === 0) continue;
+
+            // Reuse alpha buckets (shared is fine as we process sequentially)
+            this._clearGroups(this._alphaBuckets);
 
             // Group by alpha (0.1 steps for smooth enough fades)
-            for (const p of group) {
+            for (let i = 0; i < group.length; i++) {
+                const p = group[i];
                 const alphaKey = Math.max(0.0, Math.floor(p.alpha * 10) / 10);
                 if (alphaKey <= 0) continue;
-                if (!alphaBuckets[alphaKey]) alphaBuckets[alphaKey] = [];
-                alphaBuckets[alphaKey].push(p);
+
+                if (!this._alphaBuckets[alphaKey]) this._alphaBuckets[alphaKey] = [];
+                this._alphaBuckets[alphaKey].push(p);
             }
 
             CTX.strokeStyle = color;
 
-            for (const alphaStr in alphaBuckets) {
+            for (const alphaStr in this._alphaBuckets) {
+                const bucket = this._alphaBuckets[alphaStr];
+                if (bucket.length === 0) continue;
+
                 const alpha = parseFloat(alphaStr);
                 CTX.globalAlpha = alpha;
                 CTX.beginPath();
 
-                const bucket = alphaBuckets[alphaStr];
                 for (let i = 0; i < bucket.length; i++) {
                     pathCallback(CTX, bucket[i]);
                 }
@@ -177,6 +233,12 @@ const RenderOptimizer = {
 
     // Optimized enemy rendering (keep individual for variety)
     drawEnemy(enemy) {
+        // Optimization: Use custom draw method if it exists on the instance (Boss minions)
+        if (Object.prototype.hasOwnProperty.call(enemy, 'draw') && typeof enemy.draw === 'function') {
+            enemy.draw();
+            return;
+        }
+
         // Customized Spawner Renderer (Optimized)
         if (enemy.type.name === 'Spawner') {
             CTX.save();
@@ -231,28 +293,6 @@ const RenderOptimizer = {
             }
 
             CTX.restore();
-
-            // Draw HP Bar if needed (using existing logic below or early return?)
-            // If I return here, I miss the HP arc logic below. 
-            // The existing HP logic uses `enemy.x` `enemy.y` effectively.
-            // So I should just let it fall through? 
-            // BUT `drawEnemy` below does `CTX.fill()` on the current path.
-            // My Spawner block does its own drawing and modifies state.
-            // So I MUST return, but I might want the HP arc.
-            // I'll copy the HP arc logic or Refactor?
-            // Refactoring is risky. I'll just copy the check for HP arc or let the standard one run?
-            // The standard one expects a path to be filled/stroked? No, it starts `CTX.beginPath()`.
-            // However, the lines 180-210 do drawing of the base shape.
-            // So if I return, I skip base shape (good) and HP arc (bad).
-            // I will copy the HP arc logic into a helper or just append it here. 
-            // Actually, the HP logic is at the end of the function.
-            // I will put my Spawner logic in an `if/else` block with the other shapes, 
-            // BUT the other shapes share the common `fill` and `shadow` logic at the end.
-            // My Spawner logic is complex (multiple fills/strokes).
-            // So I should return after drawing Spawner, but I should duplicate the HP arc logic if I want consistency.
-            // Given the user didn't ask for HP bars on spawners specifically, but consistency is good.
-            // I'll assume for now I should just return to be safe and simple. 
-            // The user wanted "Visuals", distinct look.
             return;
         }
 

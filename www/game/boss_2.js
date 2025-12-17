@@ -223,7 +223,6 @@ class BossNexus extends BossBase {
                         player.x += Math.cos(a) * 5 * dt;
                         player.y += Math.sin(a) * 5 * dt;
                     }
-                    this.draw();
                 };
             });
         }
@@ -253,7 +252,6 @@ class BossNexus extends BossBase {
             this.x += this.vx * dt;
             this.y += this.vy * dt;
             if (Math.random() < 0.3) spawnParticles(this.x, this.y, 1, 5, this.color);
-            this.draw();
         }
     }
 
@@ -274,7 +272,6 @@ class BossNexus extends BossBase {
             }
             this.x += this.vx * dt;
             this.y += this.vy * dt;
-            this.draw();
         }
     }
 
@@ -363,3 +360,4 @@ class BossNexus extends BossBase {
 }
 
 const boss2 = new BossNexus();
+window.boss2 = boss2; // FIX: Expose to window for CollisionManager

@@ -450,7 +450,6 @@ class BossSwarm extends BossBase {
                 bullet.update = function (p, d) {
                     this.x += this.vx * d;
                     this.y += this.vy * d;
-                    this.draw(); // Standard enemy draw is fine, or custom if needed
                 };
             }
 

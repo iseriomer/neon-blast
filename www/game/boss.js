@@ -3,7 +3,7 @@
 const BOSS_TYPES = {
     OMEGA: {
         name: 'OMEGA CORE',
-        hp: 4500,
+        hp: 2500,
         color: '#8a2be2', // Phase 1: Mor
         radius: 80,
         score: 6000
@@ -163,3 +163,4 @@ class BossOmegaCore extends BossBase {
 
 // Rename to 'boss' variable for backward compatibility until Manager is refactored
 const boss = new BossOmegaCore();
+window.boss = boss; // FIX: Expose to window for CollisionManager

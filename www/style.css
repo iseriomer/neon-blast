@@ -5,6 +5,7 @@ body {
     color: white;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     touch-action: none;
+    cursor: crosshair;
 }
 
 canvas {
@@ -21,6 +22,10 @@ canvas {
     pointer-events: none;
     padding: 20px;
     box-sizing: border-box;
+    will-change: transform;
+    /* Hint for compositing */
+    z-index: 20;
+    /* Ensure UI is above joystick (z=10) */
 }
 
 /* Level Indicator artık XP container içinde kontrol ediliyor */
@@ -1103,6 +1108,7 @@ button.main-btn:active {
     transform: translate(-50%, -50%);
     pointer-events: none;
     z-index: 11;
+    will-change: transform;
 }
 
 #joystick-stick {
@@ -1115,6 +1121,7 @@ button.main-btn:active {
     border-radius: 50%;
     transform: translate(-50%, -50%);
     box-shadow: 0 0 10px #00ffff;
+    will-change: transform;
 }
 
 #tracer-overlay {

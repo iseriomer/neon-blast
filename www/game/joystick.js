@@ -11,6 +11,11 @@ class Joystick {
         this.maxRadius = 50; // Max distance stick can move from center
         this.center = { x: 0, y: 0 };
         this.pointerId = null;
+
+        // Optimization: Separate visual state
+        this.currentStickX = 0;
+        this.currentStickY = 0;
+        this.rafId = null;
     }
 
     init() {
@@ -28,6 +33,9 @@ class Joystick {
         window.addEventListener('pointermove', this.handleMove.bind(this));
         window.addEventListener('pointerup', this.handleEnd.bind(this));
         window.addEventListener('pointercancel', this.handleEnd.bind(this));
+
+        // Bind render function once
+        this.render = this.render.bind(this);
     }
 
     handleStart(e) {
@@ -40,9 +48,6 @@ class Joystick {
 
         // Position the base where the user touched within the zone
         // If the zone is full screen or large, this allows "floating" joystick behavior
-        // But for this request, let's keep it fixed or semi-dynamic.
-        // Let's implement a "Dynamic Center" - the joystick appears where you touch inside the zone
-
         const rect = this.zone.getBoundingClientRect();
         const x = e.clientX;
         const y = e.clientY;
@@ -56,8 +61,14 @@ class Joystick {
         this.center.x = x;
         this.center.y = y;
 
-        // Reset stick
-        this.stickElement.style.transform = `translate(-50%, -50%) translate(0px, 0px)`;
+        // Reset stick data
+        this.currentStickX = 0;
+        this.currentStickY = 0;
+
+        // Start render loop
+        if (!this.rafId) {
+            this.rafId = requestAnimationFrame(this.render);
+        }
     }
 
     handleMove(e) {
@@ -77,19 +88,26 @@ class Joystick {
 
         // Cap the stick movement
         const cappedDistance = Math.min(distance, this.maxRadius);
-        const stickX = Math.cos(angle) * cappedDistance;
-        const stickY = Math.sin(angle) * cappedDistance;
 
-        // Update visual
-        this.stickElement.style.transform = `translate(-50%, -50%) translate(${stickX}px, ${stickY}px)`;
+        // Update logical state (cheap)
+        this.currentStickX = Math.cos(angle) * cappedDistance;
+        this.currentStickY = Math.sin(angle) * cappedDistance;
 
-        // Update logical vector
-        // Normalize 0-1 based on how far we pulled (optional, or just use angle)
-        // Usually for shooting, we just want direction. But "how far" can determine firing?
-        // Let's rely on simply "active" = firing, and angle = direction.
-
+        // Update logical vector for game loop usage
         this.vector.x = Math.cos(angle);
         this.vector.y = Math.sin(angle);
+    }
+
+    render() {
+        if (!this.active) {
+            this.rafId = null;
+            return;
+        }
+
+        // Apply visual transform (expensive part, done on RAF)
+        this.stickElement.style.transform = `translate(-50%, -50%) translate(${this.currentStickX}px, ${this.currentStickY}px)`;
+
+        this.rafId = requestAnimationFrame(this.render);
     }
 
     handleEnd(e) {
@@ -104,6 +122,12 @@ class Joystick {
         // Hide joystick
         this.baseElement.style.display = 'none';
         this.stickElement.style.transform = `translate(-50%, -50%) translate(0px, 0px)`;
+
+        // Stop Loop
+        if (this.rafId) {
+            cancelAnimationFrame(this.rafId);
+            this.rafId = null;
+        }
     }
 }
 
