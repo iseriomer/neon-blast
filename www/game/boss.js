@@ -3,7 +3,7 @@
 const BOSS_TYPES = {
     OMEGA: {
         name: 'OMEGA CORE',
-        hp: 2500,
+        hp: 1500,
         color: '#8a2be2', // Phase 1: Mor
         radius: 80,
         score: 6000
@@ -65,6 +65,13 @@ class BossOmegaCore extends BossBase {
         // Smooth Lerp
         this.x += (targetX - this.x) * chaseSpeed;
         this.y += (targetY - this.y) * chaseSpeed;
+
+        // Keep boss within screen boundaries
+        /* if (typeof CANVAS !== 'undefined') {
+            const margin = this.radius;
+            this.x = Math.max(margin, Math.min(CANVAS.width - margin, this.x));
+            this.y = Math.max(margin, Math.min(CANVAS.height - margin, this.y));
+        } */
 
         // --- ATTACKS ---
         this.cooldowns.minion -= dt;

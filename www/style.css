@@ -272,6 +272,7 @@ button.main-btn:active {
     color: #000 !important;
     border-color: #000 !important;
     box-shadow: 6px 6px 0 #000 !important;
+    margin-top: 0px !important;
 }
 
 #submit-score-btn:hover {
@@ -473,7 +474,7 @@ button.main-btn:active {
 /* BOSS HUD */
 #boss-hud {
     position: absolute;
-    top: 60px;
+    top: 10px;
     left: 50%;
     transform: translateX(-50%);
     width: 60%;
@@ -529,7 +530,7 @@ button.main-btn:active {
     }
 
     #boss-hud {
-        top: 45px;
+        top: 10px;
         width: 90%;
     }
 

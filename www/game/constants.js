@@ -129,5 +129,12 @@ const DEFAULT_PLAYER_STATS = {
     critChance: 0,
     critMultiplier: 2,
 
-    laserDamage: 0.05
+    laserDamage: 0.05,
+
+    // Electric Aura Stats
+    electricAura: false,
+    auraDamage: 0,
+    auraRadius: 0,
+    auraTickRate: 0,
+    auraTimer: 0
 };

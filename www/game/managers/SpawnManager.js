@@ -99,6 +99,9 @@ class SpawnManager {
             // Orbital Size needs Orbitals
             if (p.id === 'orbital_size' && gameState.playerStats.orbitals === 0) return false;
 
+            // Electric Aura Upgrades need Electric Aura
+            if ((p.id === 'electric_aura_damage' || p.id === 'electric_aura_rate' || p.id === 'electric_aura_area') && !gameState.playerStats.electricAura) return false;
+
             return true;
         });
 

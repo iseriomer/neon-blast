@@ -477,7 +477,7 @@ class CollisionManager {
     // HELPER: Split shots
     // ═══════════════════════════════════════════════════════════════════
     static createSplitShots(projectile) {
-        const splitCount = gameState.playerStats.splitShotCount + 1;
+        const splitCount = gameState.playerStats.splitShotCount;
         for (let s = 0; s < splitCount; s++) {
             const splitAngle = Math.random() * Math.PI * 2;
             const splitVel = {

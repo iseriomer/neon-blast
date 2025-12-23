@@ -80,7 +80,7 @@ const ALL_PERKS = [
         desc: 'perk_orbitals_desc',
         icon: '🪐',
         theme: '#8800ff',
-        apply: (stats) => { stats.orbitals += 1; } // orbitals olunca kaç tane yörünge koruma olacağını ayarlar. perk ekranında da örneğin "(şuanki yörünge koruma sayısı) + 1" yörünge koruma olarak yaz.
+        apply: (stats) => { stats.orbitals += 2; } // orbitals olunca kaç tane yörünge koruma olacağını ayarlar. perk ekranında da örneğin "(şuanki yörünge koruma sayısı) + 1" yörünge koruma olarak yaz.
     },
     {
         id: 'orbital_size',
@@ -116,7 +116,7 @@ const ALL_PERKS = [
         icon: '🚀',
         theme: '#00ff88',
         apply: (stats) => {
-            stats.homing += 0.02;
+            stats.homing += 0.007;
             stats.color = '#0f0';
         }
     },
@@ -172,7 +172,7 @@ const ALL_PERKS = [
         icon: '🌩️',
         theme: '#ffff00',
         apply: (stats) => {
-            stats.chainLightning = 2;
+            stats.chainLightning = 1;
             stats.chainLightningDamage = 1;
             stats.color = '#ffff00';
         }
@@ -227,7 +227,7 @@ const ALL_PERKS = [
         icon: '🔦',
         theme: '#ff0000',
         apply: (stats) => {
-            stats.laserBeam += 1;
+            stats.laserBeam += 2;
             stats.color = '#ff0000';   //lazer ışını saat yönünde dönsün otomatik belli bir hızda.
         }
     },
@@ -261,6 +261,52 @@ const ALL_PERKS = [
         theme: '#ff5555',
         apply: (stats) => {
             stats.laserDamage += stats.laserDamage;
+        }
+    },
+    // ELECTRIC AURA PERKS
+    {
+        id: 'electric_aura',
+        title: 'perk_electric_aura_title',
+        desc: 'perk_electric_aura_desc',
+        icon: '⚡',
+        theme: '#00ffff',
+        singleUse: true,
+        apply: (stats) => {
+            stats.electricAura = true;
+            stats.auraDamage = 0.3; // Base damage
+            stats.auraRadius = 200; // Base radius
+            stats.auraTickRate = 200; // ms
+        }
+    },
+    {
+        id: 'electric_aura_damage',
+        title: 'perk_electric_aura_damage_title',
+        desc: 'perk_electric_aura_damage_desc',
+        icon: '🌩️',
+        theme: '#00ccff',
+        apply: (stats) => {
+            stats.auraDamage *= 1.5;
+        }
+    },
+    {
+        id: 'electric_aura_rate',
+        title: 'perk_electric_aura_rate_title',
+        desc: 'perk_electric_aura_rate_desc',
+        icon: '⏱️',
+        theme: '#0099ff',
+        apply: (stats) => {
+            stats.auraTickRate *= 0.8; // 20% faster
+            if (stats.auraTickRate < 100) stats.auraTickRate = 100; // Cap
+        }
+    },
+    {
+        id: 'electric_aura_area',
+        title: 'perk_electric_aura_area_title',
+        desc: 'perk_electric_aura_area_desc',
+        icon: '🌐',
+        theme: '#00ffff',
+        apply: (stats) => {
+            stats.auraRadius *= 1.25; // 25% bigger
         }
     }
 ];

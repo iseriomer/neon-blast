@@ -88,7 +88,7 @@ class BossNexus extends BossBase {
         // Attack Logic
         if (this.state === 'IDLE') {
             if (this.attackTimer > 100) {
-                this.chooseAttack();
+                this.chooseAttack(player);
             }
         }
         else if (this.state === 'TELEGRAPH') {
@@ -154,7 +154,7 @@ class BossNexus extends BossBase {
         this.rings.forEach(r => r.speed *= 2);
     }
 
-    chooseAttack() {
+    chooseAttack(player) {
         const rand = Math.random();
         this.state = 'TELEGRAPH';
         this.telegraphTimer = 60;
@@ -170,11 +170,22 @@ class BossNexus extends BossBase {
         } else if (rand < 0.66) {
             this.currentAttack = 'VOID_ZONES';
             this.targetPos = [];
+            const margin = 50; // Keep away from edges
+            const safeDist = 200; // Keep away from player
+
             for (let i = 0; i < 3; i++) {
-                this.targetPos.push({
-                    x: Math.random() * CANVAS.width,
-                    y: Math.random() * CANVAS.height
-                });
+                let pos, valid = false;
+                let attempts = 0;
+                while (!valid && attempts < 10) {
+                    pos = {
+                        x: margin + Math.random() * (CANVAS.width - margin * 2),
+                        y: margin + Math.random() * (CANVAS.height - margin * 2)
+                    };
+                    const dist = Math.hypot(pos.x - player.x, pos.y - player.y);
+                    if (dist > safeDist) valid = true;
+                    attempts++;
+                }
+                this.targetPos.push(pos);
             }
         } else {
             this.currentAttack = 'CORNER_TRAP';

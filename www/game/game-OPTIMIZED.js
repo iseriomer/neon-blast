@@ -256,8 +256,10 @@ function animate(timestamp) {
 
     profiler.start('frame');
 
+    profiler.start('input');
     // OPTIMIZED: Input Handling (Synced with Game Loop)
     InputManager.update(gameState);
+    profiler.end('input');
     gameState.animationId = requestAnimationFrame(animate);
 
     updateFPS();
@@ -273,7 +275,9 @@ function animate(timestamp) {
     profiler.end('clear-screen');
 
     // BOSS UPDATES
+    profiler.start('boss-manager');
     BossManager.updateAndDraw(dt);
+    profiler.end('boss-manager');
 
     // TRACER UPDATE (SVG)
     updateTracerUI();
@@ -421,10 +425,185 @@ function animate(timestamp) {
     enemyPool.getActive().forEach(enemy => RenderOptimizer.drawEnemy(enemy));
     profiler.end('draw-enemies');
 
+    profiler.end('draw-enemies');
+
+    // Electric Aura Update & Draw
+    if (gameState.playerStats.electricAura) {
+        profiler.start('electric-aura');
+        updateAndDrawElectricAura(dt);
+        profiler.end('electric-aura');
+    }
+
     CollisionManager.check();
 
     profiler.end('frame');
     profiler.update();
+}
+
+// Electric Aura Implementation - Redesigned (Optimized & Cool UX)
+function updateAndDrawElectricAura(dt) {
+    const stats = gameState.playerStats;
+    const radius = stats.auraRadius * GAME_SCALE;
+
+    // Logic: Periodic Damage
+    stats.auraTimer = (stats.auraTimer || 0) + (dt * 16.67);
+    stats.auraRotation = (stats.auraRotation || 0) + dt * 0.03;
+
+    // Initialize persistent lightning visual queue if needed
+    if (!stats.lightningQueue) stats.lightningQueue = [];
+
+    if (stats.auraTimer >= stats.auraTickRate) {
+        stats.auraTimer = 0;
+        let hitSomething = false;
+
+        const activeEnemies = enemyPool.getActive();
+        const rSq = (radius * 1.05) ** 2; // Slight buffer
+
+        for (let i = 0; i < activeEnemies.length; i++) {
+            const enemy = activeEnemies[i];
+            const distSq = (player.x - enemy.x) ** 2 + (player.y - enemy.y) ** 2;
+
+            if (distSq < rSq) {
+                enemy.hp -= stats.auraDamage;
+                if (enemy.hp <= 0) handleEnemyDeath(enemy);
+                hitSomething = true;
+
+                // Add visual lightning event
+                stats.lightningQueue.push({
+                    x: enemy.x,
+                    y: enemy.y,
+                    life: 1.0 // 1.0 = full brightness
+                });
+            }
+        }
+
+        if (hitSomething) {
+            playSound('spark_short');
+            stats.auraDamagePulse = 1.0;
+        }
+    }
+
+    // Decay Pulse
+    if (stats.auraDamagePulse > 0) {
+        stats.auraDamagePulse -= dt * 0.1;
+        if (stats.auraDamagePulse < 0) stats.auraDamagePulse = 0;
+    }
+
+    // Visuals
+    CTX.save();
+    CTX.translate(player.x, player.y);
+    CTX.globalCompositeOperation = 'lighter';
+
+    // 1. Base Field (Subtle Glow)
+    const bgGradient = CTX.createRadialGradient(0, 0, radius * 0.5, 0, 0, radius);
+    bgGradient.addColorStop(0, 'rgba(0, 150, 255, 0)');
+    bgGradient.addColorStop(0.8, 'rgba(0, 150, 255, 0.02)');
+    bgGradient.addColorStop(1, 'rgba(0, 200, 255, 0.08)'); // Much more subtle
+
+    CTX.fillStyle = bgGradient;
+    CTX.beginPath();
+    CTX.arc(0, 0, radius, 0, Math.PI * 2);
+    CTX.fill();
+
+    // 2. Tech Ring (Outer Boundary - Thinner & Dimmer)
+    CTX.strokeStyle = `rgba(0, 200, 255, ${0.1 + stats.auraDamagePulse * 0.3})`;
+    CTX.lineWidth = 1; // Reduced from 2
+    const segments = 4;
+    const arcLen = (Math.PI * 2) / segments;
+    const gap = 0.2;
+
+    for (let i = 0; i < segments; i++) {
+        const startAngle = stats.auraRotation + i * arcLen;
+        CTX.beginPath();
+        CTX.arc(0, 0, radius, startAngle, startAngle + arcLen - gap);
+        CTX.stroke();
+    }
+
+    // 3. Inner Kinetic Ring (Fast Rotation - Subtler)
+    CTX.strokeStyle = 'rgba(0, 100, 255, 0.1)';
+    CTX.lineWidth = 1;
+    const innerRadius = radius * 0.6;
+    const innerSegments = 3;
+    const innerArcLen = (Math.PI * 2) / innerSegments;
+
+    for (let i = 0; i < innerSegments; i++) {
+        const startAngle = -stats.auraRotation * 2 + i * innerArcLen;
+        CTX.beginPath();
+        CTX.arc(0, 0, innerRadius, startAngle, startAngle + innerArcLen - 0.5);
+        CTX.stroke();
+    }
+
+    // 4. Random Idle Electricity (Arcing inside - Reduced frequency & opacity)
+    if (Math.random() < 0.05) { // Reduced from 0.2 to 0.05
+        const angle = Math.random() * Math.PI * 2;
+        const dist = Math.random() * radius;
+        const tx = Math.cos(angle) * dist; // Target X (relative)
+        const ty = Math.sin(angle) * dist; // Target Y (relative)
+        drawElectricArc(CTX, 0, 0, tx, ty, 0.15); // Used 0.15 alpha directly
+    }
+
+    // 5. Active Damage Lightning (Connect player to hit enemies)
+    // Draw & Update Persistent Lightning
+    for (let i = stats.lightningQueue.length - 1; i >= 0; i--) {
+        const bolt = stats.lightningQueue[i];
+
+        // Transform to local
+        const lx = bolt.x - player.x;
+        const ly = bolt.y - player.y;
+
+        const alpha = bolt.life;
+        // Dual-layer lightning (Glow + Core)
+        drawElectricArc(CTX, 0, 0, lx, ly, alpha);
+
+        // Impact glow
+        CTX.fillStyle = `rgba(0, 220, 255, ${alpha * 0.5})`;
+        CTX.beginPath();
+        CTX.arc(lx, ly, 6 * alpha, 0, Math.PI * 2);
+        CTX.fill();
+
+        bolt.life -= dt * 0.2; // Fade out speed
+        if (bolt.life <= 0) {
+            stats.lightningQueue.splice(i, 1);
+        }
+    }
+
+    CTX.restore();
+}
+
+// Helper: Dual-layer lightning (Glow + Core) matching game style
+function drawElectricArc(ctx, x1, y1, x2, y2, alpha) {
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+
+    const dist = Math.hypot(x2 - x1, y2 - y1);
+    const steps = Math.max(3, Math.floor(dist / 20)); // Segment count
+    const dx = (x2 - x1) / steps;
+    const dy = (y2 - y1) / steps;
+
+    for (let i = 1; i < steps; i++) {
+        // Reduced jitter for cleaner look
+        ctx.lineTo(
+            x1 + dx * i + (Math.random() - 0.5) * 12,
+            y1 + dy * i + (Math.random() - 0.5) * 12
+        );
+    }
+    ctx.lineTo(x2, y2);
+
+    // Layer 1: Glow (Electric Blue)
+    ctx.strokeStyle = `rgba(0, 220, 255, ${alpha * 0.4})`;
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+
+    // Layer 2: Core (White)
+    ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.8})`;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Reset context
+    ctx.lineCap = 'butt';
+    ctx.lineJoin = 'miter';
 }
 
 // Initialize Game
@@ -566,6 +745,12 @@ function togglePause() {
         document.getElementById('pause-menu').classList.add('hidden');
         document.getElementById('ui-layer').style.filter = 'none';
         lastTime = 0; // Reset timer to prevent jump
+
+        // Resume Audio
+        if (musicManager && musicManager.audioCtx && musicManager.audioCtx.state === 'suspended') {
+            musicManager.audioCtx.resume();
+        }
+
         requestAnimationFrame(animate);
     }
 }
@@ -609,6 +794,18 @@ document.getElementById('start-btn').addEventListener('click', () => {
 
     musicManager.play(); // Start music
     initGame();
+});
+
+// WINDOW BLUR - AUTO PAUSE & SAVE
+window.addEventListener('blur', () => {
+    if (gameState.gameActive && !gameState.isPaused && !gameState.isDying) {
+        togglePause();
+
+        // Suspend Audio immediately
+        if (musicManager && musicManager.audioCtx) {
+            musicManager.audioCtx.suspend();
+        }
+    }
 });
 document.getElementById('restart-btn').addEventListener('click', () => {
     musicManager.play();
