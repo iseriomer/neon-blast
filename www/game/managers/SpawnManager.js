@@ -88,7 +88,7 @@ class SpawnManager {
             if (p.id === 'singularity' && gameState.playerStats.singularity) return false;
 
             // Laser Beam Cap
-            if (p.id === 'laser_beam' && gameState.playerStats.laserBeam >= 5) return false;
+            if (p.id === 'laser_beam' && gameState.playerStats.laserBeam >= 10) return false;
             // Laser Damage needs Laser Beam
             if (p.id === 'laser_damage' && gameState.playerStats.laserBeam === 0) return false;
 

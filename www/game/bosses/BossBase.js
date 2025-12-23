@@ -24,6 +24,10 @@ class BossBase {
         this.attackTimer = 0;
 
         document.getElementById('boss-hud').style.display = 'flex';
+        // Hide XP container when boss is active
+        const xpContainer = document.getElementById('xp-container');
+        if (xpContainer) xpContainer.style.display = 'none';
+
         document.getElementById('boss-name').textContent = this.name;
         document.getElementById('boss-name').style.color = this.color;
         this.updateHealthBar();
@@ -80,6 +84,10 @@ class BossBase {
     die() {
         this.active = false;
         document.getElementById('boss-hud').style.display = 'none';
+
+        // Show XP container when boss is dead
+        const xpContainer = document.getElementById('xp-container');
+        if (xpContainer) xpContainer.style.display = '';
 
         // Common Death Effects
         if (window.createExplosion) createExplosion(this.x, this.y, this.deathExplosionDuration, 9999);
