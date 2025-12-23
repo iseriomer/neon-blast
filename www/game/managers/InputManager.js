@@ -13,15 +13,27 @@ class InputManager {
 
         // --- Touch Event Listeners ---
 
+        // Helpher for coordinate mapping
+        function getCanvasCoordinates(clientX, clientY) {
+            const rect = CANVAS.getBoundingClientRect();
+            const scaleX = CANVAS.width / rect.width;
+            const scaleY = CANVAS.height / rect.height; // Should be same as scaleX if aspect preserved
+            return {
+                x: (clientX - rect.left) * scaleX,
+                y: (clientY - rect.top) * scaleY
+            };
+        }
+
         CANVAS.addEventListener('touchstart', (e) => {
             e.preventDefault();
             if (!gameState.gameActive || gameState.isPaused) return;
 
             for (let i = 0; i < e.changedTouches.length; i++) {
                 const touch = e.changedTouches[i];
+                const coords = getCanvasCoordinates(touch.clientX, touch.clientY);
                 activeTouches.set(touch.identifier, {
-                    x: touch.clientX,
-                    y: touch.clientY,
+                    x: coords.x,
+                    y: coords.y,
                     timestamp: Date.now()
                 });
             }
@@ -35,8 +47,9 @@ class InputManager {
                 const touch = e.changedTouches[i];
                 if (activeTouches.has(touch.identifier)) {
                     const t = activeTouches.get(touch.identifier);
-                    t.x = touch.clientX;
-                    t.y = touch.clientY;
+                    const coords = getCanvasCoordinates(touch.clientX, touch.clientY);
+                    t.x = coords.x;
+                    t.y = coords.y;
                     // Update timestamp to keep it "fresh" if we wanted sort by activity, 
                     // but usually creation time is enough for "latest finger" logic.
                     // Let's NOT update timestamp on move to prioritize the *physically latest added* finger
@@ -69,10 +82,11 @@ class InputManager {
             if (e.target.closest('button') || e.target.closest('.perk-card')) return;
             if (!gameState.gameActive || gameState.isPaused) return;
             isMouseDown = true;
-            mouseX = e.clientX;
-            mouseY = e.clientY;
+            const coords = getCanvasCoordinates(e.clientX, e.clientY);
+            mouseX = coords.x;
+            mouseY = coords.y;
             // Immediate shot on click is fine, but continuous holding is handled in update()
-            shoot(e.clientX, e.clientY, gameState);
+            shoot(coords.x, coords.y, gameState);
         });
 
         window.addEventListener('mouseup', () => {
@@ -84,19 +98,30 @@ class InputManager {
         });
 
         window.addEventListener('mousemove', (e) => {
-            mouseX = e.clientX;
-            mouseY = e.clientY;
-            gameState.lastMouseX = e.clientX; // Keep legacy support if needed
-            gameState.lastMouseY = e.clientY;
+            const coords = getCanvasCoordinates(e.clientX, e.clientY);
+            mouseX = coords.x;
+            mouseY = coords.y;
+            gameState.lastMouseX = coords.x; // Keep legacy support if needed
+            gameState.lastMouseY = coords.y;
         });
 
         window.addEventListener('resize', () => {
-            CANVAS.width = window.innerWidth;
-            CANVAS.height = window.innerHeight;
-            GAME_SCALE = Math.max(window.innerWidth / BASE_SCREEN_WIDTH, 0.6);
-            player.x = CANVAS.width / 2;
-            player.y = CANVAS.height / 2;
-            player.radius = 20 * GAME_SCALE;
+            const TARGET_HEIGHT = 1080;
+            const ASPECT_RATIO = window.innerWidth / window.innerHeight;
+
+            CANVAS.width = TARGET_HEIGHT * ASPECT_RATIO;
+            CANVAS.height = TARGET_HEIGHT;
+
+            GAME_SCALE = 1.0; // Always 1.0 for internally scaled
+
+            // Re-center player if valid
+            if (typeof player !== 'undefined') {
+                // Optional: Keep player relative position or just center?
+                // Let's keep it simple as per original logic
+                player.x = CANVAS.width / 2;
+                player.y = CANVAS.height / 2;
+                player.radius = 20 * GAME_SCALE;
+            }
         });
     }
 

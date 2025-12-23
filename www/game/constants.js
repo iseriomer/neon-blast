@@ -2,14 +2,22 @@
 // constants.js dosyasının EN ÜSTÜNE ekle:
 
 const BASE_SCREEN_WIDTH = 1920; // Referans PC ekran genişliği
-// Ekran genişliğine göre bir oran belirle (Mobilde çok küçülmemesi için en az 0.6 ile sınırla)
-let GAME_SCALE = Math.max(window.innerWidth / BASE_SCREEN_WIDTH, 0.6);
+// FIXED RESOLUTION SCALING (DESKTOP VIEW ON MOBILE)
+const TARGET_HEIGHT = 1080;
+const ASPECT_RATIO = window.innerWidth / window.innerHeight;
+
+// Reset scale to 1.0 since we are now rendering at "Native Desktop" resolution internally
+// The CSS will handle the visual scaling down to the phone screen.
+let GAME_SCALE = 1.0;
+
 // ...
 const CANVAS = document.getElementById('gameCanvas');
 const CTX = CANVAS.getContext('2d');
 
-CANVAS.width = window.innerWidth;
-CANVAS.height = window.innerHeight;
+// Force internal resolution to match Desktop height (1080p)
+CANVAS.width = TARGET_HEIGHT * ASPECT_RATIO;
+CANVAS.height = TARGET_HEIGHT;
+
 
 // Object Pool Sizes
 const POOL_SIZES = {

@@ -310,29 +310,42 @@ function animate(timestamp) {
             CTX.stroke();
             CTX.lineWidth = 1;
 
-            enemyPool.getActive().forEach(enemy => {
-                // Direction vector of the laser
-                const laserDx = laserEndX - player.x;
-                const laserDy = laserEndY - player.y;
+            // Optimization: Fast distance check first
+            const LASER_RANGE_SQ = 2000 * 2000;
 
+            enemyPool.getActive().forEach(enemy => {
                 // Vector from player to enemy
                 const enemyDx = enemy.x - player.x;
                 const enemyDy = enemy.y - player.y;
 
-                // 1. Dot Product Check: Is the enemy in front of the laser?
-                // (dot > 0 means the angle is less than 90 degrees)
+                // 1. Coarse range check (Square distance)
+                const distToPlayerSq = enemyDx * enemyDx + enemyDy * enemyDy;
+                if (distToPlayerSq > LASER_RANGE_SQ) return;
+
+                // Direction vector of the laser
+                const laserDx = laserEndX - player.x;
+                const laserDy = laserEndY - player.y;
+
+                // 2. Dot Product Check: Is the enemy in front of the laser?
                 const dotProduct = laserDx * enemyDx + laserDy * enemyDy;
 
                 if (dotProduct > 0) {
-                    const distToLine = Math.abs(
-                        (laserEndY - player.y) * enemy.x -
-                        (laserEndX - player.x) * enemy.y +
-                        laserEndX * player.y - laserEndY * player.x
-                    ) / Math.hypot(laserEndY - player.y, laserEndX - player.x);
+                    // Optimized line distance check
+                    // A = laserEndY - player.y
+                    // B = laserEndX - player.x
+                    // Eq: |A*enemy.x - B*enemy.y + B*player.y - A*player.x| / Sqrt(A^2 + B^2)
 
-                    const distToPlayer = Math.hypot(enemyDx, enemyDy);
+                    const A = laserEndY - player.y;
+                    const B = laserEndX - player.x;
 
-                    if (distToLine < enemy.radius + 10 && distToPlayer < 2000) {
+                    const num = Math.abs(A * enemy.x - B * enemy.y + B * player.y - A * player.x);
+                    // Denom is laser length (2000 constant), pre-calculated or reused
+                    // But here we calculate it to be safe or assuming 2000
+                    const den = Math.hypot(A, B); // Should be approx 2000
+
+                    const distToLine = num / den;
+
+                    if (distToLine < enemy.radius + 10) {
                         enemy.hp -= gameState.playerStats.laserDamage;
 
                         if (enemy.hp <= 0) {
@@ -363,7 +376,7 @@ function animate(timestamp) {
     // Orbitals
     if (gameState.playerStats.orbitals > 0) {
         profiler.start('orbitals');
-        gameState.orbitalRotation += deltaTime / 500;
+        gameState.orbitalRotation += deltaTime / 250;
         const orbitalTime = gameState.orbitalRotation;
 
         for (let i = 0; i < gameState.playerStats.orbitals; i++) {
@@ -381,15 +394,22 @@ function animate(timestamp) {
             CTX.fillStyle = '#00ffff';
             CTX.fill();
 
-            enemyPool.getActive().forEach(enemy => {
-                const dist = Math.hypot(ox - enemy.x, oy - enemy.y);
-                if (dist < enemy.radius + orbitalRadius) {
+            // OPTIMIZED: Use Spatial Grid for Orbitals
+            const searchRadius = orbitalRadius + 50; // Buffer for enemy radius
+            const nearbyEnemies = enemySpatialGrid.query(ox, oy, searchRadius);
+            const hitDistSq = (50 + orbitalRadius) ** 2; // Approx max enemy radius 50 check
+
+            for (const enemy of nearbyEnemies) {
+                const distSq = (ox - enemy.x) ** 2 + (oy - enemy.y) ** 2;
+                const minDist = enemy.radius + orbitalRadius;
+
+                if (distSq < minDist * minDist) {
                     enemy.hp -= 0.1;
                     if (enemy.hp <= 0) {
                         handleEnemyDeath(enemy);
                     }
                 }
-            });
+            }
         }
         profiler.end('orbitals');
     }
@@ -456,11 +476,13 @@ function updateAndDrawElectricAura(dt) {
         stats.auraTimer = 0;
         let hitSomething = false;
 
-        const activeEnemies = enemyPool.getActive();
-        const rSq = (radius * 1.05) ** 2; // Slight buffer
+        // OPTIMIZED: Use Spatial Grid
+        const queryRadius = radius * 1.1; // 10% buffer
+        const nearbyEnemies = enemySpatialGrid.query(player.x, player.y, queryRadius);
+        const rSq = (radius * 1.05) ** 2;
 
-        for (let i = 0; i < activeEnemies.length; i++) {
-            const enemy = activeEnemies[i];
+        for (let i = 0; i < nearbyEnemies.length; i++) {
+            const enemy = nearbyEnemies[i];
             const distSq = (player.x - enemy.x) ** 2 + (player.y - enemy.y) ** 2;
 
             if (distSq < rSq) {
