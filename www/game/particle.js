@@ -13,6 +13,9 @@ class Particle {
         this.life = 0;
         this.maxLife = 0;
         this.rotation = 0;
+        // OPTIMIZATION: Integer coordinates for rendering (eliminate anti-aliasing)
+        this.renderX = 0;
+        this.renderY = 0;
     }
 
     reset(x, y, radius, color, velocity, type = 'default') {
@@ -40,6 +43,10 @@ class Particle {
         this.x += this.velocity.x * dt;
         this.y += this.velocity.y * dt;
         this.alpha -= 0.03 * dt;
+
+        // OPTIMIZATION: Round coordinates for rendering (fast bitwise truncation)
+        this.renderX = this.x | 0;
+        this.renderY = this.y | 0;
         // ADD: Cull off-screen particles (saves draw calls)
         const margin = 100;
         if (this.x < -margin || this.x > CANVAS.width + margin ||

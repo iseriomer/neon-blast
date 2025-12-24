@@ -231,7 +231,8 @@ class CollisionManager {
             { ref: 'boss2', color: '#00ffff' },
             { ref: 'boss3', color: '#00ff88', hasEntities: true },
             { ref: 'boss4', color: '#00ff88', hasSplitCores: true },
-            { ref: 'boss5', color: null, hasClockMinions: true } // color from getPhaseColor()
+            { ref: 'boss5', color: null, hasClockMinions: true }, // color from getPhaseColor()
+            { ref: 'boss6', color: null, hasVoidOrbitals: true } // VOID REAPER - color from getPhaseColor()
         ];
 
         for (const bossInfo of legacyBosses) {

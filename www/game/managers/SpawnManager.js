@@ -2,8 +2,16 @@
 // SpawnManager.js - Handles enemy spawning and diffculty
 
 class SpawnManager {
+    static activeIntervals = []; // Track intervals for cleanup
+
     static init() {
         // Any init logic
+    }
+
+    static clearAllIntervals() {
+        // Cleanup all active intervals
+        this.activeIntervals.forEach(id => clearInterval(id));
+        this.activeIntervals = [];
     }
 
     static spawnEnemies() {
@@ -65,8 +73,13 @@ class SpawnManager {
             startBossFight(5);
             return;
         }
-        // Level 50: THE ARCHITECT (Boss 3)
+        // Level 45: VOID REAPER (Boss 6) - FINAL BOSS
         if (gameState.level === 44 && !gameState.bossActive) {
+            startBossFight(6);
+            return;
+        }
+        // Level 50: THE ARCHITECT (Boss 3)
+        if (gameState.level === 49 && !gameState.bossActive) {
             startBossFight(3);
             return;
         }
@@ -172,13 +185,19 @@ class SpawnManager {
                     }
                 }, 40); // Faster shuffle (40ms)
                 intervals.push(interval);
+                SpawnManager.activeIntervals.push(interval); // Track for cleanup
             });
 
             // 5. STOP CARDS ONE BY ONE
             // Faster stagger
             selectedPerks.forEach((finalPerk, index) => {
                 setTimeout(() => {
+                    // OPTIMIZATION: Clear interval and remove from tracking array
                     clearInterval(intervals[index]);
+                    const intervalIndex = SpawnManager.activeIntervals.indexOf(intervals[index]);
+                    if (intervalIndex > -1) {
+                        SpawnManager.activeIntervals.splice(intervalIndex, 1);
+                    }
 
                     const card = cardElements[index];
 
@@ -219,6 +238,9 @@ class SpawnManager {
     }
 
     static selectPerk(perk) {
+        // OPTIMIZATION: Clear all active intervals immediately
+        SpawnManager.clearAllIntervals();
+
         playSound('perk_select');
         gameState.takenPerks.push(perk.id);
         perk.apply(gameState.playerStats);

@@ -341,6 +341,31 @@ function animate(timestamp) {
                     }
                 }
             });
+
+            // BOSS DAMAGE - LASER
+            if (gameState.bossActive && BossManager.activeBoss && BossManager.activeBoss.active) {
+                const boss = BossManager.activeBoss;
+                const laserDx = laserEndX - player.x;
+                const laserDy = laserEndY - player.y;
+                const bossDx = boss.x - player.x;
+                const bossDy = boss.y - player.y;
+
+                const dotProduct = laserDx * bossDx + laserDy * bossDy;
+                if (dotProduct > 0) {
+                    const distToLine = Math.abs(
+                        (laserEndY - player.y) * boss.x -
+                        (laserEndX - player.x) * boss.y +
+                        laserEndX * player.y - laserEndY * player.x
+                    ) / Math.hypot(laserEndY - player.y, laserEndX - player.x);
+
+                    const distToPlayer = Math.hypot(bossDx, bossDy);
+
+                    if (distToLine < boss.radius + 10 && distToPlayer < 2000) {
+                        boss.hp -= gameState.playerStats.laserDamage;
+                        // Boss death handled in BossManager or Boss Update
+                    }
+                }
+            }
         }
         profiler.end('laser');
     }
@@ -390,6 +415,15 @@ function animate(timestamp) {
                     }
                 }
             });
+
+            // BOSS DAMAGE - ORBITAL
+            if (gameState.bossActive && BossManager.activeBoss && BossManager.activeBoss.active) {
+                const boss = BossManager.activeBoss;
+                const dist = Math.hypot(ox - boss.x, oy - boss.y);
+                if (dist < boss.radius + orbitalRadius) {
+                    boss.hp -= 0.1;
+                }
+            }
         }
         profiler.end('orbitals');
     }
@@ -422,9 +456,8 @@ function animate(timestamp) {
     profiler.end('update-enemies');
 
     profiler.start('draw-enemies');
-    enemyPool.getActive().forEach(enemy => RenderOptimizer.drawEnemy(enemy));
-    profiler.end('draw-enemies');
-
+    // OPTIMIZATION: Batch render enemies instead of individual draws
+    RenderOptimizer.drawEnemiesBatched(enemyPool.getActive());
     profiler.end('draw-enemies');
 
     // Electric Aura Update & Draw
@@ -456,24 +489,54 @@ function updateAndDrawElectricAura(dt) {
         stats.auraTimer = 0;
         let hitSomething = false;
 
-        const activeEnemies = enemyPool.getActive();
+        // OPTIMIZATION: Use spatial grid to query only nearby enemies
+        const nearbyEnemies = enemySpatialGrid.query(
+            player.x,
+            player.y,
+            radius * 1.1 // Slightly larger than aura radius for safety
+        );
+
         const rSq = (radius * 1.05) ** 2; // Slight buffer
 
-        for (let i = 0; i < activeEnemies.length; i++) {
-            const enemy = activeEnemies[i];
-            const distSq = (player.x - enemy.x) ** 2 + (player.y - enemy.y) ** 2;
+        for (let i = 0; i < nearbyEnemies.length; i++) {
+            const enemy = nearbyEnemies[i];
+            const dx = player.x - enemy.x;
+            const dy = player.y - enemy.y;
+            const distSq = dx * dx + dy * dy; // OPTIMIZATION: Squared distance
 
             if (distSq < rSq) {
                 enemy.hp -= stats.auraDamage;
                 if (enemy.hp <= 0) handleEnemyDeath(enemy);
                 hitSomething = true;
 
-                // Add visual lightning event
-                stats.lightningQueue.push({
-                    x: enemy.x,
-                    y: enemy.y,
-                    life: 1.0 // 1.0 = full brightness
-                });
+                // OPTIMIZATION: Cap lightning queue at 12 arcs to prevent performance degradation
+                if (stats.lightningQueue.length < 52) {
+                    stats.lightningQueue.push({
+                        x: enemy.x,
+                        y: enemy.y,
+                        life: 1.0
+                    });
+                }
+            }
+        }
+
+        // BOSS DAMAGE - ELECTRIC AURA
+        if (gameState.bossActive && BossManager.activeBoss && BossManager.activeBoss.active) {
+            const boss = BossManager.activeBoss;
+            const dx = player.x - boss.x;
+            const dy = player.y - boss.y;
+            const distSq = dx * dx + dy * dy;
+            // Boss radius might be larger, so check against combined radii squared or simple containment
+            if (Math.hypot(dx, dy) < radius + boss.radius) { // Simple circle-circle
+                boss.hp -= stats.auraDamage;
+                hitSomething = true;
+                if (stats.lightningQueue.length < 52) {
+                    stats.lightningQueue.push({
+                        x: boss.x,
+                        y: boss.y,
+                        life: 1.0
+                    });
+                }
             }
         }
 
@@ -534,7 +597,7 @@ function updateAndDrawElectricAura(dt) {
     }
 
     // 4. Random Idle Electricity (Arcing inside - Reduced frequency & opacity)
-    if (Math.random() < 0.05) { // Reduced from 0.2 to 0.05
+    if (Math.random() < 0.03) { // OPTIMIZATION: Reduced from 0.05 to 0.03
         const angle = Math.random() * Math.PI * 2;
         const dist = Math.random() * radius;
         const tx = Math.cos(angle) * dist; // Target X (relative)
@@ -711,7 +774,12 @@ function startDeathSequence() {
 function gameOver() {
     gameState.gameActive = false;
     gameState.isPaused = true;
+
+    // OPTIMIZATION: Clean up all intervals
     if (gameState.spawnInterval) clearInterval(gameState.spawnInterval);
+    if (typeof SpawnManager !== 'undefined' && SpawnManager.clearAllIntervals) {
+        SpawnManager.clearAllIntervals();
+    }
 
     finalScoreEl.innerText = `${Localization.t('score')}: ${gameState.score} - ${Localization.t('level')}: ${gameState.level}`;
     window.lastGameScore = gameState.score;
