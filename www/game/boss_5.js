@@ -241,8 +241,8 @@ class BossChronos extends BossBase {
                 angle: (i / count) * Math.PI * 2,
                 orbitRadius: 120 + Math.random() * 40,
                 orbitSpeed: 0.02 + Math.random() * 0.01,
-                hp: 20,
-                maxHp: 20,
+                hp: 40,
+                maxHp: 40,
                 radius: 18,
                 fireTimer: Math.random() * 60,
                 x: 0,
@@ -266,8 +266,8 @@ class BossChronos extends BossBase {
         const enemy = enemyPool.get(x, y, ENEMY_TYPES.BASIC, 1.5);
         enemy.color = this.getPhaseColor();
         enemy.radius = 12;
-        enemy.hp = 15;
-        enemy.maxHp = 15;
+        enemy.hp = 30;
+        enemy.maxHp = 30;
         enemy.isDead = false;
     }
 
@@ -327,8 +327,8 @@ class BossChronos extends BossBase {
                     const angle = (i / count) * Math.PI * 2 + (w * 0.3);
                     const enemy = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
                     enemy.radius = 10;
-                    enemy.hp = 7;
-                    enemy.maxHp = 7;
+                    enemy.hp = 17;
+                    enemy.maxHp = 17;
                     enemy.color = '#00aaff';
                     enemy.isDead = false;
 
@@ -357,8 +357,8 @@ class BossChronos extends BossBase {
                     ENEMY_TYPES.BASIC, 1
                 );
                 enemy.radius = 12;
-                enemy.hp = 7;
-                enemy.maxHp = 7;
+                enemy.hp = 17;
+                enemy.maxHp = 17;
                 enemy.color = '#88ccff';
                 enemy.isDead = false;
                 enemy.vx = Math.cos(angle) * 5;
@@ -381,8 +381,8 @@ class BossChronos extends BossBase {
                 ENEMY_TYPES.BASIC, 1
             );
             enemy.radius = 15;
-            enemy.hp = 10;
-            enemy.maxHp = 10;
+            enemy.hp = 20;
+            enemy.maxHp = 20;
             enemy.color = '#00ffff';
             enemy.isDead = false;
         }
@@ -401,8 +401,8 @@ class BossChronos extends BossBase {
                     ENEMY_TYPES.BASIC, 1.2
                 );
                 enemy.radius = 12;
-                enemy.hp = 10;
-                enemy.maxHp = 10;
+                enemy.hp = 20;
+                enemy.maxHp = 20;
                 enemy.color = '#00aaff';
                 enemy.isDead = false;
                 spawnParticles(enemy.x, enemy.y, 5, 3, '#00aaff');
@@ -502,8 +502,8 @@ class BossChronos extends BossBase {
                         ENEMY_TYPES.BASIC, 1
                     );
                     enemy.radius = 10;
-                    enemy.hp = 7;
-                    enemy.maxHp = 7;
+                    enemy.hp = 17;
+                    enemy.maxHp = 17;
                     enemy.color = '#ff0066';
                     enemy.isDead = false;
                 }
@@ -528,8 +528,8 @@ class BossChronos extends BossBase {
                     const angle = (i / bulletCount) * Math.PI * 2 + (w * 0.2);
                     const enemy = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
                     enemy.radius = 8;
-                    enemy.hp = 7;
-                    enemy.maxHp = 7;
+                    enemy.hp = 17;
+                    enemy.maxHp = 17;
                     enemy.color = '#ff0066';
                     enemy.isDead = false;
 
@@ -558,8 +558,8 @@ class BossChronos extends BossBase {
 
                     const enemy = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
                     enemy.radius = 10;
-                    enemy.hp = 7;
-                    enemy.maxHp = 7;
+                    enemy.hp = 17;
+                    enemy.maxHp = 17;
                     enemy.color = arm === 0 ? '#ff0066' : '#aa00ff';
                     enemy.isDead = false;
 
@@ -593,8 +593,8 @@ class BossChronos extends BossBase {
                         ENEMY_TYPES.BASIC, 1
                     );
                     enemy.radius = 10;
-                    enemy.hp = 7;
-                    enemy.maxHp = 7;
+                    enemy.hp = 17;
+                    enemy.maxHp = 17;
                     enemy.color = '#ff0066';
                     enemy.isDead = false;
                 }
@@ -621,8 +621,8 @@ class BossChronos extends BossBase {
                     const angle = (i / count) * Math.PI * 2;
                     const enemy = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
                     enemy.radius = 8 + wave;
-                    enemy.hp = 7;
-                    enemy.maxHp = 7;
+                    enemy.hp = 17;
+                    enemy.maxHp = 17;
                     enemy.color = wave % 2 === 0 ? '#ff0066' : '#aa00ff';
                     enemy.isDead = false;
 
@@ -692,8 +692,8 @@ class BossChronos extends BossBase {
                 const aimAngle = Math.atan2(player.y - clone.y, player.x - clone.x);
                 const enemy = enemyPool.get(clone.x, clone.y, ENEMY_TYPES.BASIC, 1);
                 enemy.radius = 10;
-                enemy.hp = 7;
-                enemy.maxHp = 7;
+                enemy.hp = 17;
+                enemy.maxHp = 17;
                 enemy.color = this.getPhaseColor();
                 enemy.isDead = false;
                 enemy.vx = Math.cos(aimAngle) * 5;
@@ -728,8 +728,8 @@ class BossChronos extends BossBase {
                 const aimAngle = Math.atan2(player.y - minion.y, player.x - minion.x);
                 const enemy = enemyPool.get(minion.x, minion.y, ENEMY_TYPES.BASIC, 1);
                 enemy.radius = 8;
-                enemy.hp = 7;
-                enemy.maxHp = 7;
+                enemy.hp = 17;
+                enemy.maxHp = 17;
                 enemy.color = this.getPhaseColor();
                 enemy.isDead = false;
                 enemy.vx = Math.cos(aimAngle) * 4;

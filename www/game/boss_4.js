@@ -83,7 +83,7 @@ class BossSwarm extends BossBase {
         drone.isShieldDrone = isShield;
 
         drone.radius = 15;
-        drone.hp = isShield ? 5 : 7;
+        drone.hp = isShield ? 10 : 20;
         drone.maxHp = drone.hp;
         drone.color = isShield ? '#00ffff' : BOSS_4_DATA.colors.drone;
 
@@ -334,8 +334,8 @@ class BossSwarm extends BossBase {
                 ENEMY_TYPES.BASIC, 1
             );
             enemy.radius = 8;
-            enemy.hp = 4;
-            enemy.maxHp = 4;
+            enemy.hp = 15;
+            enemy.maxHp = 15;
             enemy.color = '#44ffaa';
         }
         if (window.playSound) playSound('shoot');
