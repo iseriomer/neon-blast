@@ -494,8 +494,8 @@ const RenderOptimizer = {
             CTX.shadowBlur = 0;
         }
 
-        // Draw health arcs in second pass (if using shadows/high quality)
-        if (this.useShadows && totalEnemies < 50) {
+        // Draw health arcs in second pass (revised: allow drawing even without shadows, and up to higher enemy counts)
+        if (totalEnemies < 200) {
             this.drawHealthArcs(regularEnemies);
         }
     },

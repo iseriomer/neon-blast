@@ -3,13 +3,22 @@
 
 let lightnings = [];
 
-function spawnChainLightning(x1, y1, x2, y2) {
+function spawnChainLightning(x1, y1, x2, y2, color = '#00ffff') {
     lightnings.push({
         x1, y1, x2, y2,
         life: 15, // Biraz daha uzun kalsın
         segments: [],
-        color: '#00ffff' // Neon mavisi (Cyan)
+        color: color // Custom color
     });
+}
+
+function hexToRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    } : { r: 0, g: 255, b: 255 };
 }
 
 function updateAndDrawLightnings(dt) {
@@ -47,6 +56,7 @@ function updateAndDrawLightnings(dt) {
 
         // ÇİZİM - İki katmanlı (Glow + Core)
         const alpha = bolt.life / 15;
+        const rgb = hexToRgb(bolt.color);
 
         // 1. Katman: Geniş, renkli dış ışıltı (Glow)
         CTX.beginPath();
@@ -54,12 +64,12 @@ function updateAndDrawLightnings(dt) {
         for (let p = 1; p < bolt.segments.length; p++) {
             CTX.lineTo(bolt.segments[p].x, bolt.segments[p].y);
         }
-        CTX.strokeStyle = `rgba(0, 255, 255, ${alpha * 0.6})`; // Cyan Glow
+        CTX.strokeStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha * 0.6})`; // Custom Color Glow
         CTX.lineWidth = 8;
         // ShadowBlur pahalıdır ama sadece yıldırım için değer
         if (lightnings.length < 10) {
             CTX.shadowBlur = 15;
-            CTX.shadowColor = '#00ffff';
+            CTX.shadowColor = bolt.color;
         }
         CTX.stroke();
         CTX.shadowBlur = 0; // Kapatmayı unutma

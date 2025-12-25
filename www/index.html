@@ -58,25 +58,30 @@
                 <span data-i18n="sfx">SFX</span>
             </label>
             <label class="toggle-container">
-                <input type="checkbox" id="music-toggle">
+                <input type="checkbox" id="screenshake-toggle" checked>
                 <span class="checkmark"></span>
-                <span data-i18n="music">Music</span>
+                <span>Screen Shake</span>
             </label>
             <label class="toggle-container">
                 <input type="checkbox" id="joystick-toggle">
                 <span class="checkmark"></span>
                 <span data-i18n="joystick">Joystick Mode</span>
             </label>
+            <label class="toggle-container">
+                <input type="checkbox" id="music-toggle">
+                <span class="checkmark"></span>
+                <span data-i18n="music">Music</span>
+            </label>
+            <div class="track-selector">
+                <button id="prev-track-btn" class="arrow-btn">❮</button>
+                <span id="current-track-name">Track Name</span>
+                <button id="next-track-btn" class="arrow-btn">❯</button>
+            </div>
             <div class="slider-container" style="display: flex; flex-direction: column; width: 100%; margin: 10px 0;">
                 <label for="music-volume" style="font-size: 0.8rem; margin-bottom: 5px;" data-i18n="music_volume">Music
                     Volume</label>
                 <input type="range" id="music-volume" min="0" max="1" step="0.1" value="0.6"
                     style="width: 100%; cursor: pointer;">
-            </div>
-            <div class="track-selector">
-                <button id="prev-track-btn" class="arrow-btn">❮</button>
-                <span id="current-track-name">Track Name</span>
-                <button id="next-track-btn" class="arrow-btn">❯</button>
             </div>
         </div>
         <button class="main-btn" id="resume-btn" data-i18n="resume_btn">RESUME</button>

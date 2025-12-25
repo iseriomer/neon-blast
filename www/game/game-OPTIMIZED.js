@@ -46,7 +46,10 @@ const gameState = {
     activeSpawnerCount: 0,
     takenPerks: [],
     laserRotation: 0,
-    orbitalRotation: 0
+    orbitalRotation: 0,
+    screenShake: null, // { intensity, duration, timer }
+    killStreak: 0,
+    killStreakTimer: 0
 };
 
 // Input State handled by InputManager
@@ -54,6 +57,25 @@ const gameState = {
 // Hitstop Function
 window.triggerHitstop = function (duration) {
     gameState.hitstopTimer = duration;
+}
+
+// Screen Shake Function
+window.triggerScreenShake = function (intensity, duration = 200) {
+    // Check if screen shake is enabled
+    const shakeToggle = document.getElementById('screenshake-toggle');
+    if (shakeToggle && !shakeToggle.checked) {
+        return; // Screen shake disabled
+    }
+
+    // Don't override stronger shakes with weaker ones
+    if (gameState.screenShake && gameState.screenShake.intensity > intensity) {
+        return;
+    }
+    gameState.screenShake = {
+        intensity: intensity,
+        duration: duration,
+        timer: 0
+    };
 }
 
 // Boss Functions handled by BossManager
@@ -269,10 +291,35 @@ function animate(timestamp) {
     RenderOptimizer.autoAdjustQuality();
     profiler.end('quality-adjust');
 
+    // UPDATE: Screen Shake
+    if (gameState.screenShake) {
+        gameState.screenShake.timer += deltaTime;
+        if (gameState.screenShake.timer >= gameState.screenShake.duration) {
+            gameState.screenShake = null;
+        }
+    }
+
+    // UPDATE: Kill Streak Decay
+    if (gameState.killStreakTimer > 0) {
+        gameState.killStreakTimer -= deltaTime;
+        if (gameState.killStreakTimer <= 0) {
+            gameState.killStreak = 0;
+        }
+    }
+
     profiler.start('clear-screen');
     CTX.fillStyle = 'rgba(5, 5, 5, 0.1)';
     CTX.fillRect(0, 0, CANVAS.width, CANVAS.height);
     profiler.end('clear-screen');
+
+    // APPLY: Screen Shake Transform
+    if (gameState.screenShake) {
+        CTX.save();
+        const shake = gameState.screenShake.intensity;
+        const randomX = (Math.random() - 0.5) * shake;
+        const randomY = (Math.random() - 0.5) * shake;
+        CTX.translate(randomX, randomY);
+    }
 
     // BOSS UPDATES
     profiler.start('boss-manager');
@@ -465,6 +512,11 @@ function animate(timestamp) {
         profiler.start('electric-aura');
         updateAndDrawElectricAura(dt);
         profiler.end('electric-aura');
+    }
+
+    // RESTORE: Screen Shake Transform
+    if (gameState.screenShake) {
+        CTX.restore();
     }
 
     CollisionManager.check();
@@ -724,6 +776,8 @@ function initGame() {
         boss5.minions = [];
     }
     document.getElementById('boss-hud').style.display = 'none';
+    const xpContainer = document.getElementById('xp-container');
+    if (xpContainer) xpContainer.style.display = '';
 
     // Reset other states
     gameState.timeWarpActive = false;
@@ -911,6 +965,23 @@ document.getElementById('joystick-toggle').addEventListener('change', (e) => {
         if (window.joystick) window.joystick.active = false;
     }
 });
+
+// Screen Shake Toggle
+document.getElementById('screenshake-toggle').addEventListener('change', (e) => {
+    // Save preference to localStorage
+    localStorage.setItem('screenShakeEnabled', e.target.checked);
+
+    // If disabling, clear any active shake
+    if (!e.target.checked && gameState.screenShake) {
+        gameState.screenShake = null;
+    }
+});
+
+// Load screen shake preference on start
+const savedShakePref = localStorage.getItem('screenShakeEnabled');
+if (savedShakePref !== null) {
+    document.getElementById('screenshake-toggle').checked = savedShakePref === 'true';
+}
 
 document.getElementById('next-track-btn').addEventListener('click', () => {
     const switchSound = new Audio('game/music/switchTrack.mp3');

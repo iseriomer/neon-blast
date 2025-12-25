@@ -771,6 +771,72 @@ button.main-btn:active {
     .perk-desc {
         font-size: 0.8rem;
     }
+
+    /* Pause Menu landscape adjustments */
+    #pause-menu h2 {
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+
+    .pause-options {
+        margin-bottom: 10px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0 20px;
+        width: 90%;
+        max-width: 600px;
+    }
+
+    .pause-options>div:first-child {
+        grid-column: 1 / -1;
+        margin-bottom: 5px !important;
+    }
+
+    .toggle-container {
+        font-size: 0.9rem;
+        margin: 5px 0;
+    }
+
+    .checkmark {
+        height: 20px;
+        width: 40px;
+    }
+
+    .checkmark:before {
+        width: 12px;
+        height: 12px;
+    }
+
+    .toggle-container input:checked~.checkmark:before {
+        left: 21px;
+    }
+
+    .slider-container {
+        grid-column: 1 / -1;
+        margin: 5px 0 !important;
+    }
+
+    .track-selector {
+        width: 100%;
+        margin-top: 5px;
+        padding: 5px;
+        height: 35px;
+    }
+
+    #current-track-name {
+        font-size: 0.8rem;
+    }
+
+    .arrow-btn {
+        font-size: 1.2rem;
+    }
+
+    #pause-menu .main-btn {
+        margin-top: 5px;
+        padding: 10px 30px;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
 }
 
 /* PAUSE BUTTON & MENU */
@@ -822,17 +888,33 @@ button.main-btn:active {
     align-items: center;
     justify-content: center;
     z-index: 100;
+    overflow-y: auto;
+    padding: 20px 0;
+    box-sizing: border-box;
 }
 
 #pause-menu h2 {
-    font-size: 4rem;
+    font-size: 3rem;
     color: #00ffff;
     text-shadow: 0 0 20px #00ffff;
-    margin-bottom: 40px;
+    margin-bottom: 20px;
+    flex-shrink: 0;
 }
 
 .pause-options {
-    margin-bottom: 40px;
+    margin-bottom: 20px;
+    flex-shrink: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px 30px;
+    width: 90%;
+    max-width: 600px;
+    align-items: center;
+}
+
+.pause-options>div:first-child {
+    grid-column: 1 / -1;
+    margin-bottom: 15px;
 }
 
 
@@ -945,9 +1027,7 @@ button.main-btn:active {
     margin-top: inherit;
 }
 
-.pause-options {
-    margin-bottom: 15px;
-}
+/* .pause-options margin fix removed - merged above */
 
 /* FPS Toggle Checkbox */
 /* FPS Toggle & General Toggles - Neon Switch Style */
@@ -1035,6 +1115,10 @@ button.main-btn:active {
     display: none;
 }
 
+.slider-container {
+    grid-column: 1 / -1;
+}
+
 /* Adjust FPS counter position if needed to not overlap with pause button */
 #fps-counter {
     right: 70px;
@@ -1047,8 +1131,8 @@ button.main-btn:active {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    width: 250px;
-    margin-top: 20px;
+    width: 100%;
+    box-sizing: border-box;
     background: rgba(0, 0, 0, 0.5);
     padding: 10px;
     border: 1px solid #00ffff;

@@ -525,7 +525,7 @@ class CollisionManager {
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    // ENEMY DEATH
+    // ENEMY DEATH - ENHANCED WITH TYPE-SPECIFIC VFX
     // ═══════════════════════════════════════════════════════════════════
     static handleEnemyDeath(enemy) {
         // Eğer zaten öldüyse veya havuzda değilse işlem yapma
@@ -535,6 +535,19 @@ class CollisionManager {
 
         if (!gameState.bossActive) {
             gameState.score += enemy.type.score;
+        }
+
+        // ENHANCED: Kill Streak Tracking
+        gameState.killStreak++;
+        gameState.killStreakTimer = 2000; // 2 seconds to continue streak
+
+        // ENHANCED: Type-Specific Death VFX
+        this.createDeathEffect(enemy);
+
+        // ENHANCED: Multi-Kill Screen Shake
+        if (gameState.killStreak >= 10) {
+            const shakeIntensity = Math.min(3 + Math.floor(gameState.killStreak / 10), 12);
+            if (window.triggerScreenShake) window.triggerScreenShake(shakeIntensity, 150);
         }
 
         // Splitter Mantığı
@@ -554,12 +567,140 @@ class CollisionManager {
         }
 
         enemyPool.release(enemy);
-        spawnParticles(enemy.x, enemy.y, 8, 5, enemy.color, 2);
 
         // Level atlama kontrolü
         updateProgressBar(gameState.score, gameState.nextLevelThreshold, gameState.previousLevelThreshold);
-        if (gameState.score >= gameState.nextLevelThreshold && !gameState.bossActive) {
+        if (gameState.score >= gameState.nextLevelThreshold && !gameState.bossActive && !gameState.isPaused) {
             triggerLevelUp();
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // ENHANCED: Type-Specific Death Effects
+    // ═══════════════════════════════════════════════════════════════════
+    static createDeathEffect(enemy) {
+        const x = enemy.x;
+        const y = enemy.y;
+        const type = enemy.type.name;
+
+        switch (type) {
+            case 'Tank':
+                // BIG EXPLOSION + SCREEN SHAKE
+                spawnParticles(x, y, 25, 8, enemy.color, 3);
+                // Create expanding ring effect
+                CTX.save();
+                CTX.beginPath();
+                CTX.arc(x, y, enemy.radius * 2, 0, Math.PI * 2);
+                CTX.strokeStyle = 'rgba(100, 100, 255, 0.6)';
+                CTX.lineWidth = 4;
+                CTX.stroke();
+                CTX.restore();
+                // Screen shake
+                if (window.triggerScreenShake) window.triggerScreenShake(5, 200);
+                playSound('hit');
+                break;
+
+            case 'Healer':
+                // GOLDEN PARTICLE BURST
+                spawnParticles(x, y, 35, 7, '#ffd700', 4);
+                // Additional white particles
+                spawnParticles(x, y, 20, 5, '#ffffff', 3);
+                // Create radial burst lines
+                CTX.save();
+                for (let i = 0; i < 8; i++) {
+                    const angle = (Math.PI * 2 / 8) * i;
+                    const endX = x + Math.cos(angle) * enemy.radius * 3;
+                    const endY = y + Math.sin(angle) * enemy.radius * 3;
+                    CTX.beginPath();
+                    CTX.moveTo(x, y);
+                    CTX.lineTo(endX, endY);
+                    CTX.strokeStyle = 'rgba(255, 215, 0, 0.5)';
+                    CTX.lineWidth = 2;
+                    CTX.stroke();
+                }
+                CTX.restore();
+                /* playSound('levelup'); */ // Use levelup sound for special effect
+                break;
+
+            case 'Speedster':
+                // LIGHTNING TRAIL + FAST PARTICLES
+                spawnParticles(x, y, 15, 6, '#ffff00', 5);
+                // Create lightning effect
+                if (typeof spawnChainLightning === 'function') {
+                    // Create 3 random lightning bolts
+                    for (let i = 0; i < 3; i++) {
+                        const angle = Math.random() * Math.PI * 2;
+                        const dist = 50 + Math.random() * 50;
+                        const targetX = x + Math.cos(angle) * dist;
+                        const targetY = y + Math.sin(angle) * dist;
+                        spawnChainLightning(x, y, targetX, targetY, '#ffff00');//make it yellow. #ffff00
+                    }
+                }
+                // Speed trails
+                for (let i = 0; i < 5; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const dist = 20 + i * 10;
+                    spawnParticles(x + Math.cos(angle) * dist, y + Math.sin(angle) * dist, 3, 2, '#ffff00', 2);
+                }
+                playSound('hit');
+                break;
+
+            case 'Spawner':
+                // IMPLOSION EFFECT (reverse explosion)
+                spawnParticles(x, y, 30, 6, enemy.color, 3);
+                // Create converging effect
+                CTX.save();
+                CTX.beginPath();
+                CTX.arc(x, y, enemy.radius * 1.5, 0, Math.PI * 2);
+                CTX.fillStyle = 'rgba(0, 255, 255, 0.2)';
+                CTX.fill();
+                CTX.strokeStyle = 'rgba(0, 255, 255, 0.8)';
+                CTX.lineWidth = 2;
+                CTX.stroke();
+                CTX.restore();
+                // Mild screen shake
+                if (window.triggerScreenShake) window.triggerScreenShake(3, 150);
+                playSound('hit');
+                break;
+
+            case 'Dasher':
+                // IMPACT FLASH
+                spawnParticles(x, y, 20, 5, '#ff00ff', 3);
+                CTX.save();
+                CTX.fillStyle = 'rgba(255, 0, 255, 0.3)';
+                CTX.beginPath();
+                CTX.arc(x, y, enemy.radius * 2, 0, Math.PI * 2);
+                CTX.fill();
+                CTX.restore();
+                playSound('hit');
+                break;
+
+            case 'Splitter':
+                // SHATTER EFFECT
+                spawnParticles(x, y, 18, 6, enemy.color, 3);
+                // Create hexagonal shatter pattern
+                CTX.save();
+                CTX.strokeStyle = 'rgba(0, 255, 100, 0.5)';
+                CTX.lineWidth = 2;
+                for (let i = 0; i < 6; i++) {
+                    const angle = (Math.PI * 2 / 6) * i;
+                    const endX = x + Math.cos(angle) * enemy.radius * 2;
+                    const endY = y + Math.sin(angle) * enemy.radius * 2;
+                    CTX.beginPath();
+                    CTX.moveTo(x, y);
+                    CTX.lineTo(endX, endY);
+                    CTX.stroke();
+                }
+                CTX.restore();
+                playSound('hit');
+                break;
+
+            default:
+                // BASIC ENEMY - Standard particles
+                const particleCount = Math.max(8, Math.floor(enemy.maxHp * 2));
+                spawnParticles(x, y, particleCount, 5, enemy.color, 2);
+                playSound('hit');
+                break;
         }
     }
 
