@@ -101,7 +101,7 @@ class BossOmegaCore extends BossBase {
     spawnMinions() {
         if (!typeof enemyPool) return;
         enemyPool.get(this.x + (Math.random() - 0.5) * 50, this.y + (Math.random() - 0.5) * 50, ENEMY_TYPES.SPEEDSTER, 2);
-        if (window.playSound) playSound('shoot');
+        /* if (window.playSound) playSound('shoot'); */
     }
 
     shootHomingMissile(player) {

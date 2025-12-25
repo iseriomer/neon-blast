@@ -849,6 +849,14 @@ function gameOver() {
     }
 
     gameOverScreen.classList.remove('hidden');
+    // NEW: Animate main buttons on show
+    if (typeof animateButton === 'function') {
+        animateButton(document.getElementById('submit-score-btn'));
+        //wait 0.5 sec.
+        setTimeout(() => {
+            animateButton(document.getElementById('restart-btn'));
+        }, 40);
+    }
 }
 
 
@@ -863,6 +871,11 @@ function togglePause() {
     if (gameState.isPaused) {
         document.getElementById('pause-menu').classList.remove('hidden');
         document.getElementById('ui-layer').style.filter = 'blur(5px)'; // Optional: Blur BG
+
+        // NEW: Animate Resume button
+        if (typeof animateButton === 'function') {
+            animateButton(document.getElementById('resume-btn'));
+        }
     } else {
         document.getElementById('pause-menu').classList.add('hidden');
         document.getElementById('ui-layer').style.filter = 'none';
@@ -1014,3 +1027,14 @@ function updateTracerUI() {
         tracerLine.style.display = 'none';
     }
 }
+
+// --- NEW: Initial Button Animations (Start Screen) ---
+setTimeout(() => {
+    if (typeof animateButton === 'function') {
+        animateButton(document.getElementById('start-btn'));
+        //wait 40ms
+        setTimeout(() => {
+            animateButton(document.getElementById('leaderboard-btn'));
+        }, 40);
+    }
+}, 500);

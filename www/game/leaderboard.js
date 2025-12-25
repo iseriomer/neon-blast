@@ -59,8 +59,7 @@ function updateFilterStyles() {
 
     allBtns.forEach(btn => {
         if (!btn) return;
-        btn.style.background = 'transparent';
-        btn.style.color = '#00ffff';
+        btn.classList.remove('active');
     });
 
     let activeBtns = [];
@@ -69,10 +68,7 @@ function updateFilterStyles() {
     if (currentTimeframe === 'weekly') activeBtns = [filterWeeklyBtn, filterWeeklyBtnGO];
 
     activeBtns.forEach(btn => {
-        if (btn) {
-            btn.style.background = '#00ffff';
-            btn.style.color = '#000';
-        }
+        if (btn) btn.classList.add('active');
     });
 }
 
@@ -113,9 +109,19 @@ async function loadLeaderboard(timeframe = 'all') {
         document.getElementById('main-leaderboard-list')
     ];
 
-    // Yükleniyor yazısı
+    // Yükleniyor: 10 filler element ekle (Layout kaymasını önlemek için)
     listElements.forEach(el => {
-        if (el) el.innerHTML = '<li>Loading...</li>';
+        if (!el) return;
+        el.innerHTML = '';
+        for (let i = 0; i < 10; i++) {
+            const li = document.createElement('li');
+            li.style.opacity = '0.3';
+            li.innerHTML = `
+                <span class="name-span"></span>
+                <span>---</span>
+            `;
+            el.appendChild(li);
+        }
     });
 
     let q;
@@ -161,10 +167,19 @@ async function loadLeaderboard(timeframe = 'all') {
             scores.forEach((data, index) => {
                 const li = document.createElement('li');
                 li.innerHTML = `
-                    <span>#${index + 1} ${data.name}</span>
+                    <span class="name-span">#${index + 1} ${data.name}</span>
                     <span>${data.score}</span>
                 `;
                 el.appendChild(li);
+
+                // Scramble name without sound
+                const nameSpan = li.querySelector('.name-span');
+                if (window.animateTextScramble) {
+                    window.animateTextScramble(nameSpan, {
+                        useSound: false,
+                        duration: 400 + index * 50 // Staggered duration
+                    });
+                }
             });
         });
 
@@ -228,6 +243,11 @@ if (openLeaderboardBtn) {
             leaderboardScreen.style.display = 'flex';
             leaderboardScreen.style.zIndex = '100'; // Force on top
             loadLeaderboard('all'); // Default to all time
+
+            // NEW: Animate Back button
+            if (window.animateButton) {
+                window.animateButton(closeLeaderboardBtn);
+            }
         }
     });
 }

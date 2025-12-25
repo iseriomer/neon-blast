@@ -141,3 +141,85 @@ function showLevelUpAnimation() {
         }
     }, 1500);
 }
+
+// --- NEW: General Text Scramble Logic ---
+const randomChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#@!%&";
+
+/**
+ * Scrambles text of an element
+ * @param {HTMLElement} el 
+ * @param {Object} options { finalColor, duration, useSound, onComplete }
+ */
+function animateTextScramble(el, options = {}) {
+    if (!el) return;
+
+    const {
+        finalColor = null,
+        duration = 600 + Math.random() * 400,
+        useSound = true,
+        onComplete = null
+    } = options;
+
+    // Reset/Prepare state
+    el.classList.add('btn-shuffling');
+
+    // Store original text if not already stored
+    if (!el.dataset.originalText) {
+        el.dataset.originalText = el.innerText;
+    }
+    const originalText = el.dataset.originalText;
+    const themeColor = finalColor || getComputedStyle(el).getPropertyValue('--perk-theme').trim() || '#fff';
+
+    let tickCount = 0;
+    const shuffleInterval = setInterval(() => {
+        tickCount++;
+        if (useSound && tickCount % 3 === 0) {
+            if (typeof playSound === 'function') playSound('ui_tick');
+        }
+
+        // Randomize color during shuffle (only if it's a themeable element)
+        const randomColor = `hsl(${Math.random() * 360}, 70%, 50%)`;
+        el.style.setProperty('--perk-theme', randomColor);
+
+        // Scramble text
+        let scrambled = "";
+        const len = originalText.length;
+        for (let i = 0; i < len; i++) {
+            scrambled += randomChars.charAt(Math.floor(Math.random() * randomChars.length));
+        }
+        el.innerText = scrambled;
+    }, 40);
+
+    // Stop after duration
+    setTimeout(() => {
+        clearInterval(shuffleInterval);
+        el.classList.remove('btn-shuffling');
+
+        el.innerText = originalText;
+        if (finalColor || el.style.getPropertyValue('--perk-theme')) {
+            el.style.setProperty('--perk-theme', themeColor);
+        }
+
+        if (useSound && typeof playSound === 'function') playSound('ui_lock');
+        if (onComplete) onComplete();
+    }, duration);
+}
+
+function animateButton(buttonEl, finalColor = null) {
+    if (!buttonEl) return;
+    buttonEl.classList.remove('locked-in');
+    buttonEl.style.pointerEvents = 'none';
+
+    animateTextScramble(buttonEl, {
+        finalColor: finalColor,
+        useSound: true,
+        onComplete: () => {
+            buttonEl.classList.add('locked-in');
+            buttonEl.style.pointerEvents = 'auto';
+        }
+    });
+}
+
+// Global Exports
+window.animateTextScramble = animateTextScramble;
+window.animateButton = animateButton;

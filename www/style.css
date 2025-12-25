@@ -228,56 +228,92 @@ p {
 }
 
 button.main-btn {
+    --perk-theme: #ff0055;
     display: block;
     margin-top: 30px;
-    padding: 20px 50px;
-    font-size: 1.8rem;
-    font-weight: 900;
-    color: #000;
-    background: #ff0055;
-    border: 4px solid white;
+    padding: 15px 40px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #fff;
+    background: #1a1a2e;
+    border: 2px solid var(--perk-theme);
     border-radius: 0;
     /* KESKİN */
     cursor: pointer;
-    box-shadow: 8px 8px 0 #fff;
-    /* Sert beyaz gölge */
-    transition: all 0.1s ease;
+    box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.5);
+    transition: all 0.2s ease;
     text-transform: uppercase;
-    letter-spacing: 2px;
+    letter-spacing: 1px;
     position: relative;
     overflow: visible;
-    font-family: 'Arial Black', Impact, sans-serif;
+    font-family: monospace;
     transform: skew(-2deg);
+    min-width: 200px;
+    text-align: center;
 }
 
 button.main-btn::before {
     display: none;
 }
 
-/* Hover Effects - human made vibe */
+/* Hover Effects removed as requested */
 button.main-btn:hover {
-    transform: skew(-2deg) translate(-2px, -2px);
-    box-shadow: 12px 12px 0 #fff;
-    background: #ff2277;
+    background: #252540;
 }
 
 button.main-btn:active {
-    transform: skew(-2deg) translate(4px, 4px);
-    box-shadow: 2px 2px 0 #fff;
+    transform: skew(-2deg) translate(2px, 2px);
+    box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
 }
 
-/* Button variants if needed */
+/* Specific overrides for buttons to keep themes */
+#leaderboard-btn {
+    --perk-theme: #0088ff;
+    color: #fff;
+    background: #1a1a2e;
+}
+
 #submit-score-btn {
-    background: #00ffff !important;
-    color: #000 !important;
-    border-color: #000 !important;
-    box-shadow: 6px 6px 0 #000 !important;
-    margin-top: 0px !important;
+    --perk-theme: #00ffff;
+    color: #fff;
+    background: #1a1a2e;
 }
 
-#submit-score-btn:hover {
-    background: #fff !important;
-    box-shadow: 10px 10px 0 #000 !important;
+#resume-btn {
+    --perk-theme: #00ffff;
+}
+
+/* Button Shuffling (Glitch) */
+.btn-shuffling {
+    pointer-events: none;
+    opacity: 0.8;
+    border-color: #555 !important;
+    animation: textGlitch 0.2s infinite;
+}
+
+.btn-shuffling::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(0deg,
+            rgba(0, 0, 0, 0.1) 0px,
+            rgba(0, 0, 0, 0.1) 1px,
+            transparent 1px,
+            transparent 2px);
+    pointer-events: none;
+    z-index: 2;
+}
+
+/* Locked selection visual for buttons */
+.main-btn.locked-in {
+    border-color: #fff !important;
+    box-shadow: 0 0 20px var(--perk-theme) !important;
+    animation: perkFlash 0.5s ease-out;
+    background: #1a1a2e;
+    color: #fff;
 }
 
 /* PERK CARDS */
@@ -360,6 +396,33 @@ button.main-btn:active {
 }
 
 /* LEADERBOARD STYLES */
+.filter-btn {
+    --perk-theme: #00ffff;
+    background: #1a1a2e;
+    border: 2px solid #444;
+    color: #00ffff;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-weight: bold;
+    font-family: monospace;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    border-radius: 0;
+    box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.5);
+}
+
+.filter-btn:hover {
+    background: #252540;
+    border-color: var(--perk-theme);
+}
+
+.filter-btn.active {
+    background: var(--perk-theme);
+    color: #000;
+    border-color: #fff;
+    box-shadow: 0 0 10px var(--perk-theme);
+}
+
 #leaderboard-section {
     margin: 1vh 0;
     /* Reduced margin */
@@ -393,14 +456,14 @@ button.main-btn:active {
 
 .leaderboard-container {
     margin-top: 30px;
-    background: #111;
-    border: 2px solid #fff;
+    background: #1a1a2e;
+    border: 2px solid #444;
     border-radius: 0;
     /* KESKİN */
     padding: 25px;
     width: 400px;
     max-width: 90%;
-    box-shadow: 10px 10px 0 #333;
+    box-shadow: 10px 10px 0 rgba(0, 0, 0, 0.8);
     max-height: 40vh;
     /* Reduced from 50vh to fit better on desktop */
     overflow-y: auto;
