@@ -47,8 +47,8 @@ class Enemy {
         if (type.name === 'Speedster') hpMultiplierDivisor = 3.0; // Grows slower
 
         this.hp = type.hp + Math.floor(difficultyMultiplier / hpMultiplierDivisor);
-        if (gameState.level >= 10) this.hp = type.hp + Math.floor(difficultyMultiplier / 0.9);
-        if (gameState.level >= 20) this.hp = type.hp + Math.floor(difficultyMultiplier / 0.4);
+        if (gameState.level >= 10) this.hp = type.hp + Math.floor(difficultyMultiplier / 1.2);
+        if (gameState.level >= 20) this.hp = type.hp + Math.floor(difficultyMultiplier / 0.5);
         if (gameState.level >= 30) this.hp = type.hp + Math.floor(difficultyMultiplier / 0.13);
         if (gameState.level >= 40) this.hp = type.hp + Math.floor(difficultyMultiplier / 0.1);
         this.maxHp = this.hp;
@@ -230,6 +230,13 @@ class Enemy {
                 this.x += Math.cos(angle + Math.PI / 2) * (currentSpeed * 0.2) * dt;
                 this.y += Math.sin(angle + Math.PI / 2) * (currentSpeed * 0.2) * dt;
             }
+
+            // Keep Healer within screen boundaries with margin
+            const margin = this.radius + 50;
+            if (this.x < margin) this.x = margin;
+            if (this.x > CANVAS.width - margin) this.x = CANVAS.width - margin;
+            if (this.y < margin) this.y = margin;
+            if (this.y > CANVAS.height - margin) this.y = CANVAS.height - margin;
         }
         else if (this.type.name === 'Spawner') {
             this.spawnTimer += dt;

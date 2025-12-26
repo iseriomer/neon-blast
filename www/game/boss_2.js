@@ -205,7 +205,7 @@ class BossNexus extends BossBase {
         }
         else if (this.currentAttack === 'VOID_ZONES') {
             this.targetPos.forEach(pos => {
-                const zone = enemyPool.get(pos.x, pos.y, ENEMY_TYPES.TANK, 35);
+                const zone = enemyPool.get(pos.x, pos.y, ENEMY_TYPES.TANK, 28);
                 zone.radius = 10;
                 zone.color = '#220033';
                 zone.vx = 0; zone.vy = 0;

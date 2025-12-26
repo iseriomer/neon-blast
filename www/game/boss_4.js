@@ -334,8 +334,8 @@ class BossSwarm extends BossBase {
                 ENEMY_TYPES.BASIC, 1
             );
             enemy.radius = 8;
-            enemy.hp = 15;
-            enemy.maxHp = 15;
+            enemy.hp = 25;
+            enemy.maxHp = 25;
             enemy.color = '#44ffaa';
         }
         if (window.playSound) playSound('shoot');

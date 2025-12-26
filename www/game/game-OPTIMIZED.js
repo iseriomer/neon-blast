@@ -380,7 +380,13 @@ function animate(timestamp) {
                     const distToPlayer = Math.hypot(enemyDx, enemyDy);
 
                     if (distToLine < enemy.radius + 10 && distToPlayer < 2000) {
-                        enemy.hp -= gameState.playerStats.laserDamage;
+                        // Execute check
+                        let damage = gameState.playerStats.laserDamage;
+                        if (gameState.playerStats.execute && enemy.hp / enemy.maxHp < 0.2) {
+                            damage = 999;
+                            spawnParticles(enemy.x, enemy.y, 10, 3, 'red', 2);
+                        }
+                        enemy.hp -= damage;
 
                         if (enemy.hp <= 0) {
                             handleEnemyDeath(enemy);
@@ -408,7 +414,7 @@ function animate(timestamp) {
                     const distToPlayer = Math.hypot(bossDx, bossDy);
 
                     if (distToLine < boss.radius + 10 && distToPlayer < 2000) {
-                        boss.hp -= gameState.playerStats.laserDamage;
+                        boss.takeDamage(gameState.playerStats.laserDamage);
                         // Boss death handled in BossManager or Boss Update
                     }
                 }
@@ -456,7 +462,13 @@ function animate(timestamp) {
             enemyPool.getActive().forEach(enemy => {
                 const dist = Math.hypot(ox - enemy.x, oy - enemy.y);
                 if (dist < enemy.radius + orbitalRadius) {
-                    enemy.hp -= 0.1;
+                    // Execute check
+                    let damage = gameState.playerStats.orbitalDamage;
+                    if (gameState.playerStats.execute && enemy.hp / enemy.maxHp < 0.2) {
+                        damage = 999;
+                        spawnParticles(enemy.x, enemy.y, 10, 3, 'red', 2);
+                    }
+                    enemy.hp -= damage;
                     if (enemy.hp <= 0) {
                         handleEnemyDeath(enemy);
                     }
@@ -468,7 +480,7 @@ function animate(timestamp) {
                 const boss = BossManager.activeBoss;
                 const dist = Math.hypot(ox - boss.x, oy - boss.y);
                 if (dist < boss.radius + orbitalRadius) {
-                    boss.hp -= 0.1;
+                    boss.takeDamage(gameState.playerStats.orbitalDamage);
                 }
             }
         }
@@ -557,7 +569,13 @@ function updateAndDrawElectricAura(dt) {
             const distSq = dx * dx + dy * dy; // OPTIMIZATION: Squared distance
 
             if (distSq < rSq) {
-                enemy.hp -= stats.auraDamage;
+                // Execute check
+                let damage = stats.auraDamage;
+                if (gameState.playerStats.execute && enemy.hp / enemy.maxHp < 0.2) {
+                    damage = 999;
+                    spawnParticles(enemy.x, enemy.y, 10, 3, 'red', 2);
+                }
+                enemy.hp -= damage;
                 if (enemy.hp <= 0) handleEnemyDeath(enemy);
                 hitSomething = true;
 
@@ -580,7 +598,7 @@ function updateAndDrawElectricAura(dt) {
             const distSq = dx * dx + dy * dy;
             // Boss radius might be larger, so check against combined radii squared or simple containment
             if (Math.hypot(dx, dy) < radius + boss.radius) { // Simple circle-circle
-                boss.hp -= stats.auraDamage;
+                boss.takeDamage(stats.auraDamage);
                 hitSomething = true;
                 if (stats.lightningQueue.length < 52) {
                     stats.lightningQueue.push({

@@ -630,7 +630,7 @@ class CollisionManager {
                     // Create 3 random lightning bolts
                     for (let i = 0; i < 3; i++) {
                         const angle = Math.random() * Math.PI * 2;
-                        const dist = 50 + Math.random() * 50;
+                        const dist = 50 + Math.random() * 20;
                         const targetX = x + Math.cos(angle) * dist;
                         const targetY = y + Math.sin(angle) * dist;
                         spawnChainLightning(x, y, targetX, targetY, '#ffff00');//make it yellow. #ffff00

@@ -56,7 +56,7 @@ const ENEMY_TYPES = {
         name: 'Dasher'
     },
     SPLITTER: {
-        radius: 25,
+        radius: 35,
         color: 'hsl(120, 70%, 50%)',
         speed: 0.6,
         hp: 3,
@@ -64,9 +64,9 @@ const ENEMY_TYPES = {
         name: 'Splitter'
     },
     MINI_SPLITTER: {
-        radius: 10,
+        radius: 20,
         color: 'hsl(120, 70%, 40%)',
-        speed: 1,
+        speed: 0.9,
         hp: 0.5,
         score: 30,
         name: 'MiniSplitter'
@@ -93,7 +93,7 @@ const ENEMY_TYPES = {
 const FRICTION = 0.97;
 
 // Default Player Stats
-const MAX_SHOT_COUNT = 5; // Double Shot perki için sınır
+const MAX_SHOT_COUNT = 15; // Double Shot perki için sınır
 
 // Default Player Stats
 const DEFAULT_PLAYER_STATS = {
@@ -118,6 +118,7 @@ const DEFAULT_PLAYER_STATS = {
     clusterCount: 0,
     orbitals: 0,
     orbitalSizeMultiplier: 1,
+    orbitalDamage: 0.1,
     chainLightning: 0,
     chainLightningDamage: 1,
     explosiveRadius: 0,

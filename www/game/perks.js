@@ -88,7 +88,10 @@ const ALL_PERKS = [
         desc: 'perk_orbital_size_desc',
         icon: '⚛️',
         theme: '#aa44ff',
-        apply: (stats) => { stats.orbitalSizeMultiplier *= 1.5; }
+        apply: (stats) => {
+            stats.orbitalSizeMultiplier *= 1.3;
+            stats.orbitalDamage *= 2;
+        }
     },
     {
         id: 'screen_wrap',
