@@ -38,7 +38,7 @@ class Enemy {
         this.radius = type.radius * GAME_SCALE;
 
         // Hız hesaplamasına GAME_SCALE eklendi
-        this.speed = (type.speed * (1 + (difficultyMultiplier * 0.1))) * GAME_SCALE;
+        this.speed = (type.speed * (1 + (difficultyMultiplier * 0.05))) * GAME_SCALE;
 
         this.color = type.color;
 
@@ -48,9 +48,10 @@ class Enemy {
 
         this.hp = type.hp + Math.floor(difficultyMultiplier / hpMultiplierDivisor);
         if (gameState.level >= 10) this.hp = type.hp + Math.floor(difficultyMultiplier / 1.2);
-        if (gameState.level >= 20) this.hp = type.hp + Math.floor(difficultyMultiplier / 0.5);
-        if (gameState.level >= 30) this.hp = type.hp + Math.floor(difficultyMultiplier / 0.13);
-        if (gameState.level >= 40) this.hp = type.hp + Math.floor(difficultyMultiplier / 0.1);
+        if (gameState.level >= 20) this.hp = type.hp + Math.floor(difficultyMultiplier / 0.8);
+        if (gameState.level >= 30) this.hp = type.hp + Math.floor(difficultyMultiplier / 0.4);
+        if (gameState.level >= 40) this.hp = type.hp + Math.floor(difficultyMultiplier / 0.13);
+        if (gameState.level >= 45) this.hp = type.hp + Math.floor(difficultyMultiplier / 0.1);
         this.maxHp = this.hp;
         this.id = Math.random();
         this.dashCooldown = 0;

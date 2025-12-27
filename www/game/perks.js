@@ -207,7 +207,7 @@ const ALL_PERKS = [
         icon: '🧨',
         theme: '#ff2200',
         apply: (stats) => {
-            stats.explosiveRadius += 80;
+            stats.explosiveRadius += 40;
             stats.color = '#ff6600';
         }
     },

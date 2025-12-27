@@ -159,12 +159,14 @@ canvas {
 
 /* Scrollbar styling for these screens */
 #start-screen::-webkit-scrollbar,
-#game-over-screen::-webkit-scrollbar {
+#game-over-screen::-webkit-scrollbar,
+#levelup-screen::-webkit-scrollbar {
     width: 8px;
 }
 
 #start-screen::-webkit-scrollbar-thumb,
-#game-over-screen::-webkit-scrollbar-thumb {
+#game-over-screen::-webkit-scrollbar-thumb,
+#levelup-screen::-webkit-scrollbar-thumb {
     background: #333;
     border-radius: 4px;
 }
@@ -183,6 +185,10 @@ canvas {
     justify-content: center;
     pointer-events: auto;
     z-index: 30;
+    overflow-y: auto;
+    /* Allow scrolling on small screens */
+    padding: 20px 0;
+    /* Add vertical padding for better scroll experience */
 }
 
 h1 {
@@ -209,8 +215,7 @@ h2 {
     letter-spacing: 2px;
     font-family: monospace;
     text-transform: uppercase;
-    border-bottom: 4px solid #ffd700;
-    padding-bottom: 10px;
+    padding-bottom: 5px;
 }
 
 p {
@@ -836,6 +841,11 @@ button.main-btn:active {
     }
 
     /* Pause Menu landscape adjustments */
+    #pause-menu {
+        zoom: 0.75;
+        /* Scale down entire menu to fit landscape mobile screens */
+    }
+
     #pause-menu h2 {
         font-size: 2rem;
         margin-bottom: 10px;
@@ -904,39 +914,51 @@ button.main-btn:active {
 
 /* PAUSE BUTTON & MENU */
 #pause-btn {
+    --pause-theme: #ff0055;
     position: absolute;
-    top: 20px;
-    right: 20px;
-    background: #000;
-    border: 2px solid #00ffff;
-    color: #00ffff;
-    font-size: 1.5rem;
+    top: clamp(10px, 2vh, 20px);
+    right: clamp(10px, 2vh, 20px);
+    background: #1a1a2e;
+    border: 2px solid var(--pause-theme);
+    color: #fff;
+    font-size: clamp(0.45rem, 1vw, 0.65rem);
+    font-weight: bold;
+    font-family: monospace;
+    text-transform: uppercase;
+    letter-spacing: 0px;
     cursor: pointer;
     z-index: 100;
-    width: 25px;
-    height: 25px;
+    min-width: clamp(17px, 3vw, 32px);
+    min-height: clamp(17px, 3vw, 32px);
+    padding: clamp(3px, 0.5vw, 5px);
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 0;
-    /* KESKİN */
-    transform: skew(-5deg);
-    box-shadow: 4px 4px 0 #00ffff;
-    transition: all 0.1s;
+    transform: skew(-2deg);
     pointer-events: auto;
-    /* ENABLE CLICKS */
+    line-height: 1;
 }
 
-#pause-btn:hover {
-    background: #00ffff;
-    color: #000;
-    transform: skew(-5deg) translate(-2px, -2px);
-    box-shadow: 6px 6px 0 #000;
+/* Mobile responsive adjustments for pause button */
+@media screen and (max-width: 768px) {
+    #pause-btn {
+        font-size: clamp(0.42rem, 1.1vw, 0.6rem);
+        min-width: clamp(20px, 4vw, 30px);
+        min-height: clamp(20px, 4vw, 30px);
+    }
 }
 
-#pause-btn:active {
-    transform: skew(-5deg) translate(2px, 2px);
-    box-shadow: 2px 2px 0 #000;
+/* Landscape mode adjustments for pause button */
+@media screen and (max-height: 500px) {
+    #pause-btn {
+        top: clamp(5px, 1vh, 10px);
+        right: clamp(5px, 1vh, 10px);
+        min-width: clamp(15px, 3vw, 25px);
+        min-height: clamp(15px, 3vw, 25px);
+        font-size: clamp(0.35rem, 0.75vw, 0.5rem);
+        padding: clamp(2px, 0.4vw, 3px);
+    }
 }
 
 #pause-menu {

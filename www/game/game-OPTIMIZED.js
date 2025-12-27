@@ -11,11 +11,23 @@
 // Globals managed by other files:
 // lightnings, blackHole (in skills/)
 // spawnEnemies, triggerLevelUp (in managers/)
-
+// Capacitor StatusBar is loaded via CDN or build process for mobile apps
+// For web, we check if Capacitor is available at runtime
 let lastTime = 0; // Delta time için zaman takibi
 
 // Constants moved to constants.js (MAX_PROJECTILES, MAX_PARTICLES)
 
+
+const hideBar = async () => {
+    // Only hide status bar if running in Capacitor (mobile app)
+    if (typeof Capacitor !== 'undefined' && Capacitor.Plugins && Capacitor.Plugins.StatusBar) {
+        try {
+            await Capacitor.Plugins.StatusBar.hide();
+        } catch (e) {
+            console.log('StatusBar API not available:', e);
+        }
+    }
+};
 // Game State
 const gameState = {
     animationId: null,
@@ -741,6 +753,7 @@ function drawElectricArc(ctx, x1, y1, x2, y2, alpha) {
 
 // Initialize Game
 function initGame() {
+    hideBar();
     gameState.score = 0;
     gameState.level = 1;
     gameState.nextLevelThreshold = 600;
