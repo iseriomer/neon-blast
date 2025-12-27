@@ -47,7 +47,7 @@ class Enemy {
         if (type.name === 'Speedster') hpMultiplierDivisor = 3.0; // Grows slower
 
         this.hp = type.hp + Math.floor(difficultyMultiplier / hpMultiplierDivisor);
-        if (gameState.level >= 10) this.hp = type.hp + Math.floor(difficultyMultiplier / 1.2);
+        if (gameState.level >= 10) this.hp = type.hp + Math.floor(difficultyMultiplier / 1.5);
         if (gameState.level >= 20) this.hp = type.hp + Math.floor(difficultyMultiplier / 0.8);
         if (gameState.level >= 30) this.hp = type.hp + Math.floor(difficultyMultiplier / 0.4);
         if (gameState.level >= 40) this.hp = type.hp + Math.floor(difficultyMultiplier / 0.13);

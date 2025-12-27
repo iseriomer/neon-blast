@@ -146,6 +146,8 @@ class CollisionManager {
 
             for (const enemy of nearbyEnemies) {
                 if (enemy.id === healer.id) continue;
+                // Healerlar birbirlerine heal basmasın
+                if (enemy.type.name === 'Healer') continue;
 
                 const distSq = (enemy.x - healer.x) ** 2 + (enemy.y - healer.y) ** 2;
                 if (distSq >= healRange * healRange) continue;

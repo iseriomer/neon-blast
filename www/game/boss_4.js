@@ -2,7 +2,7 @@
 
 const BOSS_4_DATA = {
     name: 'THE SWARM',
-    hp: 90000,
+    hp: 50000,
     score: 8000,
     colors: {
         hive: '#00ff88',
@@ -445,8 +445,8 @@ class BossSwarm extends BossBase {
                 bullet.hp = 4;
                 bullet.maxHp = 4;
                 bullet.color = '#ff4400';
-                bullet.vx = Math.cos(angle) * 5;
-                bullet.vy = Math.sin(angle) * 5;
+                bullet.vx = Math.cos(angle) * 3;
+                bullet.vy = Math.sin(angle) * 3;
                 bullet.update = function (p, d) {
                     this.x += this.vx * d;
                     this.y += this.vy * d;

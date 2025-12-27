@@ -19,9 +19,11 @@ class SpawnManager {
         if (gameState.spawnInterval) clearInterval(gameState.spawnInterval);
 
         let spawnRate = 1000 - (gameState.difficultyMultiplier * 50);
-        if (gameState.level >= 10) spawnRate = 1000 - (gameState.difficultyMultiplier * 100);
-        if (gameState.level >= 20) spawnRate = 1000 - (gameState.difficultyMultiplier * 150);
-        if (gameState.level >= 30) spawnRate = 1000 - (gameState.difficultyMultiplier * 200);
+        if (gameState.level >= 10) spawnRate = 1000 - (gameState.difficultyMultiplier * 70);
+        if (gameState.level >= 20) spawnRate = 1000 - (gameState.difficultyMultiplier * 100);
+        if (gameState.level >= 30) spawnRate = 1000 - (gameState.difficultyMultiplier * 150);
+        if (gameState.level >= 40) spawnRate = 1000 - (gameState.difficultyMultiplier * 200);
+        if (gameState.level >= 45) spawnRate = 1000 - (gameState.difficultyMultiplier * 300);
         if (spawnRate < 200) spawnRate = 200;
 
         gameState.spawnInterval = setInterval(() => {
@@ -30,8 +32,8 @@ class SpawnManager {
             let type = ENEMY_TYPES.BASIC;
             const rand = Math.random();
 
-            if (gameState.difficultyMultiplier > 5 && rand < 0.04 && gameState.activeHealerCount < 4) type = ENEMY_TYPES.HEALER; // Rare spawn (Max 4)
-            else if (gameState.difficultyMultiplier > 4 && rand < 0.15 && gameState.activeSpawnerCount < 4) type = ENEMY_TYPES.SPAWNER;
+            if (gameState.difficultyMultiplier > 5 && rand < 0.04 && gameState.activeHealerCount < 3) type = ENEMY_TYPES.HEALER; // Rare spawn (Max 3)
+            else if (gameState.difficultyMultiplier > 4 && rand < 0.15 && gameState.activeSpawnerCount < 3) type = ENEMY_TYPES.SPAWNER;
             else if (gameState.difficultyMultiplier > 3 && rand < 0.25) type = ENEMY_TYPES.SPLITTER;
             else if (gameState.difficultyMultiplier > 2 && rand < 0.35) type = ENEMY_TYPES.TANK;
             else if (gameState.difficultyMultiplier > 3 && rand < 0.5) type = ENEMY_TYPES.DASHER;

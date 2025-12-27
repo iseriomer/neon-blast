@@ -2,7 +2,7 @@
 
 const BOSS_2_DATA = {
     name: 'NEXUS PRIME',
-    hp: 17000,
+    hp: 10000,
     score: 5000,
     colors: ['#00ffff', '#ff0055', '#ffff00']
 };
@@ -205,7 +205,7 @@ class BossNexus extends BossBase {
         }
         else if (this.currentAttack === 'VOID_ZONES') {
             this.targetPos.forEach(pos => {
-                const zone = enemyPool.get(pos.x, pos.y, ENEMY_TYPES.TANK, 28);
+                const zone = enemyPool.get(pos.x, pos.y, ENEMY_TYPES.TANK, 20);
                 zone.radius = 10;
                 zone.color = '#220033';
                 zone.vx = 0; zone.vy = 0;
