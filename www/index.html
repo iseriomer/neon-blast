@@ -192,6 +192,9 @@
     <!-- Load Firebase Leaderboard -->
     <script type="module" src="game/leaderboard.js"></script>
 
+    <!-- CAPACITOR RUNTIME - Load first for mobile builds -->
+    <script src="capacitor.js"></script>
+
     <!-- OPTIMIZATION NOTE: Load order is critical! -->
     <!-- 1. Constants and utilities first -->
     <script src="game/constants.js"></script>

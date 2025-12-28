@@ -962,7 +962,7 @@ document.getElementById('start-btn').addEventListener('click', () => {
     initGame();
 });
 
-// WINDOW BLUR - AUTO PAUSE & SAVE
+// WINDOW BLUR - AUTO PAUSE & SAVE (for web)
 window.addEventListener('blur', () => {
     if (gameState.gameActive && !gameState.isPaused && !gameState.isDying) {
         togglePause();
@@ -973,6 +973,35 @@ window.addEventListener('blur', () => {
         }
     }
 });
+
+// CAPACITOR APP - AUTO PAUSE ON BACKGROUND (for mobile)
+// Using global Capacitor API (loaded via CDN)
+if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+    const CapApp = window.Capacitor.Plugins.App;
+
+    // Listen for app going to background (pause event)
+    CapApp.addListener('pause', () => {
+        if (gameState.gameActive && !gameState.isPaused && !gameState.isDying) {
+            togglePause();
+
+            // Suspend Audio immediately
+            if (musicManager && musicManager.audioCtx) {
+                musicManager.audioCtx.suspend();
+            }
+        }
+    });
+
+    // Listen for app returning to foreground (resume event)
+    // No need to auto-resume, user will click Resume button from pause menu
+    CapApp.addListener('resume', () => {
+        // Resume audio context if it was suspended
+        // But keep the game paused until user clicks Resume
+        if (musicManager && musicManager.audioCtx && musicManager.audioCtx.state === 'suspended') {
+            // Only resume audio context if game is not paused
+            // Audio will resume when user clicks Resume button via togglePause
+        }
+    });
+}
 document.getElementById('restart-btn').addEventListener('click', () => {
     musicManager.play();
     initGame();
