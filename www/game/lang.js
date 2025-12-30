@@ -100,6 +100,22 @@ const Localization = {
             perk_electric_aura_rate_desc: "Electric Aura ticks 20% faster.",
             perk_electric_aura_area_title: "Static Field",
             perk_electric_aura_area_desc: "Increases Electric Aura range by 25%.",
+
+            // Leaderboard
+            lb_enter_name: "Please enter a name!",
+            lb_saving: "Saving...",
+            lb_score_saved: "Score saved!",
+            lb_error: "Error!",
+            lb_no_scores: "No scores yet. Be the first!",
+            lb_no_scores_found: "No scores found.",
+            lb_connection_error: "Connection error! Check console.",
+            lb_list_error: "List error or Index missing",
+
+            // Google Play Download
+            google_play_title: "GET THE MOBILE VERSION!",
+            google_play_desc: "Download Neon Blast on Google Play for the leaderboard feature and a more balanced gameplay experience!",
+            google_play_reason: "The web version is easier to play than mobile, making the leaderboard unfair. Compete on equal ground!",
+            google_play_btn: "DOWNLOAD ON GOOGLE PLAY",
         },
         tr: {
             // UI
@@ -198,6 +214,22 @@ const Localization = {
             perk_electric_aura_rate_desc: "Elektrik Aurası %20 daha hızlı hasar verir.",
             perk_electric_aura_area_title: "Statik Alan",
             perk_electric_aura_area_desc: "Elektrik Aurası menzilini %25 artırır.",
+
+            // Leaderboard
+            lb_enter_name: "Lütfen bir isim gir!",
+            lb_saving: "Kaydediliyor...",
+            lb_score_saved: "Skor kaydedildi!",
+            lb_error: "Hata!",
+            lb_no_scores: "Henüz skor yok. İlk sen ol!",
+            lb_no_scores_found: "Skor bulunamadı.",
+            lb_connection_error: "Bağlantı hatası! Konsolu kontrol et.",
+            lb_list_error: "Liste çekilemedi veya Index eksik",
+
+            // Google Play İndirme
+            google_play_title: "MOBİL SÜRÜMÜ EDİN!",
+            google_play_desc: "Lider tablosu özelliği ve daha dengeli bir oynanış deneyimi için Neon Blast'i Google Play'den indirin!",
+            google_play_reason: "Web sürümü mobilden daha kolay, bu da lider tablosunu adaletsiz yapıyor. Eşit şartlarda yarışın!",
+            google_play_btn: "GOOGLE PLAY'DEN İNDİR",
         },
         fr: {
             // UI
@@ -286,6 +318,32 @@ const Localization = {
             perk_laser_damage_desc: "Augmente les dégâts du Laser Orbital de 100%.",
             perk_orbitals_desc_dynamic: "(Actuel : {value} protection) + 1 Bouclier Orbital.",
             perk_split_shot_desc_dynamic: "(Actuel : {value} fragments) + 1 Fragment à l'impact.",
+
+            // Electric Aura
+            perk_electric_aura_title: "Aura Électrique",
+            perk_electric_aura_desc: "Vous entoure d'un champ électrique nuisible.",
+            perk_electric_aura_damage_title: "Haute Tension",
+            perk_electric_aura_damage_desc: "Augmente les dégâts de l'Aura Électrique de 50%.",
+            perk_electric_aura_rate_title: "Décharge Rapide",
+            perk_electric_aura_rate_desc: "L'Aura Électrique agit 20% plus vite.",
+            perk_electric_aura_area_title: "Champ Statique",
+            perk_electric_aura_area_desc: "Augmente la portée de l'Aura Électrique de 25%.",
+
+            // Leaderboard
+            lb_enter_name: "Veuillez entrer un nom!",
+            lb_saving: "Enregistrement...",
+            lb_score_saved: "Score enregistré!",
+            lb_error: "Erreur!",
+            lb_no_scores: "Pas encore de scores. Soyez le premier!",
+            lb_no_scores_found: "Aucun score trouvé.",
+            lb_connection_error: "Erreur de connexion! Vérifiez la console.",
+            lb_list_error: "Erreur de liste ou Index manquant",
+
+            // Téléchargement Google Play
+            google_play_title: "OBTENEZ LA VERSION MOBILE!",
+            google_play_desc: "Téléchargez Neon Blast sur Google Play pour le classement et une expérience de jeu plus équilibrée!",
+            google_play_reason: "La version web est plus facile que mobile, rendant le classement injuste. Concourez à armes égales!",
+            google_play_btn: "TÉLÉCHARGER SUR GOOGLE PLAY",
         },
         es: {
             // UI
@@ -384,6 +442,22 @@ const Localization = {
             perk_electric_aura_rate_desc: "El Aura Eléctrica actúa un 20% más rápido.",
             perk_electric_aura_area_title: "Campo Estático",
             perk_electric_aura_area_desc: "Aumenta el rango del Aura Eléctrica en un 25%.",
+
+            // Leaderboard
+            lb_enter_name: "¡Por favor ingresa un nombre!",
+            lb_saving: "Guardando...",
+            lb_score_saved: "¡Puntuación guardada!",
+            lb_error: "¡Error!",
+            lb_no_scores: "Aún no hay puntuaciones. ¡Sé el primero!",
+            lb_no_scores_found: "No se encontraron puntuaciones.",
+            lb_connection_error: "¡Error de conexión! Revisa la consola.",
+            lb_list_error: "Error de lista o falta índice",
+
+            // Descarga de Google Play
+            google_play_title: "¡CONSIGUE LA VERSIÓN MÓVIL!",
+            google_play_desc: "¡Descarga Neon Blast en Google Play para la clasificación y una experiencia de juego más equilibrada!",
+            google_play_reason: "La versión web es más fácil que la móvil, haciendo la clasificación injusta. ¡Compite en igualdad de condiciones!",
+            google_play_btn: "DESCARGAR EN GOOGLE PLAY",
         },
         de: {
             // UI
@@ -482,6 +556,22 @@ const Localization = {
             perk_electric_aura_rate_desc: "Elektrische Aura tickt 20% schneller.",
             perk_electric_aura_area_title: "Statisches Feld",
             perk_electric_aura_area_desc: "Erhöht die Reichweite der Elektrischen Aura um 25%.",
+
+            // Leaderboard
+            lb_enter_name: "Bitte gib einen Namen ein!",
+            lb_saving: "Speichern...",
+            lb_score_saved: "Punktzahl gespeichert!",
+            lb_error: "Fehler!",
+            lb_no_scores: "Noch keine Punktzahlen. Sei der Erste!",
+            lb_no_scores_found: "Keine Punktzahlen gefunden.",
+            lb_connection_error: "Verbindungsfehler! Überprüfe die Konsole.",
+            lb_list_error: "Listenfehler oder Index fehlt",
+
+            // Google Play Download
+            google_play_title: "HOLEN SIE SICH DIE MOBILE VERSION!",
+            google_play_desc: "Laden Sie Neon Blast auf Google Play für die Bestenliste und ein ausgewogeneres Spielerlebnis herunter!",
+            google_play_reason: "Die Webversion ist einfacher als mobil, was die Bestenliste unfair macht. Tritt unter gleichen Bedingungen an!",
+            google_play_btn: "AUF GOOGLE PLAY HERUNTERLADEN",
         },
         it: {
             // UI
@@ -580,6 +670,22 @@ const Localization = {
             perk_electric_aura_rate_desc: "L'Aura Elettrica agisce il 20% più velocemente.",
             perk_electric_aura_area_title: "Campo Statico",
             perk_electric_aura_area_desc: "Aumenta il raggio dell'Aura Elettrica del 25%.",
+
+            // Leaderboard
+            lb_enter_name: "Per favore inserisci un nome!",
+            lb_saving: "Salvataggio...",
+            lb_score_saved: "Punteggio salvato!",
+            lb_error: "Errore!",
+            lb_no_scores: "Nessun punteggio ancora. Sii il primo!",
+            lb_no_scores_found: "Nessun punteggio trovato.",
+            lb_connection_error: "Errore di connessione! Controlla la console.",
+            lb_list_error: "Errore lista o Indice mancante",
+
+            // Download Google Play
+            google_play_title: "OTTIENI LA VERSIONE MOBILE!",
+            google_play_desc: "Scarica Neon Blast su Google Play per la classifica e un'esperienza di gioco più equilibrata!",
+            google_play_reason: "La versione web è più facile del mobile, rendendo la classifica ingiusta. Competi ad armi pari!",
+            google_play_btn: "SCARICA SU GOOGLE PLAY",
         }
     },
 

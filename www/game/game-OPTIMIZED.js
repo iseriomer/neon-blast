@@ -870,23 +870,16 @@ function gameOver() {
     window.lastGameScore = gameState.score;
     window.lastGameLevel = gameState.level;
 
-    document.getElementById('submit-score-btn').style.display = 'inline-block';
-    document.getElementById('submit-score-btn').disabled = false;
-    document.getElementById('submit-score-btn').innerText = Localization.t('save_score');
-    document.getElementById('player-name-input').style.display = 'inline-block';
-
-    if (window.fetchLeaderboard) {
-        window.fetchLeaderboard();
-    }
+    // Note: Leaderboard input elements removed for web version
+    // Users are directed to download mobile app for leaderboard
 
     gameOverScreen.classList.remove('hidden');
     // NEW: Animate main buttons on show
     if (typeof animateButton === 'function') {
-        animateButton(document.getElementById('submit-score-btn'));
-        //wait 0.5 sec.
-        setTimeout(() => {
-            animateButton(document.getElementById('restart-btn'));
-        }, 40);
+        const restartBtn = document.getElementById('restart-btn');
+        if (restartBtn) {
+            animateButton(restartBtn);
+        }
     }
 }
 

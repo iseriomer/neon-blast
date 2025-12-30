@@ -90,7 +90,7 @@ const ALL_PERKS = [
         theme: '#aa44ff',
         apply: (stats) => {
             stats.orbitalSizeMultiplier *= 1.3;
-            stats.orbitalDamage *= 2;
+            stats.orbitalDamage *= 1.5;
         }
     },
     {

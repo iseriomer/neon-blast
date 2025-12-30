@@ -73,10 +73,10 @@ function updateFilterStyles() {
 
 // Skoru Veritabanına Kaydet
 async function saveScoreToDB(name, score, level) {
-    if (!name.trim()) return alert("Lütfen bir isim gir!");
+    if (!name.trim()) return alert(Localization.t('lb_enter_name'));
 
     submitBtn.disabled = true;
-    submitBtn.innerText = "Kaydediliyor...";
+    submitBtn.innerText = Localization.t('lb_saving');
 
     try {
         await addDoc(scoresCollection, {
@@ -90,10 +90,10 @@ async function saveScoreToDB(name, score, level) {
         await loadLeaderboard(currentTimeframe);
         submitBtn.style.display = 'none';
         nameInput.style.display = 'none';
-        alert("Skor kaydedildi!");
+        alert(Localization.t('lb_score_saved'));
     } catch (e) {
         console.error("Hata:", e);
-        submitBtn.innerText = "Hata!";
+        submitBtn.innerText = Localization.t('lb_error');
         submitBtn.disabled = false;
     }
 }
@@ -159,7 +159,7 @@ async function loadLeaderboard(timeframe = 'all') {
             el.innerHTML = '';
 
             if (scores.length === 0) {
-                el.innerHTML = '<li>No scores yet. Be the first!</li>';
+                el.innerHTML = `<li>${Localization.t('lb_no_scores')}</li>`;
                 return;
             }
 
@@ -183,7 +183,7 @@ async function loadLeaderboard(timeframe = 'all') {
         });
 
     } catch (e) {
-        console.error("Liste çekilemedi veya Index eksik:", e);
+        console.error(Localization.t('lb_list_error') + ":", e);
 
         // Fallback for missing index: Fetch by date then sort client-side (inefficient for large data but works)
         if (e.code === 'failed-precondition' && timeframe !== 'all') {
@@ -205,7 +205,7 @@ async function loadLeaderboard(timeframe = 'all') {
                 listElements.forEach(el => {
                     if (!el) return;
                     el.innerHTML = '';
-                    if (fallbackScores.length === 0) { el.innerHTML = '<li>No scores found.</li>'; return; }
+                    if (fallbackScores.length === 0) { el.innerHTML = `<li>${Localization.t('lb_no_scores_found')}</li>`; return; }
                     fallbackScores.forEach((data, index) => {
                         const li = document.createElement('li');
                         li.innerHTML = `<span>#${index + 1} ${data.name}</span><span>${data.score}</span>`;
@@ -219,7 +219,7 @@ async function loadLeaderboard(timeframe = 'all') {
         }
 
         listElements.forEach(el => {
-            if (el) el.innerHTML = '<li>Connection error! Check console.</li>';
+            if (el) el.innerHTML = `<li>${Localization.t('lb_connection_error')}</li>`;
         });
     }
 }
