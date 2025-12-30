@@ -2,7 +2,7 @@
 
 const BOSS_4_DATA = {
     name: 'THE SWARM',
-    hp: 3500,
+    hp: 2800,
     score: 8000,
     colors: {
         hive: '#00ff88',

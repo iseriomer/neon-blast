@@ -478,8 +478,29 @@ class BossChronos extends BossBase {
     attackClockBomb() {
         // Delayed explosion zones
         for (let i = 0; i < 5; i++) {
-            const zoneX = Math.random() * (CANVAS.width - 200) + 100;
-            const zoneY = Math.random() * (CANVAS.height - 200) + 100;
+            let zoneX, zoneY;
+            let attempts = 0;
+            const minDistanceFromPlayer = 150; // Safe distance from player
+
+            // Find a safe position away from the player
+            do {
+                zoneX = Math.random() * (CANVAS.width - 200) + 100;
+                zoneY = Math.random() * (CANVAS.height - 200) + 100;
+                attempts++;
+
+                // If we can't find a good spot after 20 tries, just use what we have
+                if (attempts > 20) break;
+
+                // Check distance from player
+                if (typeof player !== 'undefined') {
+                    const distToPlayer = Math.hypot(player.x - zoneX, player.y - zoneY);
+                    if (distToPlayer >= minDistanceFromPlayer) {
+                        break; // Found a safe spot
+                    }
+                } else {
+                    break; // No player object, just use the position
+                }
+            } while (true);
 
             this.timeZones.push({
                 x: zoneX,
