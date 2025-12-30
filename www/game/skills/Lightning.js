@@ -66,13 +66,28 @@ function updateAndDrawLightnings(dt) {
         }
         CTX.strokeStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha * 0.6})`; // Custom Color Glow
         CTX.lineWidth = 8;
-        // ShadowBlur pahalıdır ama sadece yıldırım için değer
+
+        // Offset glow (much faster than shadowBlur)
         if (lightnings.length < 10) {
-            CTX.shadowBlur = 15;
-            CTX.shadowColor = bolt.color;
+            // Draw offset layers for glow effect
+            CTX.globalAlpha = alpha * 0.2;
+            for (let offset = 1; offset <= 2; offset++) {
+                CTX.save();
+                CTX.translate(offset, offset);
+                CTX.beginPath();
+                CTX.moveTo(bolt.segments[0].x, bolt.segments[0].y);
+                for (let p = 1; p < bolt.segments.length; p++) {
+                    CTX.lineTo(bolt.segments[p].x, bolt.segments[p].y);
+                }
+                CTX.strokeStyle = bolt.color;
+                CTX.lineWidth = 10;
+                CTX.stroke();
+                CTX.restore();
+            }
+            CTX.globalAlpha = 1;
         }
+
         CTX.stroke();
-        CTX.shadowBlur = 0; // Kapatmayı unutma
 
         // 2. Katman: İnce, beyaz çekirdek (Core)
         CTX.beginPath();

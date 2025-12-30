@@ -181,15 +181,22 @@ function updateAndDrawBlackHole(dt) {
 
     // 3. PHOTON RING (Foton Halkası)
     // Olay ufkunun hemen dışındaki aşırı parlak ince halka
+
+    // Glow layer (gradient is faster than shadowBlur)
+    CTX.beginPath();
+    CTX.arc(0, 0, visualRadius * 1.05, 0, Math.PI * 2);
+    CTX.strokeStyle = 'rgba(0, 255, 255, 0.5)';
+    CTX.lineWidth = 8;
+    CTX.globalAlpha = 0.6;
+    CTX.stroke();
+
+    // Main bright ring
     CTX.beginPath();
     CTX.arc(0, 0, visualRadius * 1.05, 0, Math.PI * 2);
     CTX.strokeStyle = '#ffffff';
     CTX.lineWidth = 3;
-    CTX.shadowBlur = 20;
-    CTX.shadowColor = '#00ffff';
     CTX.globalAlpha = 1;
     CTX.stroke();
-    CTX.shadowBlur = 0; // Reset
 
     // 4. EVENT HORIZON (Olay Ufku) - Mutlak Siyah
     CTX.globalCompositeOperation = 'source-over';

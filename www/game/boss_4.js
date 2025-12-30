@@ -1,4 +1,4 @@
-// game/boss_4.js - THE SWARM - Hive Mind Boss (Level 20)
+// game/boss_4.js - THE SWARM - Hive Mind Boss (Level 20) undamagable yapmak lazım 5 tane drone atağı başlayınca.
 
 const BOSS_4_DATA = {
     name: 'THE SWARM',
@@ -477,6 +477,9 @@ class BossSwarm extends BossBase {
 
     takeDamage(amount) {
         if (this.state === 'INTRO') return;
+
+        // Invulnerable during split cores (when off-screen)
+        if (this.isSplit) return;
 
         // Shield drones block damage
         const shieldDrones = this.drones.filter(d => d.isShieldDrone && d.swarmType === 'orbit');

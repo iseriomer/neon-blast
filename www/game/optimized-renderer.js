@@ -27,7 +27,7 @@ const RenderOptimizer = {
             (particlePool?.getActiveCount() || 0);
 
         // Disable shadows when > 200 objects
-        this.useShadows = totalObjects < 200;
+        this.useShadows = totalObjects < 20000;
     },
 
     // Helper to clear an object's arrays without deleting keys (Pooling)
@@ -53,27 +53,38 @@ const RenderOptimizer = {
             this._projGroups[proj.color].push(proj);
         }
 
-        // 3. Draw each color group
+        // 3. Draw each color group with gradient glow (MUCH faster than shadowBlur)
         for (const color in this._projGroups) {
             const group = this._projGroups[color];
             if (group.length === 0) continue;
 
+            // Draw glow layer first (only for small groups)
+            if (this.useShadows && group.length < 5000) {
+                for (let i = 0; i < group.length; i++) {
+                    const proj = group[i];
+                    const gradient = CTX.createRadialGradient(
+                        proj.x, proj.y, proj.radius * 0.5,
+                        proj.x, proj.y, proj.radius * 1.7
+                    );
+                    gradient.addColorStop(0, color);
+                    gradient.addColorStop(1, 'rgba(0,0,0,0)');
+
+                    CTX.fillStyle = gradient;
+                    CTX.beginPath();
+                    CTX.arc(proj.x, proj.y, proj.radius * 1.7, 0, Math.PI * 2);
+                    CTX.fill();
+                }
+            }
+
+            // Draw main projectiles
             CTX.beginPath();
             for (let i = 0; i < group.length; i++) {
                 const proj = group[i];
                 CTX.moveTo(proj.x + proj.radius, proj.y);
                 CTX.arc(proj.x, proj.y, proj.radius, 0, Math.PI * 2);
             }
-
             CTX.fillStyle = color;
-
-            if (this.useShadows && group.length < 50) {
-                CTX.shadowBlur = 5;
-                CTX.shadowColor = color;
-            }
-
             CTX.fill();
-            CTX.shadowBlur = 0;
         }
     },
 
@@ -245,7 +256,7 @@ const RenderOptimizer = {
             return;
         }
 
-        // Customized Spawner Renderer (Optimized)
+        // Customized Spawner Renderer (Optimized with gradient glow)
         if (enemy.type.name === 'Spawner') {
             CTX.save();
             CTX.translate(enemy.x, enemy.y);
@@ -254,19 +265,39 @@ const RenderOptimizer = {
             const time = Date.now() / 1000;
             const pulse = 1 + Math.sin(time * 3) * 0.1;
 
-            // 1. Outer Hexagon
+            // 1. Outer Hexagon with gradient glow
             CTX.save();
             CTX.rotate(time * 0.5);
-            CTX.strokeStyle = enemy.type.color;
-            CTX.lineWidth = 3;
-            if (this.useShadows) {
-                CTX.shadowBlur = 10;
-                CTX.shadowColor = enemy.type.color;
-            }
 
-            CTX.beginPath();
             const sides = 6;
             const r = enemy.radius * 1.2;
+
+            // Draw glow first (gradient is much faster than shadowBlur)
+            if (this.useShadows) {
+                const gradient = CTX.createRadialGradient(0, 0, r * 0.8, 0, 0, r * 1.5);
+                gradient.addColorStop(0, enemy.type.color);
+                gradient.addColorStop(1, 'rgba(0,0,0,0)');
+                CTX.strokeStyle = gradient;
+                CTX.lineWidth = 6;
+                CTX.globalAlpha = 0.5; // 50% opacity for glow
+
+                CTX.beginPath();
+                for (let i = 0; i < sides; i++) {
+                    const angle = (i / sides) * Math.PI * 2;
+                    const x = Math.cos(angle) * r;
+                    const y = Math.sin(angle) * r;
+                    if (i === 0) CTX.moveTo(x, y);
+                    else CTX.lineTo(x, y);
+                }
+                CTX.closePath();
+                CTX.stroke();
+                CTX.globalAlpha = 1; // Reset
+            }
+
+            // Draw main hexagon
+            CTX.strokeStyle = enemy.type.color;
+            CTX.lineWidth = 3;
+            CTX.beginPath();
             for (let i = 0; i < sides; i++) {
                 const angle = (i / sides) * Math.PI * 2;
                 const x = Math.cos(angle) * r;
@@ -321,15 +352,26 @@ const RenderOptimizer = {
             }
         }
 
-        CTX.fillStyle = enemy.freezeTimer > 0 ? '#00ffff' : enemy.color;
+        const fillColor = enemy.freezeTimer > 0 ? '#00ffff' : enemy.color;
 
+        // Draw glow layer with gradient (faster than shadowBlur)
         if (this.useShadows && enemyPool.getActiveCount() < 20) {
-            CTX.shadowBlur = 10;
-            CTX.shadowColor = enemy.color;
+            const gradient = CTX.createRadialGradient(
+                enemy.x, enemy.y, enemy.radius * 0.5,
+                enemy.x, enemy.y, enemy.radius * 1.7
+            );
+            gradient.addColorStop(0, fillColor);
+            gradient.addColorStop(1, 'rgba(0,0,0,0)');
+
+            CTX.fillStyle = gradient;
+            CTX.beginPath();
+            CTX.arc(enemy.x, enemy.y, enemy.radius * 1.7, 0, Math.PI * 2);
+            CTX.fill();
         }
 
+        // Draw main enemy
+        CTX.fillStyle = fillColor;
         CTX.fill();
-        CTX.shadowBlur = 0;
 
         // --- NEW: Neon Life Arc (Health Visualization) ---
         // Sadece canı azalmış düşmanlarda göster
@@ -365,7 +407,19 @@ const RenderOptimizer = {
             CTX.lineWidth = 3;
             CTX.stroke();
 
-            // Can Arkı
+            // Can Arkı - glow layer first (gradient)
+            if (this.useShadows) {
+                CTX.globalAlpha = 0.25; // 25% opacity for glow
+                CTX.beginPath();
+                CTX.arc(enemy.x, enemy.y, arcRadius, Math.PI * 0.8, Math.PI * 0.8 + (Math.PI * 1.4 * hpPercent));
+                CTX.strokeStyle = arcColor;
+                CTX.lineWidth = 6;
+                CTX.lineCap = 'round';
+                CTX.stroke();
+                CTX.globalAlpha = 1; // Reset
+            }
+
+            // Can Arkı - main layer
             const startAngle = Math.PI * 0.8;
             const endAngle = Math.PI * 0.8 + (Math.PI * 1.4 * hpPercent); // 252 derecelik yay
 
@@ -374,14 +428,8 @@ const RenderOptimizer = {
             CTX.strokeStyle = arcColor;
             CTX.lineWidth = 3;
             CTX.lineCap = 'round';
-
-            // Glow efekti (Sadece high quality modunda)
-            if (this.useShadows) {
-                CTX.shadowBlur = 5;
-                CTX.shadowColor = arcColor;
-            }
-
             CTX.stroke();
+
             CTX.restore();
         }
     },
@@ -450,14 +498,81 @@ const RenderOptimizer = {
         const totalEnemies = enemyPool?.getActiveCount() || 0;
 
         for (const [key, batch] of batches) {
-            CTX.fillStyle = batch.color;
+            // Draw glow layer first - shape-specific for Speedster/Tank
+            if (this.useShadows && batch.enemies.length < 500 && totalEnemies < 500) {
+                // Speedster (Triangle) - layered triangle glow
+                if (batch.type.name === 'Speedster') {
+                    const layers = 5; // Number of glow layers for smooth gradient
+                    for (let layer = layers; layer >= 0; layer--) {
+                        const scale = 1 + (layer / layers) * 0.2; // 1.0 to 1.2 smooth scale
+                        const alpha = (1 - layer / layers) * 0.3; // Fade out as we go outward
 
-            // Enable shadows only for small batches
-            if (this.useShadows && batch.enemies.length < 20 && totalEnemies < 50) {
-                CTX.shadowBlur = 10;
-                CTX.shadowColor = batch.color;
+                        CTX.globalAlpha = alpha;
+                        CTX.fillStyle = batch.color;
+                        CTX.beginPath();
+
+                        for (const enemy of batch.enemies) {
+                            const x = enemy.x | 0;
+                            const y = enemy.y | 0;
+                            const r = (enemy.radius | 0) * scale;
+
+                            // Triangle shape
+                            CTX.moveTo(x + r, y);
+                            CTX.lineTo(x - r, y + r);
+                            CTX.lineTo(x - r, y - r);
+                            CTX.closePath();
+                        }
+                        CTX.fill();
+                    }
+                    CTX.globalAlpha = 1;
+                }
+                // Tank (Square) - layered square glow
+                else if (batch.type.name === 'Tank') {
+                    const layers = 4; // Fewer layers for tighter glow
+                    for (let layer = layers; layer >= 0; layer--) {
+                        const scale = 1 + (layer / layers) * 0.09; // 1.0 to 1.09 smooth scale
+                        const alpha = (1 - layer / layers) * 0.3; // Fade out as we go outward
+
+                        CTX.globalAlpha = alpha;
+                        CTX.fillStyle = batch.color;
+                        CTX.beginPath();
+
+                        for (const enemy of batch.enemies) {
+                            const x = enemy.x | 0;
+                            const y = enemy.y | 0;
+                            const r = (enemy.radius | 0) * scale;
+
+                            // Square shape
+                            CTX.rect(x - r, y - r, r * 2, r * 2);
+                        }
+                        CTX.fill();
+                    }
+                    CTX.globalAlpha = 1;
+                }
+                // Other enemies (circles) - keep radial gradient
+                else {
+                    for (const enemy of batch.enemies) {
+                        const x = enemy.x | 0;
+                        const y = enemy.y | 0;
+                        const r = enemy.radius | 0;
+
+                        const gradient = CTX.createRadialGradient(
+                            x, y, r * 0.5,
+                            x, y, r * 1.7
+                        );
+                        gradient.addColorStop(0, batch.color);
+                        gradient.addColorStop(1, 'rgba(0,0,0,0)');
+
+                        CTX.fillStyle = gradient;
+                        CTX.beginPath();
+                        CTX.arc(x, y, r * 1.7, 0, Math.PI * 2);
+                        CTX.fill();
+                    }
+                }
             }
 
+            // Draw main enemies
+            CTX.fillStyle = batch.color;
             CTX.beginPath();
 
             // Draw all enemies of this type in one path
@@ -467,7 +582,7 @@ const RenderOptimizer = {
                 const r = enemy.radius | 0;
 
                 // Use simple shapes for high enemy counts
-                if (totalEnemies > 30) {
+                if (totalEnemies > 500) {
                     CTX.moveTo(x + r, y);
                     CTX.arc(x, y, r, 0, Math.PI * 2);
                 } else {
@@ -491,11 +606,10 @@ const RenderOptimizer = {
             }
 
             CTX.fill();
-            CTX.shadowBlur = 0;
         }
 
         // Draw health arcs in second pass (revised: allow drawing even without shadows, and up to higher enemy counts)
-        if (totalEnemies < 200) {
+        if (totalEnemies < 500) {
             this.drawHealthArcs(regularEnemies);
         }
     },
