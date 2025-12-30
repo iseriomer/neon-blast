@@ -3,7 +3,7 @@
 
 const BOSS_3_DATA = {
     name: 'THE OMEGA',
-    hp: 120000,
+    hp: 6000,
     score: 100000, // It's the final boss
     phases: [
         { threshold: 0.5, color: '#ffffff', name: 'UNLEASHED' },
@@ -119,7 +119,7 @@ class BossOmega extends BossBase {
             player.vy = 0;
         }
 
-        document.getElementById('boss-name').innerText = "??? DETECTING SINGULARITY ???";
+        document.getElementById('boss-name').innerText = "???";
         document.getElementById('boss-name').style.color = '#888';
     }
 
@@ -227,7 +227,7 @@ class BossOmega extends BossBase {
         this.radius = 120; // Bigger
         this.eyeOpenness = 1.0;
 
-        document.getElementById('boss-name').innerText = "Ω T H E   E N D Ω";
+        document.getElementById('boss-name').innerText = "Ω T H E E N D Ω";
         document.getElementById('boss-name').style.color = BOSS_3_DATA.colors.danger;
 
         // Push player to bottom center and LOCK them (soft lock or hard lock?)
@@ -524,7 +524,7 @@ class BossOmega extends BossBase {
     }
 
     startDoomsday() {
-        document.getElementById('boss-name').innerText = "Ω DOOMSDAY IMMINENT Ω";
+        document.getElementById('boss-name').innerText = "Ω";
         if (window.triggerHitstop) triggerHitstop(60);
         createExplosion(this.x, this.y, 500, 0);
         // Summon 4 Heavy Minions to protect connection
@@ -712,7 +712,7 @@ class BossOmega extends BossBase {
             this.hp = this.maxHp;
             this.omegaPhase = 2;
             this.eyeOpenness = 0.7;
-            document.getElementById('boss-name').innerText = "Ω REBORN - PHASE II Ω";
+            document.getElementById('boss-name').innerText = "Ω REBORN Ω";
             document.getElementById('boss-name').style.color = '#00ffff';
 
             // Yeni pattern: AIM TEST başlat
@@ -735,7 +735,7 @@ class BossOmega extends BossBase {
         this.aimTestTimer = 0;
         this.aimTestTargets = [];
 
-        document.getElementById('boss-name').innerText = "⚠️ OMEGA-REBORN ⚠️";
+        document.getElementById('boss-name').innerText = "OMEGA-REBORN";
 
         // 6 hedef spawn et - bunlar öldürülmezse boss invincible kalır
         for (let i = 0; i < 6; i++) {
@@ -799,17 +799,17 @@ class BossOmega extends BossBase {
         this.aimTestTargets = [];
 
         if (success) {
-            document.getElementById('boss-name').innerText = "✓ AIM TEST PASSED ✓";
+            document.getElementById('boss-name').innerText = "OMEGA UNLEASHED";
             if (window.playSound) playSound('powerup');
             createExplosion(this.x, this.y, 300, 0);
 
             // Boss artık hasar alabilir!
             setTimeout(() => {
-                document.getElementById('boss-name').innerText = "THE OMEGA - UNLEASHED";
+                document.getElementById('boss-name').innerText = "OMEGA UNLEASHED";
             }, 2000);
         } else {
             // BAŞARISIZ - Boss fulll heal + agresif mod
-            document.getElementById('boss-name').innerText = "✗ FAILED - OMEGA ENRAGED ✗";
+            document.getElementById('boss-name').innerText = "OMEGA ENRAGED";
             this.hp = this.maxHp;
             this.updateHealthBar();
             if (window.playSound) playSound('alert');
@@ -841,7 +841,7 @@ class BossOmega extends BossBase {
         this.dpsCheckStartTime = Date.now();
         this.dpsCheckDamageDealt = 0;
 
-        document.getElementById('boss-name').innerText = "⚡ DPS CHECK - 10 SECONDS ⚡";
+        document.getElementById('boss-name').innerText = "OMEGA UNLEASHED";
 
         // Boss sabit konumda durur
         this.state = 'DPS_CHECK';
@@ -877,7 +877,7 @@ class BossOmega extends BossBase {
 
         // Zamanlayıcı göster
         const secondsLeft = Math.ceil(timeLeft / 1000);
-        document.getElementById('boss-name').innerText = `⚡ DPS CHECK: ${secondsLeft}s - DMG: ${this.dpsCheckDamageDealt.toFixed(0)} ⚡`;
+        document.getElementById('boss-name').innerText = `OMEGA UNLEASHED`;
 
         // Süre doldu mu?
         if (timeLeft <= 0) {
@@ -894,14 +894,13 @@ class BossOmega extends BossBase {
 
         if (this.dpsCheckDamageDealt >= requiredDamage) {
             // BAŞARILI!
-            document.getElementById('boss-name').innerText = "✓ DPS CHECK PASSED ✓";
             if (window.playSound) playSound('powerup');
 
             // Boss stunned - 5 saniye boyunca çok hassas
             this.state = 'STUNNED';
             setTimeout(() => {
                 this.state = 'IDLE';
-                document.getElementById('boss-name').innerText = "Ω THE END Ω";
+                document.getElementById('boss-name').innerText = "Ω";
             }, 5000);
 
             // Tüm bariyerleri patlat
@@ -914,8 +913,6 @@ class BossOmega extends BossBase {
 
         } else {
             // BAŞARISIZ - OYUNCU ÖLDÜRÜLÜR!
-            document.getElementById('boss-name').innerText = "✗ DPS CHECK FAILED - INSTANT DEATH ✗";
-
             // Tüm bariyerler oyuncuya doğru fırlatılır
             omegaPool.getActive().forEach(e => {
                 if (e.type === 'dps_barrier') {

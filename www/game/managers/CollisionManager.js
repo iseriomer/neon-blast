@@ -286,8 +286,8 @@ class CollisionManager {
     // HELPER: Calculate projectile damage
     // ═══════════════════════════════════════════════════════════════════
     static calculateProjectileDamage(projectile) {
-        let damage = 20;
-        if (projectile.isSplit) damage = 10;
+        let damage = 1;
+        if (projectile.isSplit) damage = 0.5;
         if (gameState.playerStats.sniper) damage *= 2;
         return damage;
     }

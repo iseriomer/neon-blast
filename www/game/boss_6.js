@@ -2,7 +2,7 @@
 
 const BOSS_6_DATA = {
     name: 'VOID REAPER',
-    hp: 150000, // Ultimate boss HP
+    hp: 7500, // Ultimate boss HP
     score: 25000,
     colors: {
         phase1: '#6600ff', // Deep purple
@@ -70,7 +70,7 @@ class BossVoidReaper extends BossBase {
             player.y = CANVAS.height - 100;
         }
 
-        document.getElementById('boss-name').innerText = "⚠️ VOID ANOMALY DETECTED ⚠️";
+        document.getElementById('boss-name').innerText = "VOID ANOMALY";
         document.getElementById('boss-name').style.color = '#ff0000';
 
         console.log("🌌 VOID REAPER: THE END OF ALL THINGS 🌌");
@@ -207,7 +207,7 @@ class BossVoidReaper extends BossBase {
                 }
             }
         } else if (this.introTimer < 300) {
-            document.getElementById('boss-name').innerText = "⚫ VOID REAPER AWAKENS ⚫";
+            document.getElementById('boss-name').innerText = "VOID REAPER AWAKENS";
             document.getElementById('boss-name').style.color = '#6600ff';
 
             // Screen distortion effect
@@ -260,7 +260,7 @@ class BossVoidReaper extends BossBase {
             4: 'SINGULARITY'
         };
         const phaseName = phaseNames[phaseNum];
-        document.getElementById('boss-name').innerText = `⚫ VOID REAPER - ${phaseName} ⚫`;
+        document.getElementById('boss-name').innerText = `VOID REAPER - ${phaseName}`;
 
         createExplosion(this.x, this.y, 600, 0);
         if (window.playSound) playSound('powerup');
@@ -287,8 +287,8 @@ class BossVoidReaper extends BossBase {
                         this.y + Math.sin(angle) * 250,
                         ENEMY_TYPES.SPEEDSTER, 2.5
                     );
-                    enemy.hp *= 5;
-                    enemy.maxHp *= 5;
+                    enemy.hp *= 15;
+                    enemy.maxHp *= 15;
                     enemy.color = '#ff0033';
                     enemy.isDead = false;
                 }, i * 60);
@@ -379,8 +379,8 @@ class BossVoidReaper extends BossBase {
                     const angle = (i / count) * Math.PI * 2 + (ring * 0.2);
                     const enemy = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
                     enemy.radius = 11;
-                    enemy.hp = 40;
-                    enemy.maxHp = 40;
+                    enemy.hp = 120;
+                    enemy.maxHp = 120;
                     enemy.color = '#6600ff';
                     enemy.isDead = false;
 
@@ -421,8 +421,8 @@ class BossVoidReaper extends BossBase {
                     ENEMY_TYPES.BASIC, 1
                 );
                 enemy.radius = 12;
-                enemy.hp = 50;
-                enemy.maxHp = 50;
+                enemy.hp = 150;
+                enemy.maxHp = 150;
                 enemy.color = '#8833ff';
                 enemy.isDead = false;
             }
@@ -442,8 +442,8 @@ class BossVoidReaper extends BossBase {
                     const angle = orbital.angle + i * 0.4;
                     const enemy = enemyPool.get(orbitalX, orbitalY, ENEMY_TYPES.BASIC, 1);
                     enemy.radius = 10;
-                    enemy.hp = 35;
-                    enemy.maxHp = 35;
+                    enemy.hp = 105;
+                    enemy.maxHp = 105;
                     enemy.color = '#6600ff';
                     enemy.isDead = false;
                     enemy.vx = Math.cos(angle) * 5;
@@ -468,8 +468,8 @@ class BossVoidReaper extends BossBase {
                 ENEMY_TYPES.TANK, 0.8
             );
             enemy.radius = 18;
-            enemy.hp = 100;
-            enemy.maxHp = 100;
+            enemy.hp = 300;
+            enemy.maxHp = 300;
             enemy.color = '#000033';
             enemy.isDead = false;
         }
@@ -516,8 +516,8 @@ class BossVoidReaper extends BossBase {
 
                     const enemy = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
                     enemy.radius = 11;
-                    enemy.hp = 40;
-                    enemy.maxHp = 40;
+                    enemy.hp = 120;
+                    enemy.maxHp = 120;
                     enemy.color = '#cc00ff';
                     enemy.isDead = false;
                     enemy.vx = Math.cos(spiralAngle) * 4.5;
@@ -567,8 +567,8 @@ class BossVoidReaper extends BossBase {
                 const angle = (i / count) * Math.PI * 2;
                 const enemy = enemyPool.get(this.x, this.y, ENEMY_TYPES.SPEEDSTER, 1.5);
                 enemy.radius = 12;
-                enemy.hp = 50;
-                enemy.maxHp = 50;
+                enemy.hp = 150;
+                enemy.maxHp = 150;
                 enemy.color = '#cc00ff';
                 enemy.isDead = false;
                 const speed = 5;
@@ -607,8 +607,8 @@ class BossVoidReaper extends BossBase {
                         const angle = (i / count) * Math.PI * 2 + wave * 0.3;
                         const enemy = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
                         enemy.radius = 10;
-                        enemy.hp = 40;
-                        enemy.maxHp = 40;
+                        enemy.hp = 120;
+                        enemy.maxHp = 120;
                         enemy.color = '#ffffff';
                         enemy.isDead = false;
                         const speed = 6 + wave;
@@ -639,8 +639,8 @@ class BossVoidReaper extends BossBase {
 
                     const enemy = enemyPool.get(startX, startY, ENEMY_TYPES.BASIC, 1);
                     enemy.radius = 9;
-                    enemy.hp = 35;
-                    enemy.maxHp = 35;
+                    enemy.hp = 105;
+                    enemy.maxHp = 105;
                     enemy.color = '#ffffff';
                     enemy.isDead = false;
                     enemy.vx = Math.cos(angle) * 3;
@@ -674,8 +674,8 @@ class BossVoidReaper extends BossBase {
                         ENEMY_TYPES.BASIC, 1
                     );
                     enemy.radius = 11;
-                    enemy.hp = 40;
-                    enemy.maxHp = 40;
+                    enemy.hp = 120;
+                    enemy.maxHp = 120;
                     enemy.color = '#ffffff';
                     enemy.isDead = false;
                 }
@@ -701,8 +701,8 @@ class BossVoidReaper extends BossBase {
                     const angle = (i / count) * Math.PI * 2;
                     const enemy = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
                     enemy.radius = 10 + wave;
-                    enemy.hp = 40;
-                    enemy.maxHp = 40;
+                    enemy.hp = 120;
+                    enemy.maxHp = 120;
                     enemy.color = wave % 2 === 0 ? '#ffffff' : '#ffaa00';
                     enemy.isDead = false;
 
@@ -755,8 +755,8 @@ class BossVoidReaper extends BossBase {
                     const enemy = enemyPool.get(x, y, ENEMY_TYPES.SPEEDSTER, 2);
                     enemy.color = '#ff0033';
                     enemy.radius = 14;
-                    enemy.hp = 60;
-                    enemy.maxHp = 60;
+                    enemy.hp = 180;
+                    enemy.maxHp = 180;
                     enemy.isDead = false;
                 }
             }, sideIdx * 200);
@@ -791,8 +791,8 @@ class BossVoidReaper extends BossBase {
                     const angle = (i / count) * Math.PI * 2;
                     const enemy = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
                     enemy.radius = 9;
-                    enemy.hp = 40;
-                    enemy.maxHp = 40;
+                    enemy.hp = 120;
+                    enemy.maxHp = 120;
                     enemy.color = wave % 2 === 0 ? '#ff0033' : '#000000';
                     enemy.isDead = false;
 
@@ -819,8 +819,8 @@ class BossVoidReaper extends BossBase {
                     case 2: x = -20; y = Math.random() * CANVAS.height * 0.7; break;
                 }
                 const enemy = enemyPool.get(x, y, ENEMY_TYPES.SPEEDSTER, 2.5);
-                enemy.hp *= 5;
-                enemy.maxHp *= 5;
+                enemy.hp *= 15;
+                enemy.maxHp *= 15;
                 enemy.color = '#ff0033';
                 enemy.isDead = false;
             }, i * 70);
@@ -849,8 +849,8 @@ class BossVoidReaper extends BossBase {
                     ENEMY_TYPES.BASIC, 1
                 );
                 enemy.radius = 11;
-                enemy.hp = 40;
-                enemy.maxHp = 40;
+                enemy.hp = 120;
+                enemy.maxHp = 120;
                 enemy.color = '#cc00ff';
                 enemy.isDead = false;
             }
@@ -881,8 +881,8 @@ class BossVoidReaper extends BossBase {
                     const aimAngle = Math.atan2(player.y - clone.y, player.x - clone.x) + j * 0.3;
                     const enemy = enemyPool.get(clone.x, clone.y, ENEMY_TYPES.BASIC, 1);
                     enemy.radius = 10;
-                    enemy.hp = 35;
-                    enemy.maxHp = 35;
+                    enemy.hp = 105;
+                    enemy.maxHp = 105;
                     enemy.color = this.getPhaseColor();
                     enemy.isDead = false;
                     enemy.vx = Math.cos(aimAngle) * 5;

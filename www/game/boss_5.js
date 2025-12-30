@@ -2,7 +2,7 @@
 
 const BOSS_5_DATA = {
     name: 'CHRONOS',
-    hp: 100000, // Increased HP
+    hp: 5000, // Increased HP
     score: 15000,
     colors: {
         phase1: '#00aaff',
@@ -64,7 +64,7 @@ class BossChronos extends BossBase {
             player.y = CANVAS.height - 100;
         }
 
-        document.getElementById('boss-name').innerText = "⚠️ TEMPORAL RIFT DETECTED ⚠️";
+        document.getElementById('boss-name').innerText = "TEMPORAL RIFT";
         document.getElementById('boss-name').style.color = '#ff0000';
 
         console.log("⏰ CHRONOS: THE MASTER OF TIME AWAKENS ⏰");
@@ -155,7 +155,7 @@ class BossChronos extends BossBase {
                 }
             }
         } else if (this.introTimer < 250) {
-            document.getElementById('boss-name').innerText = "⚡ CHRONOS AWAKENS ⚡";
+            document.getElementById('boss-name').innerText = "CHRONOS AWAKENS";
             document.getElementById('boss-name').style.color = '#00aaff';
 
             // Screen shake effect
@@ -201,7 +201,7 @@ class BossChronos extends BossBase {
         document.getElementById('boss-name').style.color = color;
 
         const phaseName = phaseNum === 2 ? 'DISTORTION' : 'SINGULARITY';
-        document.getElementById('boss-name').innerText = `⚡ CHRONOS - ${phaseName} ⚡`;
+        document.getElementById('boss-name').innerText = `CHRONOS - ${phaseName}`;
 
         createExplosion(this.x, this.y, 500, 0);
         if (window.playSound) playSound('powerup');

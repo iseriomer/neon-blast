@@ -48,8 +48,8 @@ class Enemy {
 
         this.hp = type.hp + Math.floor(difficultyMultiplier / hpMultiplierDivisor);
         if (gameState.level >= 10) this.hp = type.hp + Math.floor(difficultyMultiplier / 1.5);
-        if (gameState.level >= 20) this.hp = type.hp + Math.floor(difficultyMultiplier / 0.8);
-        if (gameState.level >= 30) this.hp = type.hp + Math.floor(difficultyMultiplier / 0.4);
+        if (gameState.level >= 20) this.hp = type.hp + Math.floor(difficultyMultiplier / 0.7);
+        if (gameState.level >= 30) this.hp = type.hp + Math.floor(difficultyMultiplier / 0.25);
         if (gameState.level >= 40) this.hp = type.hp + Math.floor(difficultyMultiplier / 0.13);
         if (gameState.level >= 45) this.hp = type.hp + Math.floor(difficultyMultiplier / 0.1);
         this.maxHp = this.hp;

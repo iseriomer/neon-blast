@@ -49,10 +49,10 @@ const Localization = {
             perk_knockback_desc: "Bullets push enemies back.",
             perk_side_cannons_title: "Side Cannons",
             perk_side_cannons_desc: "Fires additional shots to the left and right.",
-            perk_orbitals_title: "Orbital Shield",
+            perk_orbitals_title: "Plasma Orbs",
             perk_orbitals_desc: "2 protective orbs orbit around you dealing damage.",
-            perk_orbital_size_title: "Massive Orbitals",
-            perk_orbital_size_desc: "Increases the size of Orbital Shields by 50%.",
+            perk_orbital_size_title: "Massive Orbs",
+            perk_orbital_size_desc: "Increases the size of Plasma Orbs by 50%.",
             perk_screen_wrap_title: "Wormhole Bullets",
             perk_screen_wrap_desc: "Bullets wrap around the screen once.",
             perk_execute_title: "Executioner",
@@ -87,7 +87,7 @@ const Localization = {
             perk_critical_lens_desc: "Increases Critical Chance by 10% and Critical Damage by 50%.",
             perk_laser_damage_title: "Focused Beam",
             perk_laser_damage_desc: "Increases Orbital Laser damage by %100.",
-            perk_orbitals_desc_dynamic: "(Current: {value} protection) + 1 Orbital Shield.",
+            perk_orbitals_desc_dynamic: "(Current: {value} Orbs) + 2 Plasma Orbs.",
             perk_split_shot_desc_dynamic: "(Current: {value} fragments) + 1 Fragment on hit.",
 
             // Electric Aura
@@ -292,8 +292,22 @@ const Localization = {
         if (savedLang && this.translations[savedLang]) {
             this.currentLang = savedLang;
         } else {
-            // Default check (could expand to check navigator.language)
-            this.currentLang = 'tr'; // Setting Turkish as requested initial default or just 'tr' active
+            // Detect browser language
+            const browserLangs = navigator.languages || [navigator.language || navigator.userLanguage];
+            let detectedLang = null;
+
+            for (const lang of browserLangs) {
+                if (!lang) continue;
+                const shortLang = lang.split('-')[0].toLowerCase();
+                if (this.translations[shortLang]) {
+                    detectedLang = shortLang;
+                    break;
+                }
+            }
+
+            // Set current language (priority: detected -> default Turkish if specifically needed, but EN is better for global)
+            // If we want to keep Turkish as the default for unknown cases, we use 'tr'
+            this.currentLang = detectedLang || 'en';
         }
 
         // Apply translations on load

@@ -19,11 +19,11 @@ class SpawnManager {
         if (gameState.spawnInterval) clearInterval(gameState.spawnInterval);
 
         let spawnRate = 1000 - (gameState.difficultyMultiplier * 50);
-        if (gameState.level >= 10) spawnRate = 1000 - (gameState.difficultyMultiplier * 70);
-        if (gameState.level >= 20) spawnRate = 1000 - (gameState.difficultyMultiplier * 100);
-        if (gameState.level >= 30) spawnRate = 1000 - (gameState.difficultyMultiplier * 150);
-        if (gameState.level >= 40) spawnRate = 1000 - (gameState.difficultyMultiplier * 200);
-        if (gameState.level >= 45) spawnRate = 1000 - (gameState.difficultyMultiplier * 300);
+        if (gameState.level >= 10) spawnRate = 1000 - (gameState.difficultyMultiplier * 100);
+        if (gameState.level >= 20) spawnRate = 1000 - (gameState.difficultyMultiplier * 140);
+        if (gameState.level >= 30) spawnRate = 1000 - (gameState.difficultyMultiplier * 200);
+        if (gameState.level >= 40) spawnRate = 1000 - (gameState.difficultyMultiplier * 250);
+        if (gameState.level >= 45) spawnRate = 1000 - (gameState.difficultyMultiplier * 400);
         if (spawnRate < 200) spawnRate = 200;
 
         gameState.spawnInterval = setInterval(() => {

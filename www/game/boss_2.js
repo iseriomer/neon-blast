@@ -2,7 +2,7 @@
 
 const BOSS_2_DATA = {
     name: 'NEXUS PRIME',
-    hp: 10000,
+    hp: 950,
     score: 5000,
     colors: ['#00ffff', '#ff0055', '#ffff00']
 };
@@ -52,7 +52,7 @@ class BossNexus extends BossBase {
             { r: 60, speed: 0.05, angle: 0, dash: [], width: 8 }
         ];
 
-        document.getElementById('boss-name').innerText = "⚠️ UNKNOWN SIGNAL ⚠️";
+        document.getElementById('boss-name').innerText = "UNKNOWN SIGNAL!";
         document.getElementById('boss-name').style.color = '#ff0000';
 
         console.log("⚠️ SYSTEM BREACH: NEXUS PRIME DETECTED ⚠️");
@@ -126,7 +126,7 @@ class BossNexus extends BossBase {
         }
         // 2. Charge
         else if (this.introTimer < 300) {
-            document.getElementById('boss-name').innerText = (this.introTimer % 20 < 10) ? "NEXUS PRIME" : "⚠️ DANGER ⚠️";
+            document.getElementById('boss-name').innerText = (this.introTimer % 20 < 10) ? "NEXUS PRIME" : "DANGER";
         }
         // 3. ROAR
         else {
@@ -205,7 +205,7 @@ class BossNexus extends BossBase {
         }
         else if (this.currentAttack === 'VOID_ZONES') {
             this.targetPos.forEach(pos => {
-                const zone = enemyPool.get(pos.x, pos.y, ENEMY_TYPES.TANK, 20);
+                const zone = enemyPool.get(pos.x, pos.y, ENEMY_TYPES.TANK, 26);
                 zone.radius = 10;
                 zone.color = '#220033';
                 zone.vx = 0; zone.vy = 0;

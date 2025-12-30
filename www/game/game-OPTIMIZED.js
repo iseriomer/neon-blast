@@ -912,9 +912,14 @@ function togglePause() {
         document.getElementById('ui-layer').style.filter = 'none';
         lastTime = 0; // Reset timer to prevent jump
 
-        // Resume Audio
-        if (musicManager && musicManager.audioCtx && musicManager.audioCtx.state === 'suspended') {
-            musicManager.audioCtx.resume();
+        // Resume Music - Restart playback if music was enabled
+        if (musicManager && musicManager.musicEnabled && !musicManager.isPlaying) {
+            // Resume audio context first if it was suspended
+            if (musicManager.audioCtx && musicManager.audioCtx.state === 'suspended') {
+                musicManager.audioCtx.resume();
+            }
+            // Restart music playback
+            musicManager.play();
         }
 
         requestAnimationFrame(animate);
@@ -967,9 +972,12 @@ window.addEventListener('blur', () => {
     if (gameState.gameActive && !gameState.isPaused && !gameState.isDying) {
         togglePause();
 
-        // Suspend Audio immediately
-        if (musicManager && musicManager.audioCtx) {
-            musicManager.audioCtx.suspend();
+        // Stop music completely (not just suspend audio context)
+        if (musicManager) {
+            const wasMusicEnabled = musicManager.musicEnabled;
+            musicManager.stop();
+            // Restore music enabled state so it can resume when unpaused
+            musicManager.musicEnabled = wasMusicEnabled;
         }
     }
 });
@@ -984,9 +992,12 @@ if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App
         if (gameState.gameActive && !gameState.isPaused && !gameState.isDying) {
             togglePause();
 
-            // Suspend Audio immediately
-            if (musicManager && musicManager.audioCtx) {
-                musicManager.audioCtx.suspend();
+            // Stop music completely (not just suspend audio context)
+            if (musicManager) {
+                const wasMusicEnabled = musicManager.musicEnabled;
+                musicManager.stop();
+                // Restore music enabled state so it can resume when unpaused
+                musicManager.musicEnabled = wasMusicEnabled;
             }
         }
     });

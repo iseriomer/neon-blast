@@ -2,7 +2,7 @@
 
 const BOSS_4_DATA = {
     name: 'THE SWARM',
-    hp: 50000,
+    hp: 4500,
     score: 8000,
     colors: {
         hive: '#00ff88',
@@ -63,7 +63,7 @@ class BossSwarm extends BossBase {
             this.spawnDrone('orbit', (i / 8) * Math.PI * 2, 120, true);
         }
 
-        document.getElementById('boss-name').innerText = "⚠️ HIVE SIGNAL DETECTED ⚠️";
+        document.getElementById('boss-name').innerText = "HIVE SIGNAL";
         document.getElementById('boss-name').style.color = '#00ff88';
 
         console.log("🐝 THE SWARM HAS AWAKENED 🐝");
@@ -237,7 +237,7 @@ class BossSwarm extends BossBase {
             if (this.introTimer % 30 < 15) {
                 document.getElementById('boss-name').innerText = "THE SWARM";
             } else {
-                document.getElementById('boss-name').innerText = "⚡ ONLINE ⚡";
+                document.getElementById('boss-name').innerText = "ONLINE";
             }
         } else {
             this.state = 'IDLE';
@@ -350,7 +350,7 @@ class BossSwarm extends BossBase {
 
         createExplosion(this.x, this.y, 500, 0);
         document.getElementById('boss-name').style.color = '#ff4400';
-        document.getElementById('boss-name').innerText = 'THE SWARM - FURY';
+        document.getElementById('boss-name').innerText = 'THE SWARM';
 
         if (window.playSound) playSound('powerup');
         if (window.triggerHitstop) triggerHitstop(30);
@@ -445,8 +445,8 @@ class BossSwarm extends BossBase {
                 bullet.hp = 4;
                 bullet.maxHp = 4;
                 bullet.color = '#ff4400';
-                bullet.vx = Math.cos(angle) * 3;
-                bullet.vy = Math.sin(angle) * 3;
+                bullet.vx = Math.cos(angle) * 4.2;
+                bullet.vy = Math.sin(angle) * 4.2;
                 bullet.update = function (p, d) {
                     this.x += this.vx * d;
                     this.y += this.vy * d;

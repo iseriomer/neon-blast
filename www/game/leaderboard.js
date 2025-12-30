@@ -6,7 +6,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebas
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-analytics.js";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
-// game/leaderboard.js
 
 // 2. EKSİK OLAN KISIM BURASIYDI: Firestore (Veritabanı) Kütüphanesini Ekledik
 import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs, where } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
