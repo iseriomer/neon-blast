@@ -186,8 +186,10 @@ canvas {
     pointer-events: auto;
     z-index: 30;
     overflow-y: auto;
+    overflow-x: hidden;
     /* Allow scrolling on small screens */
-    padding: 20px 0;
+    padding: 20px 10px;
+    box-sizing: border-box;
     /* Add vertical padding for better scroll experience */
 }
 
@@ -331,7 +333,7 @@ button.main-btn:active {
     align-items: stretch;
     /* Cards stretch to same height */
     width: 90%;
-    padding: 20px;
+    padding: 0px;
     max-width: 1200px;
     /* Constrain slightly */
 }
@@ -667,6 +669,11 @@ button.main-btn:active {
         max-width: none;
         padding: 15px;
     }
+
+    /* Hide "Choose a perk:" text on mobile to save space */
+    #levelup-screen p[data-i18n="choose_perk"] {
+        display: none;
+    }
 }
 
 /* HEIGHT-BASED RESPONSIVENESS (Desktops/Laptops with short screens) */
@@ -822,22 +829,40 @@ button.main-btn:active {
 
     /* Perk cards smaller */
     .perk-container {
-        gap: 30px;
-        padding: 0;
+        gap: 15px;
+        padding: 0px;
+        flex-direction: column;
+        align-items: center;
     }
 
     .perk-card {
-        padding: 10px;
-        width: 200px;
+        padding: 8px 12px;
+        width: 90%;
+        max-width: 280px;
+        min-width: unset;
+        min-height: unset;
     }
 
     .perk-title {
-        font-size: 1.2rem;
-        margin-bottom: 5px;
+        font-size: 1rem;
+        margin-bottom: 4px;
     }
 
     .perk-desc {
+        font-size: 0.75rem;
+        line-height: 1.2;
+    }
+
+    #levelup-screen h2 {
+        font-size: 1.5rem;
+        margin-bottom: 8px;
+    }
+
+    #levelup-screen p {
+        display: block;
         font-size: 0.8rem;
+        margin-bottom: 8px;
+        padding: 4px;
     }
 
     /* Pause Menu landscape adjustments */

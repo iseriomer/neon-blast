@@ -126,12 +126,12 @@ const Localization = {
 
             // Settings
             paused: "DURAKLATILDI",
-            show_fps: "FPS Göster",
+            show_fps: "FPS",
             sfx: "Ses Efektleri",
             music: "Müzik",
             joystick: "Joystick Modu",
             music_volume: "Müzik Sesi",
-            screen_shake: "Ekran Sarsıntısı",
+            screen_shake: "Sarsıntı Efekti",
 
             // Perks
             perk_rapid_fire_title: "Seri Atış",
@@ -410,12 +410,12 @@ const Localization = {
 
             // Settings
             paused: "PAUSIERT",
-            show_fps: "FPS Anzeigen",
+            show_fps: "FPS",
             sfx: "Soundeffekte",
             music: "Musik",
             joystick: "Joystick-Modus",
             music_volume: "Musiklautstärke",
-            screen_shake: "Bildschirmschütteln",
+            screen_shake: "Screen Shake",
 
             // Perks
             perk_rapid_fire_title: "Schnellfeuer",

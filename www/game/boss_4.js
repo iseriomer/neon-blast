@@ -2,7 +2,7 @@
 
 const BOSS_4_DATA = {
     name: 'THE SWARM',
-    hp: 4500,
+    hp: 3500,
     score: 8000,
     colors: {
         hive: '#00ff88',
@@ -83,7 +83,7 @@ class BossSwarm extends BossBase {
         drone.isShieldDrone = isShield;
 
         drone.radius = 15;
-        drone.hp = isShield ? 10 : 20;
+        drone.hp = isShield ? 25 : 50;
         drone.maxHp = drone.hp;
         drone.color = isShield ? '#00ffff' : BOSS_4_DATA.colors.drone;
 
