@@ -91,6 +91,13 @@ class BossOmega extends BossBase {
         this.dpsCheckDamageDealt = 0;
     }
 
+    // Helper: Get safe boss Y position based on screen orientation
+    getSafeBossY() {
+        const isHorizontal = CANVAS.width > CANVAS.height;
+        // For horizontal screens, position boss higher to avoid player spawn area
+        return isHorizontal ? Math.min(120, CANVAS.height * 0.2) : 150;
+    }
+
     spawn(x, y) {
         super.spawn(x, y);
         this.x = CANVAS.width / 2;
@@ -111,10 +118,20 @@ class BossOmega extends BossBase {
         this.aimTestActive = false;
         this.dpsCheckActive = false;
         this.aimTestTargets = [];
-        // Center player manually for the "Stationary" experience
+
+        // Center player with orientation-aware positioning
         if (typeof player !== 'undefined') {
+            const isHorizontal = CANVAS.width > CANVAS.height;
             player.x = CANVAS.width / 2;
-            player.y = CANVAS.height - 150;
+
+            if (isHorizontal) {
+                // For horizontal screens, place player at bottom with margin
+                player.y = Math.max(CANVAS.height - 80, CANVAS.height * 0.85);
+            } else {
+                // For vertical screens, use original position
+                player.y = CANVAS.height - 150;
+            }
+
             player.vx = 0;
             player.vy = 0;
         }
@@ -168,7 +185,7 @@ class BossOmega extends BossBase {
 
     handleIntro(player, dt) {
         this.introTimer += dt;
-        const targetY = 150;
+        const targetY = this.getSafeBossY(); // Dynamic Y based on orientation
 
         if (this.introTimer < 180) {
             this.y += (targetY - this.y) * 0.02 * dt;
@@ -223,18 +240,23 @@ class BossOmega extends BossBase {
         this.state = 'IDLE';
 
         this.x = CANVAS.width / 2;
-        this.y = 150;
+        this.y = this.getSafeBossY(); // Dynamic Y based on orientation
         this.radius = 120; // Bigger
         this.eyeOpenness = 1.0;
 
         document.getElementById('boss-name').innerText = "Ω T H E E N D Ω";
         document.getElementById('boss-name').style.color = BOSS_3_DATA.colors.danger;
 
-        // Push player to bottom center and LOCK them (soft lock or hard lock?)
-        // User said "player can't move". We enforce position.
+        // Push player to bottom with orientation-aware positioning
         if (typeof player !== 'undefined') {
+            const isHorizontal = CANVAS.width > CANVAS.height;
             player.x = CANVAS.width / 2;
-            player.y = CANVAS.height - 100;
+
+            if (isHorizontal) {
+                player.y = Math.max(CANVAS.height - 80, CANVAS.height * 0.85);
+            } else {
+                player.y = CANVAS.height - 100;
+            }
         }
 
         // Clean screen
@@ -270,11 +292,14 @@ class BossOmega extends BossBase {
     handleMovement(dt) {
         if (this.omegaPhase === 3) {
             // True Form is mostly stationary center, maybe floats slightly
-            this.y = 150 + Math.sin(this.pulseTimer * 0.05) * 10;
-            // Force player position in phase 3
+            this.y = this.getSafeBossY() + Math.sin(this.pulseTimer * 0.05) * 10;
+            // Force player position in phase 3 with orientation awareness
             if (typeof player !== 'undefined') {
+                const isHorizontal = CANVAS.width > CANVAS.height;
+                const targetPlayerY = isHorizontal ? Math.max(CANVAS.height - 80, CANVAS.height * 0.85) : CANVAS.height - 100;
+
                 const dx = player.x - (CANVAS.width / 2);
-                const dy = player.y - (CANVAS.height - 100);
+                const dy = player.y - targetPlayerY;
                 // "Gravity" well pulling player constantly to center spot
                 if (Math.abs(dx) > 5) player.x -= dx * 0.1 * dt;
                 if (Math.abs(dy) > 5) player.y -= dy * 0.1 * dt;

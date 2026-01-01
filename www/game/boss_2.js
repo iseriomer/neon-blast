@@ -37,10 +37,17 @@ class BossNexus extends BossBase {
         this.laserLines = [];
     }
 
+    // Helper: Get safe boss Y position based on screen orientation
+    getSafeBossY() {
+        const isHorizontal = CANVAS.width > CANVAS.height;
+        // For horizontal screens, position boss higher to avoid player spawn area
+        return isHorizontal ? Math.min(120, CANVAS.height * 0.2) : 150;
+    }
+
     spawn(x, y) {
         super.spawn(x, y);
         this.y = -200; // Override Y for intro
-        this.targetY = 150;
+        this.targetY = this.getSafeBossY(); // Dynamic position based on orientation
 
         this.state = 'INTRO';
         this.introTimer = 0;
@@ -51,6 +58,21 @@ class BossNexus extends BossBase {
             { r: 120, speed: -0.01, angle: 0, dash: [40, 20], width: 2 },
             { r: 60, speed: 0.05, angle: 0, dash: [], width: 8 }
         ];
+
+        // Reposition player based on screen orientation
+        if (typeof player !== 'undefined') {
+            const isHorizontal = CANVAS.width > CANVAS.height;
+            player.x = CANVAS.width / 2;
+
+            if (isHorizontal) {
+                // For horizontal screens, place player at bottom with margin
+                // Ensure player has enough space and is visible
+                player.y = Math.max(CANVAS.height - 80, CANVAS.height * 0.85);
+            } else {
+                // For vertical screens, use center (works well)
+                player.y = CANVAS.height / 2;
+            }
+        }
 
         document.getElementById('boss-name').innerText = "UNKNOWN SIGNAL!";
         document.getElementById('boss-name').style.color = '#ff0000';
@@ -74,7 +96,7 @@ class BossNexus extends BossBase {
         // Standard Float
         this.floatY = Math.sin(Date.now() / 500) * 30;
         const targetX = CANVAS.width / 2 + Math.cos(Date.now() / 1500) * 150;
-        const targetY = 150 + this.floatY;
+        const targetY = this.getSafeBossY() + this.floatY; // Dynamic Y based on orientation
         this.x += (targetX - this.x) * 0.05 * dt;
         this.y += (targetY - this.y) * 0.05 * dt;
 
@@ -140,6 +162,11 @@ class BossNexus extends BossBase {
                 const angle = Math.atan2(player.y - this.y, player.x - this.x);
                 player.x += Math.cos(angle) * 200;
                 player.y += Math.sin(angle) * 200;
+
+                // Ensure player stays within visible bounds (with margin)
+                const margin = 50;
+                player.x = Math.max(margin, Math.min(CANVAS.width - margin, player.x));
+                player.y = Math.max(margin, Math.min(CANVAS.height - margin, player.y));
             }
         }
     }

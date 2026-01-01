@@ -1229,6 +1229,147 @@ button.main-btn:active {
     grid-column: 1 / -1;
 }
 
+/* Neon-themed Music Volume Slider */
+#music-volume {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 8px;
+    background: linear-gradient(90deg, #0a0a0a 0%, #1a1a2e 100%);
+    outline: none;
+    border: 2px solid #00ffff;
+    border-radius: 0;
+    position: relative;
+    box-shadow:
+        0 0 10px rgba(0, 255, 255, 0.3),
+        inset 0 0 5px rgba(0, 0, 0, 0.5);
+    transition: all 0.3s ease;
+}
+
+#music-volume:hover {
+    border-color: #ff0055;
+    box-shadow:
+        0 0 15px rgba(255, 0, 85, 0.5),
+        inset 0 0 5px rgba(0, 0, 0, 0.5);
+}
+
+/* Webkit (Chrome, Safari, Edge) - Thumb */
+#music-volume::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, #00ffff 0%, #0088ff 100%);
+    cursor: pointer;
+    border: 3px solid #fff;
+    border-radius: 0;
+    box-shadow:
+        0 0 15px rgba(0, 255, 255, 0.8),
+        0 0 5px rgba(0, 255, 255, 0.5),
+        inset 0 0 8px rgba(255, 255, 255, 0.3);
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+#music-volume::-webkit-slider-thumb:hover {
+    background: linear-gradient(135deg, #ff0055 0%, #ff3377 100%);
+    border-color: #00ffff;
+    box-shadow:
+        0 0 25px rgba(255, 0, 85, 1),
+        0 0 15px rgba(255, 0, 85, 0.7),
+        inset 0 0 10px rgba(255, 255, 255, 0.5);
+    transform: scale(1.15);
+}
+
+#music-volume::-webkit-slider-thumb:active {
+    transform: scale(0.95);
+    box-shadow:
+        0 0 30px rgba(0, 255, 255, 1),
+        0 0 20px rgba(0, 255, 255, 0.8);
+}
+
+/* Firefox - Thumb */
+#music-volume::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, #00ffff 0%, #0088ff 100%);
+    cursor: pointer;
+    border: 3px solid #fff;
+    border-radius: 0;
+    box-shadow:
+        0 0 15px rgba(0, 255, 255, 0.8),
+        0 0 5px rgba(0, 255, 255, 0.5),
+        inset 0 0 8px rgba(255, 255, 255, 0.3);
+    transition: all 0.2s ease;
+}
+
+#music-volume::-moz-range-thumb:hover {
+    background: linear-gradient(135deg, #ff0055 0%, #ff3377 100%);
+    border-color: #00ffff;
+    box-shadow:
+        0 0 25px rgba(255, 0, 85, 1),
+        0 0 15px rgba(255, 0, 85, 0.7),
+        inset 0 0 10px rgba(255, 255, 255, 0.5);
+    transform: scale(1.15);
+}
+
+#music-volume::-moz-range-thumb:active {
+    transform: scale(0.95);
+    box-shadow:
+        0 0 30px rgba(0, 255, 255, 1),
+        0 0 20px rgba(0, 255, 255, 0.8);
+}
+
+/* Firefox - Track */
+#music-volume::-moz-range-track {
+    background: linear-gradient(90deg, #0a0a0a 0%, #1a1a2e 100%);
+    border: 2px solid #00ffff;
+    height: 8px;
+    border-radius: 0;
+}
+
+/* Microsoft Edge/IE - Track */
+#music-volume::-ms-track {
+    background: transparent;
+    border-color: transparent;
+    color: transparent;
+    height: 8px;
+}
+
+#music-volume::-ms-fill-lower {
+    background: linear-gradient(90deg, #00ffff 0%, #0088ff 100%);
+    border: 2px solid #00ffff;
+    border-radius: 0;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+#music-volume::-ms-fill-upper {
+    background: linear-gradient(90deg, #0a0a0a 0%, #1a1a2e 100%);
+    border: 2px solid #00ffff;
+    border-radius: 0;
+}
+
+#music-volume::-ms-thumb {
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, #00ffff 0%, #0088ff 100%);
+    cursor: pointer;
+    border: 3px solid #fff;
+    border-radius: 0;
+    box-shadow:
+        0 0 15px rgba(0, 255, 255, 0.8),
+        0 0 5px rgba(0, 255, 255, 0.5);
+}
+
+/* Slider label styling */
+.slider-container label {
+    color: #00ffff;
+    font-family: monospace;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-shadow: 0 0 8px rgba(0, 255, 255, 0.6);
+}
+
 /* Adjust FPS counter position if needed to not overlap with pause button */
 #fps-counter {
     right: 70px;
