@@ -81,13 +81,48 @@ class BossVoidReaper extends BossBase {
 
     spawnVoidOrbitals(count) {
         for (let i = 0; i < count; i++) {
-            this.voidOrbitals.push({
-                angle: (i / count) * Math.PI * 2,
-                orbitRadius: 130 + (i % 3) * 20,
-                orbitSpeed: 0.008 + (i % 2) * 0.004,
-                radius: 12,
-                pulsePhase: Math.random() * Math.PI * 2
-            });
+            const orbAngle = (i / count) * Math.PI * 2;
+            const orbRadius = 130 + (i % 3) * 20;
+            const startX = this.x + Math.cos(orbAngle) * orbRadius;
+            const startY = this.y + Math.sin(orbAngle) * orbRadius;
+
+            const orbital = enemyPool.get(startX, startY, ENEMY_TYPES.BASIC, 1);
+            orbital.isVoidOrbital = true;
+            orbital.orbAngle = orbAngle;
+            orbital.orbitRadius = orbRadius;
+            orbital.orbitSpeed = 0.008 + (i % 2) * 0.004;
+            orbital.radius = 12;
+            orbital.pulsePhase = Math.random() * Math.PI * 2;
+            orbital.bossRef = this;
+            orbital.hp = 999999; // Indestructible visual
+            orbital.maxHp = 999999;
+            orbital.color = '#6600ff';
+
+            orbital.update = function (player, dt) {
+                if (!this.bossRef || !this.bossRef.active) {
+                    this.hp = 0;
+                    return;
+                }
+                this.orbAngle += this.orbitSpeed * dt;
+                this.pulsePhase += 0.05 * dt;
+                this.x = this.bossRef.x + Math.cos(this.orbAngle) * this.orbitRadius;
+                this.y = this.bossRef.y + Math.sin(this.orbAngle) * this.orbitRadius;
+            }; // Void orbitals draw themselves via custom draw() method
+
+            orbital.draw = function () {
+                const pulse = 1 + Math.sin(this.pulsePhase) * 0.3;
+                CTX.save();
+                CTX.translate(this.x, this.y);
+                CTX.shadowBlur = 15;
+                CTX.shadowColor = '#6600ff';
+                CTX.fillStyle = '#6600ff';
+                CTX.beginPath();
+                CTX.arc(0, 0, this.radius * pulse, 0, Math.PI * 2);
+                CTX.fill();
+                CTX.restore();
+            };
+
+            this.voidOrbitals.push(orbital);
         }
     }
 
@@ -398,19 +433,55 @@ class BossVoidReaper extends BossBase {
     }
 
     attackGravityWell() {
-        // Spawn gravity wells that affect enemy movement visually
+        // Spawn gravity wells using Enemy class
         for (let i = 0; i < 3; i++) {
             const wellX = 150 + Math.random() * (CANVAS.width - 300);
             const wellY = 150 + Math.random() * (CANVAS.height - 300);
 
-            this.gravityWells.push({
-                x: wellX,
-                y: wellY,
-                radius: 80,
-                life: 400,
-                strength: 0.4,
-                color: 'rgba(102, 0, 255, 0.2)'
-            });
+            const well = enemyPool.get(wellX, wellY, ENEMY_TYPES.TANK, 1);
+            well.isGravityWell = true;
+            well.radius = 80;
+            well.life = 400;
+            well.strength = 0.4;
+            well.hp = 999999; // Non-destructible zone
+            well.maxHp = 999999;
+            well.color = 'rgba(102, 0, 255, 0.2)';
+
+            well.update = function (player, dt) {
+                this.life -= dt;
+                if (this.life <= 0) {
+                    this.hp = 0;
+                    return;
+                }
+
+                // Apply gravity to nearby enemies
+                enemyPool.getActive().forEach(enemy => {
+                    if (!enemy.isDead && enemy !== this && !enemy.isGravityWell) {
+                        const dx = this.x - enemy.x;
+                        const dy = this.y - enemy.y;
+                        const dist = Math.hypot(dx, dy);
+                        if (dist < this.radius) {
+                            const pullStrength = this.strength * (1 - dist / this.radius);
+                            enemy.x += (dx / dist) * pullStrength * dt;
+                            enemy.y += (dy / dist) * pullStrength * dt;
+                        }
+                    }
+                });
+            };
+
+            well.draw = function () {
+                CTX.save();
+                CTX.beginPath();
+                CTX.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                CTX.fillStyle = this.color;
+                CTX.fill();
+                CTX.strokeStyle = '#6600ff';
+                CTX.lineWidth = 3;
+                CTX.stroke();
+                CTX.restore();
+            };
+
+            this.gravityWells.push(well);
 
             // Spawn enemies around well
             for (let j = 0; j < 8; j++) {
@@ -481,23 +552,65 @@ class BossVoidReaper extends BossBase {
     // ═══════════════════════════════════════════════════════
 
     attackRealityTear() {
-        // Spawn reality tears (dimensional rifts)
+        // Spawn reality tears using Enemy class
         const tearCount = 4;
         for (let i = 0; i < tearCount; i++) {
             const tearX = 200 + Math.random() * (CANVAS.width - 400);
             const tearY = 150 + Math.random() * (CANVAS.height * 0.6);
 
-            this.realityTears.push({
-                x: tearX,
-                y: tearY,
-                radius: 40,
-                life: 500,
-                spawnTimer: 0,
-                spawnRate: 70,
-                enemiesSpawned: 0,
-                maxEnemies: 15
-            });
+            const tear = enemyPool.get(tearX, tearY, ENEMY_TYPES.TANK, 1);
+            tear.isRealityTear = true;
+            tear.radius = 40;
+            tear.life = 500;
+            tear.spawnTimer = 0;
+            tear.spawnRate = 70;
+            tear.enemiesSpawned = 0;
+            tear.maxEnemies = 15;
+            tear.hp = 999999; // Non-destructible
+            tear.maxHp = 999999;
+            tear.color = '#cc00ff';
 
+            tear.update = function (player, dt) {
+                this.life -= dt;
+                this.spawnTimer += dt;
+
+                if (this.spawnTimer >= this.spawnRate && this.enemiesSpawned < this.maxEnemies) {
+                    this.spawnTimer = 0;
+                    this.enemiesSpawned++;
+                    const angle = Math.random() * Math.PI * 2;
+                    const enemy = enemyPool.get(
+                        this.x + Math.cos(angle) * this.radius,
+                        this.y + Math.sin(angle) * this.radius,
+                        ENEMY_TYPES.BASIC, 1
+                    );
+                    enemy.radius = 11;
+                    enemy.hp = 120;
+                    enemy.maxHp = 120;
+                    enemy.color = '#cc00ff';
+                    enemy.isDead = false;
+                }
+
+                if (this.life <= 0) {
+                    spawnParticles(this.x, this.y, 10, 6, '#cc00ff');
+                    this.hp = 0;
+                }
+            };
+
+            tear.draw = function () {
+                CTX.save();
+                CTX.beginPath();
+                CTX.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                CTX.fillStyle = 'rgba(204, 0, 255, 0.3)';
+                CTX.fill();
+                CTX.strokeStyle = '#cc00ff';
+                CTX.lineWidth = 4;
+                CTX.setLineDash([10, 5]);
+                CTX.stroke();
+                CTX.setLineDash([]);
+                CTX.restore();
+            };
+
+            this.realityTears.push(tear);
             spawnParticles(tearX, tearY, 15, 8, '#cc00ff');
         }
         createExplosion(this.x, this.y, 150, 0);
@@ -532,19 +645,82 @@ class BossVoidReaper extends BossBase {
     }
 
     attackVoidClones() {
-        // Spawn phantom clones that mirror attacks
+        // Spawn phantom clones using Enemy class
         const count = 3;
         for (let i = 0; i < count; i++) {
             const angle = (i / count) * Math.PI * 2;
-            this.voidClones.push({
-                x: this.x + Math.cos(angle) * 220,
-                y: this.y + Math.sin(angle) * 220,
-                angle: angle,
-                alpha: 0.6,
-                life: 450,
-                fireTimer: 30 + i * 40,
-                phase: this.phase
-            });
+            const startX = this.x + Math.cos(angle) * 220;
+            const startY = this.y + Math.sin(angle) * 220;
+
+            const clone = enemyPool.get(startX, startY, ENEMY_TYPES.BASIC, 1);
+            clone.isVoidClone = true;
+            clone.cloneAngle = angle;
+            clone.alpha = 0.6;
+            clone.life = 450;
+            clone.fireTimer = 30 + i * 40;
+            clone.phase = this.phase;
+            clone.bossRef = this;
+            clone.radius = 40;
+            clone.hp = 50;
+            clone.maxHp = 50;
+            clone.color = this.getPhaseColor();
+
+            clone.update = function (player, dt) {
+                if (!this.bossRef || !this.bossRef.active) {
+                    this.hp = 0;
+                    return;
+                }
+
+                this.life -= dt;
+                if (this.life <= 0) {
+                    this.hp = 0;
+                    return;
+                }
+
+                this.cloneAngle += 0.01 * dt;
+                this.x = this.bossRef.x + Math.cos(this.cloneAngle) * 200;
+                this.y = this.bossRef.y + Math.sin(this.cloneAngle) * 200;
+
+                this.fireTimer -= dt;
+                if (this.fireTimer <= 0 && typeof player !== 'undefined') {
+                    this.fireTimer = 50;
+                    for (let j = -1; j <= 1; j++) {
+                        const aimAngle = Math.atan2(player.y - this.y, player.x - this.x) + j * 0.3;
+                        const bullet = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
+                        bullet.radius = 10;
+                        bullet.hp = 105;
+                        bullet.maxHp = 105;
+                        bullet.color = this.bossRef.getPhaseColor();
+                        bullet.isDead = false;
+                        bullet.vx = Math.cos(aimAngle) * 5;
+                        bullet.vy = Math.sin(aimAngle) * 5;
+                        bullet.update = function (p, d) {
+                            this.x += this.vx * d;
+                            this.y += this.vy * d;
+                        };
+                    }
+                }
+
+                this.alpha = Math.min(0.6, this.life / 150);
+            };
+
+            clone.draw = function () {
+                CTX.save();
+                CTX.globalAlpha = this.alpha;
+                CTX.translate(this.x, this.y);
+                CTX.shadowBlur = 25;
+                CTX.shadowColor = this.bossRef.getPhaseColor();
+                CTX.fillStyle = this.bossRef.getPhaseColor();
+                CTX.beginPath();
+                CTX.arc(0, 0, 40, 0, Math.PI * 2);
+                CTX.fill();
+                CTX.strokeStyle = '#fff';
+                CTX.lineWidth = 3;
+                CTX.stroke();
+                CTX.restore();
+            };
+
+            this.voidClones.push(clone);
         }
         createExplosion(this.x, this.y, 120, 0);
         if (window.playSound) playSound('powerup');
@@ -832,100 +1008,18 @@ class BossVoidReaper extends BossBase {
     // ═══════════════════════════════════════════════════════
 
     updateRealityTears(player, dt) {
-        for (let i = this.realityTears.length - 1; i >= 0; i--) {
-            const tear = this.realityTears[i];
-            tear.life -= dt;
-            tear.spawnTimer += dt;
-
-            // Spawn enemies from tear
-            if (tear.spawnTimer >= tear.spawnRate && tear.enemiesSpawned < tear.maxEnemies) {
-                tear.spawnTimer = 0;
-                tear.enemiesSpawned++;
-
-                const angle = Math.random() * Math.PI * 2;
-                const enemy = enemyPool.get(
-                    tear.x + Math.cos(angle) * tear.radius,
-                    tear.y + Math.sin(angle) * tear.radius,
-                    ENEMY_TYPES.BASIC, 1
-                );
-                enemy.radius = 11;
-                enemy.hp = 120;
-                enemy.maxHp = 120;
-                enemy.color = '#cc00ff';
-                enemy.isDead = false;
-            }
-
-            if (tear.life <= 0) {
-                this.realityTears.splice(i, 1);
-                spawnParticles(tear.x, tear.y, 10, 6, '#cc00ff');
-            }
-        }
+        // Clean up dead tears (Enemy update handles spawning now)
+        this.realityTears = this.realityTears.filter(tear => !tear.isDead && tear.hp > 0);
     }
 
     updateVoidClones(player, dt) {
-        for (let i = this.voidClones.length - 1; i >= 0; i--) {
-            const clone = this.voidClones[i];
-            clone.life -= dt;
-            clone.angle += 0.01 * dt;
-
-            clone.x = this.x + Math.cos(clone.angle) * 200;
-            clone.y = this.y + Math.sin(clone.angle) * 200;
-
-            // Fire at player
-            clone.fireTimer -= dt;
-            if (clone.fireTimer <= 0 && typeof player !== 'undefined') {
-                clone.fireTimer = 50;
-
-                // 3-way spread
-                for (let j = -1; j <= 1; j++) {
-                    const aimAngle = Math.atan2(player.y - clone.y, player.x - clone.x) + j * 0.3;
-                    const enemy = enemyPool.get(clone.x, clone.y, ENEMY_TYPES.BASIC, 1);
-                    enemy.radius = 10;
-                    enemy.hp = 105;
-                    enemy.maxHp = 105;
-                    enemy.color = this.getPhaseColor();
-                    enemy.isDead = false;
-                    enemy.vx = Math.cos(aimAngle) * 5;
-                    enemy.vy = Math.sin(aimAngle) * 5;
-                    enemy.update = function (p, d) {
-                        this.x += this.vx * d;
-                        this.y += this.vy * d;
-                    };
-                }
-            }
-
-            clone.alpha = Math.min(0.6, clone.life / 150);
-
-            if (clone.life <= 0) {
-                this.voidClones.splice(i, 1);
-            }
-        }
+        // Clean up dead clones (Enemy update handles movement/firing now)
+        this.voidClones = this.voidClones.filter(clone => !clone.isDead && clone.hp > 0);
     }
 
     updateGravityWells(player, dt) {
-        for (let i = this.gravityWells.length - 1; i >= 0; i--) {
-            const well = this.gravityWells[i];
-            well.life -= dt;
-
-            // Apply local gravity to enemies
-            enemyPool.getActive().forEach(enemy => {
-                if (!enemy.isDead) {
-                    const dx = well.x - enemy.x;
-                    const dy = well.y - enemy.y;
-                    const dist = Math.hypot(dx, dy);
-
-                    if (dist < well.radius) {
-                        const pullStrength = well.strength * (1 - dist / well.radius);
-                        enemy.x += (dx / dist) * pullStrength * dt;
-                        enemy.y += (dy / dist) * pullStrength * dt;
-                    }
-                }
-            });
-
-            if (well.life <= 0) {
-                this.gravityWells.splice(i, 1);
-            }
-        }
+        // Clean up expired wells (Enemy update handles gravity now)
+        this.gravityWells = this.gravityWells.filter(well => !well.isDead && well.hp > 0);
     }
 
     takeDamage(amount) {
@@ -966,66 +1060,11 @@ class BossVoidReaper extends BossBase {
     }
 
     onDraw() {
-        // Draw gravity wells
-        this.gravityWells.forEach(well => {
-            CTX.save();
-            CTX.beginPath();
-            CTX.arc(well.x, well.y, well.radius, 0, Math.PI * 2);
-            CTX.fillStyle = well.color;
-            CTX.fill();
-            CTX.strokeStyle = 'rgba(102, 0, 255, 0.5)';
-            CTX.lineWidth = 3;
-            CTX.stroke();
-            CTX.restore();
-        });
+        // Gravity wells draw themselves via custom draw() method
 
-        // Draw reality tears
-        this.realityTears.forEach(tear => {
-            CTX.save();
-            CTX.translate(tear.x, tear.y);
+        // Reality tears draw themselves via custom draw() method
 
-            // Pulsing tear effect
-            const pulse = 1 + Math.sin(this.pulseTimer * 0.15) * 0.2;
-            CTX.scale(pulse, pulse);
-
-            // Outer glow
-            CTX.shadowBlur = 25;
-            CTX.shadowColor = '#cc00ff';
-            CTX.fillStyle = 'rgba(204, 0, 255, 0.3)';
-            CTX.beginPath();
-            CTX.arc(0, 0, tear.radius, 0, Math.PI * 2);
-            CTX.fill();
-
-            // Inner rift
-            CTX.fillStyle = '#000000';
-            CTX.beginPath();
-            CTX.arc(0, 0, tear.radius * 0.6, 0, Math.PI * 2);
-            CTX.fill();
-
-            CTX.restore();
-        });
-
-        // Draw void clones
-        this.voidClones.forEach(clone => {
-            CTX.save();
-            CTX.globalAlpha = clone.alpha;
-            CTX.translate(clone.x, clone.y);
-
-            // Clone appearance (smaller version of boss)
-            CTX.shadowBlur = 20;
-            CTX.shadowColor = this.getPhaseColor();
-            CTX.fillStyle = this.getPhaseColor();
-            CTX.beginPath();
-            CTX.arc(0, 0, 40, 0, Math.PI * 2);
-            CTX.fill();
-
-            CTX.fillStyle = '#000000';
-            CTX.beginPath();
-            CTX.arc(0, 0, 20, 0, Math.PI * 2);
-            CTX.fill();
-
-            CTX.restore();
-        });
+        // Void clones draw themselves via custom draw() method
 
         // Draw void particles
         this.voidParticles.forEach(p => {

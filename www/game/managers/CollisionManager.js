@@ -234,7 +234,8 @@ class CollisionManager {
             { ref: 'boss3', color: '#00ff88', hasEntities: true },
             { ref: 'boss4', color: '#00ff88', hasSplitCores: true },
             { ref: 'boss5', color: null, hasClockMinions: true }, // color from getPhaseColor()
-            { ref: 'boss6', color: null, hasVoidOrbitals: true } // VOID REAPER - color from getPhaseColor()
+            { ref: 'boss6', color: null, hasVoidOrbitals: true }, // VOID REAPER - color from getPhaseColor()
+            { ref: 'boss7', color: null } // THE SINGULARITY - color from getPhaseColor()
         ];
 
         for (const bossInfo of legacyBosses) {
@@ -437,14 +438,14 @@ class CollisionManager {
                 enemy.hp -= damage;
 
                 // Apply knockback
-                if (gameState.playerStats.knockback > 0) {
+                if (gameState.playerStats.knockback > 0 && !enemy.immuneToKnockback) {
                     const angle = Math.atan2(enemy.y - player.y, enemy.x - player.x);
                     enemy.x += Math.cos(angle) * gameState.playerStats.knockback;
                     enemy.y += Math.sin(angle) * gameState.playerStats.knockback;
                 }
 
                 // Apply freeze
-                if (gameState.playerStats.freeze > 0) {
+                if (gameState.playerStats.freeze > 0 && !enemy.immuneToFreeze) {
                     enemy.freezeTimer = gameState.playerStats.freeze;
                 }
 

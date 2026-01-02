@@ -234,20 +234,87 @@ class BossChronos extends BossBase {
         }
     }
 
-    // NEW: Spawn orbiting clock minions
+    // NEW: Spawn orbiting clock minions using Enemy class
     spawnClockMinions(count) {
         for (let i = 0; i < count; i++) {
-            this.clockMinions.push({
-                angle: (i / count) * Math.PI * 2,
-                orbitRadius: 120 + Math.random() * 40,
-                orbitSpeed: 0.02 + Math.random() * 0.01,
-                hp: 40,
-                maxHp: 40,
-                radius: 18,
-                fireTimer: Math.random() * 60,
-                x: 0,
-                y: 0
-            });
+            const minionAngle = (i / count) * Math.PI * 2;
+            const orbitRadius = 120 + Math.random() * 40;
+            const startX = this.x + Math.cos(minionAngle) * orbitRadius;
+            const startY = this.y + Math.sin(minionAngle) * orbitRadius;
+
+            const minion = enemyPool.get(startX, startY, ENEMY_TYPES.BASIC, 1);
+            minion.isClockMinion = true;
+            minion.minionAngle = minionAngle;
+            minion.orbitRadius = orbitRadius;
+            minion.orbitSpeed = 0.02 + Math.random() * 0.01;
+            minion.hp = 40;
+            minion.maxHp = 40;
+            minion.radius = 18;
+            minion.fireTimer = Math.random() * 60;
+            minion.bossRef = this;
+            minion.color = this.getPhaseColor();
+
+            // Custom update - orbit and fire
+            minion.update = function (player, dt) {
+                if (!this.bossRef || !this.bossRef.active) {
+                    this.hp = 0;
+                    return;
+                }
+
+                this.minionAngle += this.orbitSpeed * dt;
+                this.x = this.bossRef.x + Math.cos(this.minionAngle) * this.orbitRadius;
+                this.y = this.bossRef.y + Math.sin(this.minionAngle) * this.orbitRadius;
+
+                this.fireTimer -= dt;
+                if (this.fireTimer <= 0 && typeof player !== 'undefined') {
+                    this.fireTimer = 80;
+                    const aimAngle = Math.atan2(player.y - this.y, player.x - this.x);
+                    const bullet = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
+                    bullet.radius = 8;
+                    bullet.hp = 17;
+                    bullet.maxHp = 17;
+                    bullet.color = this.bossRef.getPhaseColor();
+                    bullet.isDead = false;
+                    bullet.vx = Math.cos(aimAngle) * 4;
+                    bullet.vy = Math.sin(aimAngle) * 4;
+                    bullet.update = function (p, d) {
+                        this.x += this.vx * d;
+                        this.y += this.vy * d;
+                    };
+                }
+            };
+
+            // Custom draw - gear shape
+            minion.draw = function () {
+                CTX.save();
+                CTX.translate(this.x, this.y);
+
+                CTX.shadowBlur = 15;
+                CTX.shadowColor = this.bossRef.getPhaseColor();
+
+                CTX.fillStyle = this.bossRef.getPhaseColor();
+                CTX.beginPath();
+                for (let j = 0; j < 8; j++) {
+                    const angle = (j / 8) * Math.PI * 2 + this.bossRef.clockAngle;
+                    const r = j % 2 === 0 ? this.radius : this.radius * 0.7;
+                    const x = Math.cos(angle) * r;
+                    const y = Math.sin(angle) * r;
+                    if (j === 0) CTX.moveTo(x, y);
+                    else CTX.lineTo(x, y);
+                }
+                CTX.closePath();
+                CTX.fill();
+
+                if (this.hp < this.maxHp) {
+                    const hpPercent = this.hp / this.maxHp;
+                    CTX.fillStyle = hpPercent > 0.5 ? '#00ff00' : '#ff0000';
+                    CTX.fillRect(-10, -this.radius - 8, 20 * hpPercent, 4);
+                }
+
+                CTX.restore();
+            };
+
+            this.clockMinions.push(minion);
         }
     }
 
@@ -415,19 +482,90 @@ class BossChronos extends BossBase {
     // ═══════════════════════════════════════════════════════
 
     attackEchoArmy() {
-        // Multiple echo clones that attack
+        // Multiple echo clones that attack using Enemy class
         const count = 5;
         for (let i = 0; i < count; i++) {
             const angle = (i / count) * Math.PI * 2;
-            this.echoClones.push({
-                x: this.x + Math.cos(angle) * 180,
-                y: this.y + Math.sin(angle) * 180,
-                angle: angle,
-                alpha: 0.7,
-                life: 400,
-                fireTimer: 20 + i * 30,
-                burstMode: true
-            });
+            const startX = this.x + Math.cos(angle) * 180;
+            const startY = this.y + Math.sin(angle) * 180;
+
+            const clone = enemyPool.get(startX, startY, ENEMY_TYPES.BASIC, 1);
+            clone.isEchoClone = true;
+            clone.cloneAngle = angle;
+            clone.alpha = 0.7;
+            clone.life = 400;
+            clone.fireTimer = 20 + i * 30;
+            clone.burstMode = true;
+            clone.bossRef = this;
+            clone.radius = 35;
+            clone.hp = 30;
+            clone.maxHp = 30;
+            clone.color = this.getPhaseColor();
+
+            // Custom update
+            clone.update = function (player, dt) {
+                if (!this.bossRef || !this.bossRef.active) {
+                    this.hp = 0;
+                    return;
+                }
+
+                this.life -= dt;
+                if (this.life <= 0) {
+                    this.hp = 0;
+                    return;
+                }
+
+                this.cloneAngle += 0.015 * dt;
+                this.x = this.bossRef.x + Math.cos(this.cloneAngle) * 160;
+                this.y = this.bossRef.y + Math.sin(this.cloneAngle) * 160;
+
+                this.fireTimer -= dt;
+                if (this.fireTimer <= 0 && typeof player !== 'undefined') {
+                    this.fireTimer = this.burstMode ? 40 : 60;
+                    const aimAngle = Math.atan2(player.y - this.y, player.x - this.x);
+                    const bullet = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
+                    bullet.radius = 10;
+                    bullet.hp = 17;
+                    bullet.maxHp = 17;
+                    bullet.color = this.bossRef.getPhaseColor();
+                    bullet.isDead = false;
+                    bullet.vx = Math.cos(aimAngle) * 5;
+                    bullet.vy = Math.sin(aimAngle) * 5;
+                    bullet.update = function (p, d) {
+                        this.x += this.vx * d;
+                        this.y += this.vy * d;
+                    };
+                }
+
+                this.alpha = Math.min(0.7, this.life / 100);
+            };
+
+            // Custom draw
+            clone.draw = function () {
+                CTX.save();
+                CTX.globalAlpha = this.alpha;
+                CTX.translate(this.x, this.y);
+
+                CTX.shadowBlur = 20;
+                CTX.shadowColor = this.bossRef.getPhaseColor();
+                CTX.fillStyle = this.bossRef.getPhaseColor();
+
+                CTX.beginPath();
+                CTX.arc(0, 0, 35, 0, Math.PI * 2);
+                CTX.fill();
+
+                // Mini clock
+                CTX.strokeStyle = '#fff';
+                CTX.lineWidth = 2;
+                CTX.beginPath();
+                CTX.moveTo(0, 0);
+                CTX.lineTo(Math.cos(this.bossRef.minuteHand) * 20, Math.sin(this.bossRef.minuteHand) * 20);
+                CTX.stroke();
+
+                CTX.restore();
+            };
+
+            this.echoClones.push(clone);
         }
         createExplosion(this.x, this.y, 100, 0);
         if (window.playSound) playSound('powerup');
@@ -697,89 +835,13 @@ class BossChronos extends BossBase {
     }
 
     updateEchoClones(player, dt) {
-        for (let i = this.echoClones.length - 1; i >= 0; i--) {
-            const clone = this.echoClones[i];
-            clone.life -= dt;
-            clone.angle += 0.015 * dt;
-
-            clone.x = this.x + Math.cos(clone.angle) * 160;
-            clone.y = this.y + Math.sin(clone.angle) * 160;
-
-            // Aggressive firing
-            clone.fireTimer -= dt;
-            if (clone.fireTimer <= 0 && typeof player !== 'undefined') {
-                clone.fireTimer = clone.burstMode ? 40 : 60;
-
-                const aimAngle = Math.atan2(player.y - clone.y, player.x - clone.x);
-                const enemy = enemyPool.get(clone.x, clone.y, ENEMY_TYPES.BASIC, 1);
-                enemy.radius = 10;
-                enemy.hp = 17;
-                enemy.maxHp = 17;
-                enemy.color = this.getPhaseColor();
-                enemy.isDead = false;
-                enemy.vx = Math.cos(aimAngle) * 5;
-                enemy.vy = Math.sin(aimAngle) * 5;
-                enemy.update = function (p, d) {
-                    this.x += this.vx * d;
-                    this.y += this.vy * d;
-                };
-            }
-
-            clone.alpha = Math.min(0.7, clone.life / 100);
-
-            if (clone.life <= 0) {
-                this.echoClones.splice(i, 1);
-            }
-        }
+        // Clean up dead clones (Enemy update handles movement/firing now)
+        this.echoClones = this.echoClones.filter(clone => !clone.isDead && clone.hp > 0 && clone.life > 0);
     }
 
     updateClockMinions(player, dt) {
-        for (let i = this.clockMinions.length - 1; i >= 0; i--) {
-            const minion = this.clockMinions[i];
-
-            // Orbit around boss
-            minion.angle += minion.orbitSpeed * dt;
-            minion.x = this.x + Math.cos(minion.angle) * minion.orbitRadius;
-            minion.y = this.y + Math.sin(minion.angle) * minion.orbitRadius;
-
-            // Fire at player
-            minion.fireTimer -= dt;
-            if (minion.fireTimer <= 0 && typeof player !== 'undefined') {
-                minion.fireTimer = 80;
-                const aimAngle = Math.atan2(player.y - minion.y, player.x - minion.x);
-                const enemy = enemyPool.get(minion.x, minion.y, ENEMY_TYPES.BASIC, 1);
-                enemy.radius = 8;
-                enemy.hp = 17;
-                enemy.maxHp = 17;
-                enemy.color = this.getPhaseColor();
-                enemy.isDead = false;
-                enemy.vx = Math.cos(aimAngle) * 4;
-                enemy.vy = Math.sin(aimAngle) * 4;
-                enemy.update = function (p, d) {
-                    this.x += this.vx * d;
-                    this.y += this.vy * d;
-                };
-            }
-
-            // Player collision with minion
-            if (typeof player !== 'undefined' && gameState.gameActive) {
-                const dist = Math.hypot(player.x - minion.x, player.y - minion.y);
-                if (dist < minion.radius + player.radius) {
-                    if (gameState.playerStats.shield > 0) {
-                        gameState.playerStats.shield--;
-                        updateShieldIndicator(gameState.playerStats.shield);
-                        minion.hp = 0;
-                    } else if (!gameState.godMode) {
-                        startDeathSequence();
-                    }
-                }
-            }
-
-            if (minion.hp <= 0) {
-                spawnParticles(minion.x, minion.y, 8, 3, this.getPhaseColor());
-                this.clockMinions.splice(i, 1);
-            }
-        }
+        // Clean up dead minions (Enemy update handles movement/firing now)
+        this.clockMinions = this.clockMinions.filter(minion => !minion.isDead && minion.hp > 0);
     }
 
     takeDamage(amount) {
@@ -818,78 +880,11 @@ class BossChronos extends BossBase {
     }
 
     onDraw() {
-        // Draw time zones
-        this.timeZones.forEach(zone => {
-            CTX.save();
-            CTX.beginPath();
-            CTX.arc(zone.x, zone.y, zone.radius, 0, Math.PI * 2);
-            CTX.fillStyle = zone.color;
-            CTX.fill();
+        // Time zones draw themselves via custom draw() method
 
-            CTX.strokeStyle = zone.type === 'bomb' ? '#ff0066' : this.getPhaseColor();
-            CTX.lineWidth = 3;
-            CTX.setLineDash([10, 5]);
-            CTX.stroke();
-            CTX.setLineDash([]);
-            CTX.restore();
-        });
+        // Echo clones draw themselves via custom draw() method
 
-        // Draw echo clones
-        this.echoClones.forEach(clone => {
-            CTX.save();
-            CTX.globalAlpha = clone.alpha;
-            CTX.translate(clone.x, clone.y);
-
-            CTX.shadowBlur = 20;
-            CTX.shadowColor = this.getPhaseColor();
-            CTX.fillStyle = this.getPhaseColor();
-
-            CTX.beginPath();
-            CTX.arc(0, 0, 35, 0, Math.PI * 2);
-            CTX.fill();
-
-            // Mini clock
-            CTX.strokeStyle = '#fff';
-            CTX.lineWidth = 2;
-            CTX.beginPath();
-            CTX.moveTo(0, 0);
-            CTX.lineTo(Math.cos(this.minuteHand) * 20, Math.sin(this.minuteHand) * 20);
-            CTX.stroke();
-
-            CTX.restore();
-        });
-
-        // Draw clock minions
-        this.clockMinions.forEach(minion => {
-            CTX.save();
-            CTX.translate(minion.x, minion.y);
-
-            CTX.shadowBlur = 15;
-            CTX.shadowColor = this.getPhaseColor();
-
-            // Gear shape
-            CTX.fillStyle = this.getPhaseColor();
-            CTX.beginPath();
-            for (let i = 0; i < 8; i++) {
-                const angle = (i / 8) * Math.PI * 2 + this.clockAngle;
-                const r = i % 2 === 0 ? minion.radius : minion.radius * 0.7;
-                const x = Math.cos(angle) * r;
-                const y = Math.sin(angle) * r;
-                if (i === 0) CTX.moveTo(x, y);
-                else CTX.lineTo(x, y);
-            }
-            CTX.closePath();
-            CTX.fill();
-
-            // HP bar
-            if (minion.hp < minion.maxHp) {
-                const hpPercent = minion.hp / minion.maxHp;
-                CTX.fillStyle = hpPercent > 0.5 ? '#00ff00' : '#ff0000';
-                CTX.fillRect(-10, -minion.radius - 8, 20 * hpPercent, 4);
-            }
-
-            CTX.restore();
-        });
+        // Clock minions draw themselves via custom draw() method
 
         // Draw main boss
         CTX.save();

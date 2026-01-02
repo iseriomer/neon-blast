@@ -17,39 +17,8 @@ const BOSS_3_DATA = {
     }
 };
 
-// --- Boss Specific Projectile Pool ---
-// We use this for boss-specific threats that need simple physics but aren't generic "Enemies"
-class OmegaEntity {
-    constructor() {
-        this.reset({});
-    }
+// OmegaEntity class and omegaPool removed - using Enemy class via enemyPool instead
 
-    reset(params) {
-        this.active = true;
-        this.x = params.x || 0;
-        this.y = params.y || 0;
-        this.type = params.type || 'projectile'; // 'projectile', 'shield', 'orb'
-        this.vx = params.vx || 0;
-        this.vy = params.vy || 0;
-        this.radius = params.radius || 10;
-        this.color = params.color || '#fff';
-        this.life = params.life || 300;
-        this.hp = params.hp || 1;
-        this.maxHp = params.hp || 1;
-        this.angle = params.angle || 0;
-        this.rotSpeed = params.rotSpeed || 0;
-        this.parent = params.parent || null; // For shields orbiting
-        this.orbitAngle = params.orbitAngle || 0;
-        this.orbitDist = params.orbitDist || 0;
-        this.deadly = params.deadly !== undefined ? params.deadly : true;
-    }
-}
-
-const omegaPool = new ObjectPool(
-    () => new OmegaEntity(),
-    (e, params) => e.reset(params),
-    100
-);
 
 class BossOmega extends BossBase {
     constructor() {
@@ -89,6 +58,9 @@ class BossOmega extends BossBase {
         this.dpsCheckActive = false;
         this.dpsCheckStartTime = 0;
         this.dpsCheckDamageDealt = 0;
+
+        // Track all omega objects (now using Enemy class)
+        this.omegaObjects = [];
     }
 
     // Helper: Get safe boss Y position based on screen orientation
@@ -111,13 +83,16 @@ class BossOmega extends BossBase {
         this.hp = this.maxHp;
         this.radius = 90;
 
-        omegaPool.releaseAll();
+        // Clean up old omega objects
+        this.omegaObjects.forEach(obj => obj.hp = 0);
+        this.omegaObjects = [];
         this.shields = [];
         this.deathCount = 0;
         this.isRebirthing = false;
         this.aimTestActive = false;
         this.dpsCheckActive = false;
         this.aimTestTargets = [];
+
 
         // Center player with orientation-aware positioning
         if (typeof player !== 'undefined') {
@@ -138,6 +113,76 @@ class BossOmega extends BossBase {
 
         document.getElementById('boss-name').innerText = "???";
         document.getElementById('boss-name').style.color = '#888';
+    }
+
+    // Helper: Create omega entity using Enemy class
+    createOmegaEntity(params) {
+        const entity = enemyPool.get(params.x || 0, params.y || 0, ENEMY_TYPES.BASIC, 1);
+
+        // Set omega-specific properties
+        entity.isOmegaEntity = true;
+        entity.omegaType = params.type || 'projectile';
+        entity.vx = params.vx || 0;
+        entity.vy = params.vy || 0;
+        entity.radius = params.radius || 10;
+        entity.color = params.color || '#fff';
+        entity.life = params.life || 300;
+        entity.hp = params.hp || 1;
+        entity.maxHp = params.hp || 1;
+        entity.omegaAngle = params.angle || 0;
+        entity.rotSpeed = params.rotSpeed || 0;
+        entity.parent = params.parent || null;
+        entity.orbitAngle = params.orbitAngle || 0;
+        entity.orbitDist = params.orbitDist || 0;
+        entity.deadly = params.deadly !== undefined ? params.deadly : true;
+
+        // Custom update for omega entities
+        entity.update = function (player, dt) {
+            // Life timer
+            if (this.life !== undefined) {
+                this.life -= dt;
+                if (this.life <= 0) {
+                    this.hp = 0;
+                    return;
+                }
+            }
+
+            // Handle different entity types
+            if (this.omegaType === 'shield' && this.parent) {
+                // Orbit around parent
+                this.orbitAngle += 0.02 * dt;
+                this.x = this.parent.x + Math.cos(this.orbitAngle) * this.orbitDist;
+                this.y = this.parent.y + Math.sin(this.orbitAngle) * this.orbitDist;
+                this.omegaAngle += this.rotSpeed * dt;
+            } else if (this.omegaType === 'orb' && typeof player !== 'undefined') {
+                // Seeker behavior
+                const dx = player.x - this.x;
+                const dy = player.y - this.y;
+                const dist = Math.hypot(dx, dy);
+                if (dist > 0) {
+                    const seekStrength = 0.1;
+                    this.vx += (dx / dist) * seekStrength * dt;
+                    this.vy += (dy / dist) * seekStrength * dt;
+                }
+                this.x += this.vx * dt;
+                this.y += this.vy * dt;
+            } else {
+                // Simple movement
+                this.x += this.vx * dt;
+                this.y += this.vy * dt;
+                this.omegaAngle += this.rotSpeed * dt;
+            }
+
+            // Bounds check
+            if (this.x < -100 || this.x > CANVAS.width + 100 ||
+                this.y < -100 || this.y > CANVAS.height + 100) {
+                this.hp = 0;
+            }
+        };
+
+        // Track this entity
+        this.omegaObjects.push(entity);
+        return entity;
     }
 
     onUpdate(player, dt) {
@@ -260,7 +305,7 @@ class BossOmega extends BossBase {
         }
 
         // Clean screen
-        omegaPool.releaseAll();
+        // Clean up omega objects (handled by omegaObjects array now)
         if (typeof enemyPool !== 'undefined') {
             const enemies = enemyPool.getActive();
             enemies.forEach(e => e.hp = 0);
@@ -355,7 +400,7 @@ class BossOmega extends BossBase {
             // Boss pasif kalır ama bazen rastgele projectile atar
             if (this.pulseTimer % 60 < 1) {
                 const angle = Math.random() * Math.PI * 2;
-                omegaPool.get({
+                this.createOmegaEntity({
                     type: 'projectile',
                     x: this.x, y: this.y,
                     vx: Math.cos(angle) * 4,
@@ -373,7 +418,7 @@ class BossOmega extends BossBase {
         // DPS Check sırasında
         if (this.state === 'DPS_CHECK') {
             // Barriers orbit around boss
-            omegaPool.getActive().forEach(e => {
+            this.omegaObjects.filter(e => !e.isDead && e.hp > 0).forEach(e => {
                 if (e.type === 'dps_barrier' && e.parent) {
                     e.orbitAngle += 0.04 * dt;
                     e.x = this.x + Math.cos(e.orbitAngle) * e.orbitDist;
@@ -389,7 +434,7 @@ class BossOmega extends BossBase {
             if (this.attackTimer % 90 === 0) {
                 for (let i = 0; i < 3; i++) {
                     const angle = (i / 3) * Math.PI * 2 + this.pulseTimer * 0.1;
-                    const missile = omegaPool.get({
+                    const missile = this.createOmegaEntity({
                         type: 'homing',
                         x: this.x, y: this.y,
                         vx: Math.cos(angle) * 3,
@@ -407,7 +452,7 @@ class BossOmega extends BossBase {
             if (this.attackTimer % 120 === 60) {
                 for (let i = 0; i < 12; i++) {
                     const angle = (i / 12) * Math.PI * 2 + this.pulseTimer * 0.2;
-                    omegaPool.get({
+                    this.createOmegaEntity({
                         type: 'projectile',
                         x: this.x, y: this.y,
                         vx: Math.cos(angle) * 7,
@@ -432,7 +477,7 @@ class BossOmega extends BossBase {
         count = 6;
         for (let i = 0; i < count; i++) {
             const angle = (i / count) * Math.PI * 2;
-            const shield = omegaPool.get({
+            const shield = this.createOmegaEntity({
                 type: 'shield', x: 0, y: 0,
                 parent: this, orbitAngle: angle, orbitDist: 140,
                 radius: 25, color: '#aa00ff', hp: 280, life: 99999,
@@ -450,7 +495,7 @@ class BossOmega extends BossBase {
         const angleToPlayer = Math.atan2(player.y - this.y, player.x - this.x);
         for (let i = 0; i < fanCount; i++) {
             const angle = angleToPlayer + (i - Math.floor(fanCount / 2)) * 0.2;
-            omegaPool.get({
+            this.createOmegaEntity({
                 type: 'projectile',
                 x: this.x, y: this.y,
                 vx: Math.cos(angle) * 6, vy: Math.sin(angle) * 6,
@@ -463,7 +508,7 @@ class BossOmega extends BossBase {
         // BUFF: Faster, more HP
         for (let i = 0; i < 2; i++) {
             const angle = Math.random() * Math.PI;
-            const orb = omegaPool.get({
+            const orb = this.createOmegaEntity({
                 type: 'orb',
                 x: this.x + (Math.random() - 0.5) * 100, y: this.y,
                 vx: Math.cos(angle) * 3, vy: 3 + Math.random() * 2, // Faster
@@ -485,7 +530,7 @@ class BossOmega extends BossBase {
             // BUFF: Fires 3 at once
             for (let i = -1; i <= 1; i++) {
                 const angle = Math.atan2(player.y - this.y, player.x - this.x) + (i * 0.3);
-                omegaPool.get({
+                this.createOmegaEntity({
                     type: 'big_orb',
                     x: this.x, y: this.y,
                     vx: Math.cos(angle) * 7, vy: Math.sin(angle) * 7,
@@ -525,7 +570,7 @@ class BossOmega extends BossBase {
             const count = 10;
             for (let i = 0; i < count; i++) {
                 const angle = this.pulseTimer * 0.1 + (i / count) * Math.PI * 2;
-                omegaPool.get({
+                this.createOmegaEntity({
                     type: 'projectile',
                     x: this.x, y: this.y,
                     vx: Math.cos(angle) * 4, vy: Math.sin(angle) * 4,
@@ -537,7 +582,7 @@ class BossOmega extends BossBase {
             // Massive aimed lasers + screen shake
             if (this.pulseTimer % 20 < 1) {
                 const angle = Math.atan2(player.y - this.y, player.x - this.x) + (Math.random() - 0.5) * 0.5;
-                omegaPool.get({
+                this.createOmegaEntity({
                     type: 'projectile',
                     x: this.x, y: this.y,
                     vx: Math.cos(angle) * 8, vy: Math.sin(angle) * 8,
@@ -568,88 +613,11 @@ class BossOmega extends BossBase {
     // -------------------------------------------------------------------------
 
     updateOmegaEntities(player, dt) {
-        omegaPool.update((e) => {
-            if (!e.active) return true;
+        // Clean up dead omega objects (update logic is in Entity.update() now)
+        this.omegaObjects = this.omegaObjects.filter(e => !e.isDead && e.hp > 0);
 
-            // Logic by type
-            if (e.type === 'shield') {
-                if (e.parent) {
-                    e.orbitAngle += 0.02 * dt;
-                    e.x = e.parent.x + Math.cos(e.orbitAngle) * e.orbitDist;
-                    e.y = e.parent.y + Math.sin(e.orbitAngle) * e.orbitDist;
-                }
-            } else {
-                e.x += e.vx * dt;
-                e.y += e.vy * dt;
-            }
-
-            e.life -= dt;
-            if (e.type === 'homing' && typeof player !== 'undefined') {
-                const angle = Math.atan2(player.y - e.y, player.x - e.x);
-                const turnSpeed = 0.05 * dt;
-                const currentAngle = Math.atan2(e.vy, e.vx);
-                let targetAngle = angle;
-
-                // Smooth turning
-                let diff = targetAngle - currentAngle;
-                if (diff > Math.PI) diff -= Math.PI * 2;
-                if (diff < -Math.PI) diff += Math.PI * 2;
-
-                const newAngle = currentAngle + diff * turnSpeed;
-                const speed = Math.hypot(e.vx, e.vy);
-                e.vx = Math.cos(newAngle) * speed;
-                e.vy = Math.sin(newAngle) * speed;
-            }
-            // Collision with Player
-            if (e.deadly && typeof player !== 'undefined' && gameState.gameActive) {
-                if (Math.hypot(player.x - e.x, player.y - e.y) < e.radius + player.radius) {
-                    if (gameState.playerStats.shield > 0) {
-                        gameState.playerStats.shield--;
-                        updateShieldIndicator(gameState.playerStats.shield);
-                        return true; // Destroy projectile
-                    } else if (!gameState.godMode) {
-                        startDeathSequence();
-                    }
-                    return true;
-                }
-            }
-
-            // Hit by bullets?
-            // This is usually handled in bullet update, but for Boss Entities we might need manual check 
-            // OR we rely on standard bullet collision checking finding these? 
-            // Standard game loop usually checks bullets vs "enemies". 
-            // Since these are in a separate pool, we need to bridge that.
-            // **CRITICAL FIX**: Make sure player bullets hit these.
-            // Assuming standard bullet loop doesn't know about omegaPool. 
-            // We'll iterate bullets here.
-
-            // NOTE: Accessing global 'bullets' array if exists, or passing projectile manager?
-            // NeonBlast usually has a 'bullets' array in main game file. 
-            // I'll assume global `bullets` or similar. If not, this part is tricky.
-            // Checking `game/gun.js` or `game/game.js` would confirm. 
-            // Standard practice: check collision with player bullets here.
-            if (typeof bullets !== 'undefined') {
-                bullets.forEach(b => {
-                    if (b.active && Math.hypot(b.x - e.x, b.y - e.y) < e.radius + b.radius) {
-                        e.hp -= b.damage || 1;
-                        b.active = false; // Destroy bullet
-                        spawnParticles(e.x, e.y, 3, 2, e.color);
-                        if (window.playSound) playSound('hit');
-                    }
-                });
-            }
-
-            if (e.hp <= 0) {
-                spawnParticles(e.x, e.y, 10, 3, e.color);
-                return true;
-            }
-
-            return e.life <= 0;
-        });
-
-        // CRITICAL FIX: Update active shields list
-        // Remove destroyed shields so boss becomes vulnerable
-        this.shields = this.shields.filter(s => s.active && s.hp > 0);
+        // Remove destroyed shields
+        this.shields = this.shields.filter(s => !s.isDead && s.hp > 0);
     }
 
     takeDamage(amount) {
@@ -688,7 +656,7 @@ class BossOmega extends BossBase {
         this.state = 'REBIRTHING';
 
         // Ekranı temizle
-        omegaPool.releaseAll();
+        // Clean up omega objects (handled by omegaObjects array now)
         if (typeof enemyPool !== 'undefined') {
             enemyPool.getActive().forEach(e => {
                 if (!e.isBossMinion) e.hp = 0;
@@ -766,7 +734,7 @@ class BossOmega extends BossBase {
         for (let i = 0; i < 6; i++) {
             const angle = (i / 6) * Math.PI * 2;
             const dist = 250;
-            const target = omegaPool.get({
+            const target = this.createOmegaEntity({
                 type: 'aim_target',
                 x: this.x + Math.cos(angle) * dist,
                 y: this.y + Math.sin(angle) * dist,
@@ -842,7 +810,7 @@ class BossOmega extends BossBase {
             // Punishment: Massive bullet hell
             for (let i = 0; i < 360; i += 10) {
                 const rad = i * Math.PI / 180;
-                omegaPool.get({
+                this.createOmegaEntity({
                     type: 'projectile',
                     x: this.x, y: this.y,
                     vx: Math.cos(rad) * 6,
@@ -877,7 +845,7 @@ class BossOmega extends BossBase {
         // Spawn protective barriers that need to be destroyed
         for (let i = 0; i < 8; i++) {
             const angle = (i / 8) * Math.PI * 2;
-            omegaPool.get({
+            this.createOmegaEntity({
                 type: 'dps_barrier',
                 x: this.x + Math.cos(angle) * 150,
                 y: this.y + Math.sin(angle) * 150,
@@ -929,7 +897,7 @@ class BossOmega extends BossBase {
             }, 5000);
 
             // Tüm bariyerleri patlat
-            omegaPool.getActive().forEach(e => {
+            this.omegaObjects.filter(e => !e.isDead && e.hp > 0).forEach(e => {
                 if (e.type === 'dps_barrier') {
                     createExplosion(e.x, e.y, 100, 0);
                     e.hp = 0;
@@ -939,7 +907,7 @@ class BossOmega extends BossBase {
         } else {
             // BAŞARISIZ - OYUNCU ÖLDÜRÜLÜR!
             // Tüm bariyerler oyuncuya doğru fırlatılır
-            omegaPool.getActive().forEach(e => {
+            this.omegaObjects.filter(e => !e.isDead && e.hp > 0).forEach(e => {
                 if (e.type === 'dps_barrier') {
                     const angle = Math.atan2(player.y - e.y, player.x - e.x);
                     e.vx = Math.cos(angle) * 15;
@@ -967,7 +935,7 @@ class BossOmega extends BossBase {
         if (typeof enemyPool !== 'undefined') {
             enemyPool.getActive().forEach(e => e.hp = 0);
         }
-        omegaPool.releaseAll();
+        // Clean up omega objects (handled by omegaObjects array now)
         if (typeof player !== 'undefined') {
             player.x = CANVAS.width / 2;
             player.y = CANVAS.height / 2;
@@ -980,7 +948,7 @@ class BossOmega extends BossBase {
 
     onDraw() {
         // Draw Entities
-        const entities = omegaPool.getActive();
+        const entities = this.omegaObjects.filter(e => !e.isDead && e.hp > 0);
         entities.forEach(e => {
             CTX.save();
             CTX.translate(e.x, e.y);
@@ -1136,3 +1104,5 @@ class BossOmega extends BossBase {
 
 const boss3 = new BossOmega();
 window.boss3 = boss3; // FIX: Expose to window for CollisionManager
+
+

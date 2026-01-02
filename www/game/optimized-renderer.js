@@ -610,7 +610,9 @@ const RenderOptimizer = {
 
         // Draw health arcs in second pass (revised: allow drawing even without shadows, and up to higher enemy counts)
         if (totalEnemies < 500) {
-            this.drawHealthArcs(regularEnemies);
+            // Combine regular enemies and special enemies for health arc rendering
+            const allEnemiesForHealth = [...regularEnemies, ...specialEnemies];
+            this.drawHealthArcs(allEnemiesForHealth);
         }
     },
 

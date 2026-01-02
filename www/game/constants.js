@@ -86,6 +86,14 @@ const ENEMY_TYPES = {
         hp: 6,
         score: 500,
         name: 'Healer'
+    },
+    SUPERTANK: {
+        radius: 45,
+        color: 'hsl(25, 100%, 50%)', // Bright Orange
+        speed: 0.5,
+        hp: 70,
+        score: 600,
+        name: 'SUPERTANK'
     }
 };
 

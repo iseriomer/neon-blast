@@ -33,6 +33,7 @@ class SpawnManager {
             const rand = Math.random();
 
             if (gameState.difficultyMultiplier > 5 && rand < 0.04 && gameState.activeHealerCount < 3) type = ENEMY_TYPES.HEALER; // Rare spawn (Max 3)
+            else if (gameState.level > 50 && rand < 0.08) type = ENEMY_TYPES.SUPERTANK; // After level 50
             else if (gameState.difficultyMultiplier > 4 && rand < 0.15 && gameState.activeSpawnerCount < 3) type = ENEMY_TYPES.SPAWNER;
             else if (gameState.difficultyMultiplier > 3 && rand < 0.25) type = ENEMY_TYPES.SPLITTER;
             else if (gameState.difficultyMultiplier > 2 && rand < 0.35) type = ENEMY_TYPES.TANK;
@@ -80,9 +81,14 @@ class SpawnManager {
             startBossFight(6);
             return;
         }
-        // Level 50: THE ARCHITECT (Boss 3)
+        // Level 50: THE OMEGA (Boss 3)
         if (gameState.level === 49 && !gameState.bossActive) {
             startBossFight(3);
+            return;
+        }
+        // Level 55: THE SINGULARITY (Boss 7) - TRUE FINAL BOSS
+        if (gameState.level === 54 && !gameState.bossActive) {
+            startBossFight(7);
             return;
         }
 

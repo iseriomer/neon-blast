@@ -554,6 +554,7 @@ button.main-btn:active {
     align-items: center;
     z-index: 10;
     pointer-events: none;
+    transform-origin: top center;
 }
 
 #boss-name {
@@ -602,6 +603,7 @@ button.main-btn:active {
     #boss-hud {
         top: 10px;
         width: 90%;
+        transform: translateX(-50%) scale(0.7);
     }
 
     h1 {
@@ -734,6 +736,12 @@ button.main-btn:active {
         justify-content: center;
         padding: 10px;
         overflow-y: auto;
+    }
+
+    #boss-hud {
+        transform: translateX(-50%) scale(0.4);
+        width: 200%;
+        top: 5px;
     }
 
     /* XP Container için özel ölçekleme */

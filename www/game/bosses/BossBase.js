@@ -23,6 +23,13 @@ class BossBase {
         this.phase = 1;
         this.attackTimer = 0;
 
+        // Auto-scale radius for mobile/different screens
+        if (!this.baseRadius) this.baseRadius = this.radius;
+        // Use GAME_SCALE if available, otherwise default to 1. 
+        // Ensure we don't scale down too much if GAME_SCALE is very small, though GAME_SCALE logic handles floor.
+        const scale = typeof GAME_SCALE !== 'undefined' ? GAME_SCALE : 1;
+        this.radius = this.baseRadius * scale;
+
         document.getElementById('boss-hud').style.display = 'flex';
         // Hide XP container when boss is active
         const xpContainer = document.getElementById('xp-container');

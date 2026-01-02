@@ -17,6 +17,8 @@ class Enemy {
         this.freezeTimer = 0;
         this.shieldAura = false; // Kalkan aura aktif mi?
         this.shieldPulse = 0;
+        this.immuneToKnockback = false;
+        this.immuneToFreeze = false;
 
         this.isDead = false;
     }
@@ -52,6 +54,7 @@ class Enemy {
         if (gameState.level >= 30) this.hp = type.hp + Math.floor(difficultyMultiplier / 0.25);
         if (gameState.level >= 40) this.hp = type.hp + Math.floor(difficultyMultiplier / 0.13);
         if (gameState.level >= 45) this.hp = type.hp + Math.floor(difficultyMultiplier / 0.1);
+        if (gameState.level >= 50) this.hp = type.hp + Math.floor(difficultyMultiplier / 0.07);
         this.maxHp = this.hp;
         this.id = Math.random();
         this.dashCooldown = 0;
@@ -60,6 +63,40 @@ class Enemy {
         this.freezeTimer = 0;
         this.shieldAura = false;
         this.shieldPulse = 0;
+        this.immuneToKnockback = (type.name === 'SUPERTANK');
+        this.immuneToFreeze = (type.name === 'SUPERTANK');
+
+        // SUPERTANK: Assign custom draw method to bypass optimized-renderer
+        if (type.name === 'SUPERTANK') {
+            this.draw = function () {
+                const time = Date.now() / 1000;
+
+                CTX.save();
+                CTX.translate(this.x, this.y);
+
+                // Outer rotating square (larger, glowing border)
+                CTX.save();
+                CTX.rotate(time * 0.5);
+                CTX.strokeStyle = 'hsl(35, 100%, 60%)'; // Bright orange-gold
+                CTX.lineWidth = 4;
+                CTX.shadowBlur = 15;
+                CTX.shadowColor = 'hsl(25, 100%, 50%)';
+                CTX.strokeRect(-this.radius * 1.1, -this.radius * 1.1, this.radius * 2.2, this.radius * 2.2);
+                CTX.restore();
+
+                // Inner static square (core)
+                CTX.fillStyle = 'hsl(15, 90%, 35%)'; // Dark orange core
+                CTX.fillRect(-this.radius * 0.7, -this.radius * 0.7, this.radius * 1.4, this.radius * 1.4);
+
+                // Inner border
+                CTX.strokeStyle = 'hsl(25, 100%, 50%)';
+                CTX.lineWidth = 2;
+                CTX.strokeRect(-this.radius * 0.7, -this.radius * 0.7, this.radius * 1.4, this.radius * 1.4);
+
+                CTX.restore();
+                // HP rendering handled by optimized-renderer health arc system
+            };
+        }
 
         this.isDead = false;
     }
@@ -127,6 +164,33 @@ class Enemy {
             CTX.closePath();
         } else if (this.type.name === 'Tank') {
             CTX.rect(this.x - this.radius, this.y - this.radius, this.radius * 2, this.radius * 2);
+        } else if (this.type.name === 'SUPERTANK') {
+            const time = Date.now() / 1000;
+
+            CTX.save();
+            CTX.translate(this.x, this.y);
+
+            // Outer rotating square (larger, glowing border)
+            CTX.save();
+            CTX.rotate(time * 0.5);
+            CTX.strokeStyle = 'hsl(35, 100%, 60%)'; // Bright orange-gold
+            CTX.lineWidth = 4;
+            CTX.shadowBlur = 15;
+            CTX.shadowColor = 'hsl(25, 100%, 50%)';
+            CTX.strokeRect(-this.radius * 1.1, -this.radius * 1.1, this.radius * 2.2, this.radius * 2.2);
+            CTX.restore();
+
+            // Inner static square (core)
+            CTX.fillStyle = 'hsl(15, 90%, 35%)'; // Dark orange core
+            CTX.fillRect(-this.radius * 0.7, -this.radius * 0.7, this.radius * 1.4, this.radius * 1.4);
+
+            // Inner border
+            CTX.strokeStyle = 'hsl(25, 100%, 50%)';
+            CTX.lineWidth = 2;
+            CTX.strokeRect(-this.radius * 0.7, -this.radius * 0.7, this.radius * 1.4, this.radius * 1.4);
+
+            CTX.restore();
+            CTX.beginPath(); // Clear path so we don't fill later
         } else if (this.type.name === 'Splitter' || this.type.name === 'MiniSplitter') {
             const sides = 6;
             for (let i = 0; i < sides; i++) {
@@ -182,12 +246,12 @@ class Enemy {
         if (this.freezeTimer > 0) {
             CTX.fillStyle = '#00ffff';
 
-        } else if (this.type.name !== 'Healer') { // Healer kendi rengini yönetiyor
+        } else if (this.type.name !== 'Healer' && this.type.name !== 'SUPERTANK') { // Healer and SUPERTANK manage their own rendering
             CTX.fillStyle = this.color;
         }
 
         // Common draw finalize (Shadows etc)
-        if (this.type.name !== 'Healer') {
+        if (this.type.name !== 'Healer' && this.type.name !== 'SUPERTANK') {
             CTX.shadowBlur = 10;
             CTX.shadowColor = this.color;
             CTX.fill();
