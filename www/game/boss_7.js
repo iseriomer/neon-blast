@@ -769,7 +769,7 @@ class BossSingularity extends BossBase {
 
     attackDataStream(player) {
         // Binary streams from sides - BUFFED
-        const streamCount = 8;
+        const streamCount = 10;
         for (let i = 0; i < streamCount; i++) {
             setTimeout(() => {
                 const fromLeft = i % 2 === 0;
@@ -780,7 +780,7 @@ class BossSingularity extends BossBase {
                 proj.hp = 50; // BUFFED HP
                 proj.maxHp = 50;
                 proj.color = '#00ffff';
-                proj.vx = fromLeft ? 8 : -8; // BUFFED Speed
+                proj.vx = fromLeft ? 12 : -12; // BUFFED Speed
 
                 proj.update = function (p, dt) {
                     this.x += this.vx * dt;
