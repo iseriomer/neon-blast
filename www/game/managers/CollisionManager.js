@@ -235,7 +235,8 @@ class CollisionManager {
             { ref: 'boss4', color: '#00ff88', hasSplitCores: true },
             { ref: 'boss5', color: null, hasClockMinions: true }, // color from getPhaseColor()
             { ref: 'boss6', color: null, hasVoidOrbitals: true }, // VOID REAPER - color from getPhaseColor()
-            { ref: 'boss7', color: null } // THE SINGULARITY - color from getPhaseColor()
+            { ref: 'boss7', color: null }, // THE SINGULARITY - color from getPhaseColor()
+            { ref: 'boss8', color: null, hasGalaxyArms: true } // THE GALAXY DEVOURER - color from getPhaseColor()
         ];
 
         for (const bossInfo of legacyBosses) {
@@ -268,6 +269,11 @@ class CollisionManager {
             // Boss5 clock minions
             if (bossInfo.hasClockMinions && boss.clockMinions) {
                 if (this.checkClockMinions(projectile, boss)) return true;
+            }
+
+            // Boss8 galaxy arms
+            if (bossInfo.hasGalaxyArms && boss.galaxyArms) {
+                if (this.checkGalaxyArms(projectile, boss)) return true;
             }
         }
 
@@ -390,6 +396,37 @@ class CollisionManager {
                 let damage = gameState.playerStats.sniper ? 2 : 1;
                 minion.hp -= damage;
                 spawnParticles(minion.x, minion.y, 3, 2, boss5.getPhaseColor());
+                playSound('hit');
+
+                projectile.penetration--;
+                if (projectile.penetration <= 0) {
+                    projectilePool.release(projectile);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // HELPER: Boss8 galaxy arms
+    // ═══════════════════════════════════════════════════════════════════
+    static checkGalaxyArms(projectile, boss8) {
+        if (!boss8.galaxyArms) return false;
+
+        for (let ga = boss8.galaxyArms.length - 1; ga >= 0; ga--) {
+            const arm = boss8.galaxyArms[ga];
+            if (arm.hp <= 0) continue;
+
+            const dx = projectile.x - arm.x;
+            const dy = projectile.y - arm.y;
+            const distSq = dx * dx + dy * dy;
+            const minDist = arm.radius + projectile.radius;
+
+            if (distSq < minDist * minDist) {
+                let damage = gameState.playerStats.sniper ? 2 : 1;
+                arm.hp -= damage;
+                spawnParticles(arm.x, arm.y, 3, 2, boss8.getPhaseColor());
                 playSound('hit');
 
                 projectile.penetration--;

@@ -91,6 +91,11 @@ class SpawnManager {
             startBossFight(7);
             return;
         }
+        // Level 60: THE GALAXY DEVOURER (Boss 8) - ULTIMATE CHALLENGE
+        if (gameState.level === 59 && !gameState.bossActive) {
+            startBossFight(8);
+            return;
+        }
 
         gameState.isPaused = true;
         clearInterval(gameState.spawnInterval);
