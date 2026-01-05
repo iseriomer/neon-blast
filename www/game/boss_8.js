@@ -2,8 +2,8 @@
 // "When the stars themselves bow in terror, the Devourer awakens."
 
 const BOSS_8_DATA = {
-    name: 'THE GALAXY DEVOURER',
-    hp: 300,
+    name: 'GALAXY DEVOURER',
+    hp: 8000,
     score: 150000,
     colors: {
         phase1: '#8b00ff',   // Deep Purple - Cosmic Hunger
@@ -201,7 +201,7 @@ class BossGalaxyDevourer extends BossBase {
         } else if (this.introTimer < 300) {
             // Dramatic reveal
             if (this.introTimer > 220 && this.introTimer < 230) {
-                document.getElementById('boss-name').innerText = "THE GALAXY DEVOURER";
+                document.getElementById('boss-name').innerText = "GALAXY DEVOURER";
                 document.getElementById('boss-name').style.color = this.getPhaseColor();
                 if (window.playSound) playSound('boss');
                 createExplosion(this.x, this.y, 400, 0);
@@ -364,8 +364,8 @@ class BossGalaxyDevourer extends BossBase {
             arm.orbAngle = angle;
             arm.orbitRadius = 80 * GAME_SCALE;
             arm.radius = 35 * GAME_SCALE;
-            arm.hp = 150;
-            arm.maxHp = 150;
+            arm.hp = 300;
+            arm.maxHp = 300;
             arm.color = this.getPhaseColor();
             arm.bossRef = this;
 
@@ -433,8 +433,8 @@ class BossGalaxyDevourer extends BossBase {
             dust.orbitRadius = 180 + Math.random() * 40;
             dust.orbitSpeed = 0.02 + Math.random() * 0.01;
             dust.radius = 12 * GAME_SCALE;
-            dust.hp = 20;
-            dust.maxHp = 20;
+            dust.hp = 40;
+            dust.maxHp = 40;
             dust.color = this.getPhaseAccent();
             dust.bossRef = this;
 
@@ -484,8 +484,8 @@ class BossGalaxyDevourer extends BossBase {
                     const proj = enemyPool.get(arm.x, arm.y, ENEMY_TYPES.BASIC, 1);
                     proj.isVoidProjectile = true;
                     proj.radius = 10 * GAME_SCALE;
-                    proj.hp = 15;
-                    proj.maxHp = 15;
+                    proj.hp = 30;
+                    proj.maxHp = 30;
                     proj.color = this.getPhaseColor();
                     proj.vx = Math.cos(angle) * 5;
                     proj.vy = Math.sin(angle) * 5;
@@ -541,8 +541,8 @@ class BossGalaxyDevourer extends BossBase {
                 well.isGravityWell = true;
                 well.radius = 20;
                 well.maxRadius = 100;
-                well.hp = 80;
-                well.maxHp = 80;
+                well.hp = 160;
+                well.maxHp = 160;
                 well.color = '#330066';
                 well.life = 300; // 5 seconds
                 well.pullRadius = 200;
@@ -610,8 +610,8 @@ class BossGalaxyDevourer extends BossBase {
                 const star = enemyPool.get(x, -30, ENEMY_TYPES.BASIC, 1);
                 star.isVoidProjectile = true;
                 star.radius = 12 * GAME_SCALE;
-                star.hp = 18;
-                star.maxHp = 18;
+                star.hp = 36;
+                star.maxHp = 36;
                 star.color = '#ffff00';
                 star.vy = 4 + Math.random() * 2;
                 star.vx = (Math.random() - 0.5) * 2;
@@ -666,8 +666,8 @@ class BossGalaxyDevourer extends BossBase {
                 const meteor = enemyPool.get(x, -80, ENEMY_TYPES.TANK, 1);
                 meteor.isMeteor = true;
                 meteor.radius = 40 * GAME_SCALE;
-                meteor.hp = 50;
-                meteor.maxHp = 50;
+                meteor.hp = 100;
+                meteor.maxHp = 100;
                 meteor.color = '#ff4400';
                 meteor.vy = 2;
                 meteor.rotation = 0;
@@ -755,8 +755,8 @@ class BossGalaxyDevourer extends BossBase {
                     laser.laserAngle = baseAngle;
                     laser.laserDist = dist;
                     laser.radius = 15 * GAME_SCALE;
-                    laser.hp = 25;
-                    laser.maxHp = 25;
+                    laser.hp = 50;
+                    laser.maxHp = 50;
                     laser.color = this.getPhaseColor();
                     laser.life = 120; // 2 seconds
                     laser.bossRef = this;
@@ -811,8 +811,8 @@ class BossGalaxyDevourer extends BossBase {
                     const rift = enemyPool.get(side.x, y, ENEMY_TYPES.SPEEDSTER, 1);
                     rift.isVoidProjectile = true;
                     rift.radius = 15 * GAME_SCALE;
-                    rift.hp = 20;
-                    rift.maxHp = 20;
+                    rift.hp = 40;
+                    rift.maxHp = 40;
                     rift.color = '#ff00ff';
                     rift.vx = side.spawnVx;
                     rift.vy = (Math.random() - 0.5) * 2;
@@ -878,8 +878,8 @@ class BossGalaxyDevourer extends BossBase {
                 );
                 proj.isVoidProjectile = true;
                 proj.radius = 8 * GAME_SCALE;
-                proj.hp = 12;
-                proj.maxHp = 12;
+                proj.hp = 24;
+                proj.maxHp = 24;
                 proj.color = this.getPhaseColor();
 
                 const toPlayer = Math.atan2(player.y - proj.y, player.x - proj.x);
@@ -908,8 +908,8 @@ class BossGalaxyDevourer extends BossBase {
                     const pulse = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
                     pulse.isVoidProjectile = true;
                     pulse.radius = 12 * GAME_SCALE;
-                    pulse.hp = 20;
-                    pulse.maxHp = 20;
+                    pulse.hp = 40;
+                    pulse.maxHp = 40;
                     pulse.color = '#ffd700';
                     pulse.vx = Math.cos(angle) * 3;
                     pulse.vy = Math.sin(angle) * 3;
@@ -959,8 +959,8 @@ class BossGalaxyDevourer extends BossBase {
                 const proj = enemyPool.get(arm.x, arm.y, ENEMY_TYPES.BASIC, 1);
                 proj.isVoidProjectile = true;
                 proj.radius = 8 * GAME_SCALE;
-                proj.hp = 10;
-                proj.maxHp = 10;
+                proj.hp = 20;
+                proj.maxHp = 20;
                 proj.color = this.getPhaseColor();
                 proj.vx = Math.cos(angle) * 5;
                 proj.vy = Math.sin(angle) * 5;
@@ -1033,7 +1033,7 @@ class BossGalaxyDevourer extends BossBase {
                     ENEMY_TYPES.BASIC, 1
                 );
                 proj.radius = 10;
-                proj.hp = 15;
+                proj.hp = 30;
                 proj.color = '#8b00ff';
                 proj.vx = Math.cos(spawnAngle) * 3;
                 proj.vy = Math.sin(spawnAngle) * 3;
@@ -1111,8 +1111,8 @@ class BossGalaxyDevourer extends BossBase {
                         const proj = enemyPool.get(zone.x, zone.y, ENEMY_TYPES.BASIC, 1);
                         proj.isVoidProjectile = true;
                         proj.radius = 10 * GAME_SCALE;
-                        proj.hp = 12;
-                        proj.maxHp = 12;
+                        proj.hp = 24;
+                        proj.maxHp = 24;
                         proj.color = '#ffffff';
                         proj.vx = Math.cos(angle) * 4;
                         proj.vy = Math.sin(angle) * 4;

@@ -265,7 +265,7 @@ class BossOmega extends BossBase {
         });
         this.shields = [];
 
-        document.getElementById('boss-name').innerText = "THE OMEGA - UNLEASHED";
+        document.getElementById('boss-name').innerText = "THE OMEGA";
         document.getElementById('boss-name').style.color = BOSS_3_DATA.colors.divine;
         createExplosion(this.x, this.y, 400, 0);
 
@@ -792,17 +792,17 @@ class BossOmega extends BossBase {
         this.aimTestTargets = [];
 
         if (success) {
-            document.getElementById('boss-name').innerText = "OMEGA UNLEASHED";
+            document.getElementById('boss-name').innerText = "THE OMEGA";
             if (window.playSound) playSound('powerup');
             createExplosion(this.x, this.y, 300, 0);
 
             // Boss artık hasar alabilir!
             setTimeout(() => {
-                document.getElementById('boss-name').innerText = "OMEGA UNLEASHED";
+                document.getElementById('boss-name').innerText = "THE OMEGA";
             }, 2000);
         } else {
             // BAŞARISIZ - Boss fulll heal + agresif mod
-            document.getElementById('boss-name').innerText = "OMEGA ENRAGED";
+            document.getElementById('boss-name').innerText = "THE OMEGA";
             this.hp = this.maxHp;
             this.updateHealthBar();
             if (window.playSound) playSound('alert');
@@ -834,7 +834,7 @@ class BossOmega extends BossBase {
         this.dpsCheckStartTime = Date.now();
         this.dpsCheckDamageDealt = 0;
 
-        document.getElementById('boss-name').innerText = "OMEGA UNLEASHED";
+        document.getElementById('boss-name').innerText = "THE OMEGA";
 
         // Boss sabit konumda durur
         this.state = 'DPS_CHECK';
@@ -870,7 +870,7 @@ class BossOmega extends BossBase {
 
         // Zamanlayıcı göster
         const secondsLeft = Math.ceil(timeLeft / 1000);
-        document.getElementById('boss-name').innerText = `OMEGA UNLEASHED`;
+        document.getElementById('boss-name').innerText = `THE OMEGA`;
 
         // Süre doldu mu?
         if (timeLeft <= 0) {
@@ -956,20 +956,20 @@ class BossOmega extends BossBase {
             CTX.shadowBlur = 10;
             CTX.shadowColor = e.color;
 
-            if (e.type === 'shield') {
+            if (e.omegaType === 'shield') {
                 // Arc shape
                 CTX.beginPath();
                 CTX.arc(0, 0, e.radius, 0, Math.PI * 2);
                 CTX.fill();
                 CTX.strokeStyle = '#fff';
                 CTX.stroke();
-            } else if (e.type.includes('orb')) {
+            } else if (e.omegaType.includes('orb')) {
                 CTX.beginPath();
                 CTX.arc(0, 0, e.radius, 0, Math.PI * 2);
                 CTX.fill();
             }
             // Aim targets - farklı render
-            else if (e.type === 'aim_target') {
+            else if (e.omegaType === 'aim_target') {
                 CTX.save();
                 CTX.strokeStyle = e.color;
                 CTX.lineWidth = 3;
@@ -997,7 +997,7 @@ class BossOmega extends BossBase {
             }
 
             // DPS Barriers
-            else if (e.type === 'dps_barrier') {
+            else if (e.omegaType === 'dps_barrier') {
                 CTX.save();
                 CTX.strokeStyle = e.color;
                 CTX.fillStyle = e.color + '44';
@@ -1013,7 +1013,7 @@ class BossOmega extends BossBase {
             }
 
             // Homing missiles - trail effect
-            else if (e.type === 'homing') {
+            else if (e.omegaType === 'homing') {
                 // Main body
                 CTX.beginPath();
                 CTX.arc(0, 0, e.radius, 0, Math.PI * 2);

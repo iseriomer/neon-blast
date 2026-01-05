@@ -17,7 +17,8 @@ class BossManager {
             5: typeof boss5 !== 'undefined' ? boss5 : null,
             6: typeof boss6 !== 'undefined' ? boss6 : null,
             7: typeof boss7 !== 'undefined' ? boss7 : null,
-            8: typeof boss8 !== 'undefined' ? boss8 : null
+            8: typeof boss8 !== 'undefined' ? boss8 : null,
+            9: typeof boss9 !== 'undefined' ? boss9 : null
         };
 
         const selectedBoss = BOSS_REGISTRY[bossId];

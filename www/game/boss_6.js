@@ -242,7 +242,7 @@ class BossVoidReaper extends BossBase {
                 }
             }
         } else if (this.introTimer < 300) {
-            document.getElementById('boss-name').innerText = "VOID REAPER AWAKENS";
+            document.getElementById('boss-name').innerText = "VOID REAPER";
             document.getElementById('boss-name').style.color = '#6600ff';
 
             // Screen distortion effect
@@ -295,7 +295,7 @@ class BossVoidReaper extends BossBase {
             4: 'SINGULARITY'
         };
         const phaseName = phaseNames[phaseNum];
-        document.getElementById('boss-name').innerText = `VOID REAPER - ${phaseName}`;
+        document.getElementById('boss-name').innerText = `VOID REAPER`;
 
         createExplosion(this.x, this.y, 600, 0);
         if (window.playSound) playSound('powerup');

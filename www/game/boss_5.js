@@ -201,7 +201,7 @@ class BossChronos extends BossBase {
         document.getElementById('boss-name').style.color = color;
 
         const phaseName = phaseNum === 2 ? 'DISTORTION' : 'SINGULARITY';
-        document.getElementById('boss-name').innerText = `CHRONOS - ${phaseName}`;
+        document.getElementById('boss-name').innerText = `CHRONOS`;
 
         createExplosion(this.x, this.y, 500, 0);
         if (window.playSound) playSound('powerup');

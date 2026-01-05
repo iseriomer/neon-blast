@@ -81,21 +81,31 @@ class SpawnManager {
             startBossFight(6);
             return;
         }
-        // Level 50: THE OMEGA (Boss 3)
+        /* // Level 50: THE OMEGA (Boss 3)
         if (gameState.level === 49 && !gameState.bossActive) {
             startBossFight(3);
+            return;
+        } */
+        // Level 50: THE OMEGA (Boss 3)
+        if (gameState.level === 49 && !gameState.bossActive) {
+            startBossFight(7);
             return;
         }
         // Level 55: THE SINGULARITY (Boss 7) - TRUE FINAL BOSS
         if (gameState.level === 54 && !gameState.bossActive) {
-            startBossFight(7);
+            startBossFight(8);
             return;
         }
         // Level 60: THE GALAXY DEVOURER (Boss 8) - ULTIMATE CHALLENGE
         if (gameState.level === 59 && !gameState.bossActive) {
-            startBossFight(8);
+            startBossFight(9);
             return;
         }
+        /* // Level 65: THE NEURAL NEXUS (Boss 9) - DIGITAL CONSCIOUSNESS
+        if (gameState.level === 64 && !gameState.bossActive) {
+            startBossFight(9);
+            return;
+        } */
 
         gameState.isPaused = true;
         clearInterval(gameState.spawnInterval);

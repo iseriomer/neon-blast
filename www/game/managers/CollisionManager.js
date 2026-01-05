@@ -236,7 +236,8 @@ class CollisionManager {
             { ref: 'boss5', color: null, hasClockMinions: true }, // color from getPhaseColor()
             { ref: 'boss6', color: null, hasVoidOrbitals: true }, // VOID REAPER - color from getPhaseColor()
             { ref: 'boss7', color: null }, // THE SINGULARITY - color from getPhaseColor()
-            { ref: 'boss8', color: null, hasGalaxyArms: true } // THE GALAXY DEVOURER - color from getPhaseColor()
+            { ref: 'boss8', color: null, hasGalaxyArms: true }, // THE GALAXY DEVOURER - color from getPhaseColor()
+            { ref: 'boss9', color: null, hasNeuralNodes: true } // THE NEURAL NEXUS - color from getPhaseColor()
         ];
 
         for (const bossInfo of legacyBosses) {
@@ -274,6 +275,11 @@ class CollisionManager {
             // Boss8 galaxy arms
             if (bossInfo.hasGalaxyArms && boss.galaxyArms) {
                 if (this.checkGalaxyArms(projectile, boss)) return true;
+            }
+
+            // Boss9 neural nodes
+            if (bossInfo.hasNeuralNodes && boss.neuralNodes) {
+                if (this.checkNeuralNodes(projectile, boss)) return true;
             }
         }
 
@@ -427,6 +433,37 @@ class CollisionManager {
                 let damage = gameState.playerStats.sniper ? 2 : 1;
                 arm.hp -= damage;
                 spawnParticles(arm.x, arm.y, 3, 2, boss8.getPhaseColor());
+                playSound('hit');
+
+                projectile.penetration--;
+                if (projectile.penetration <= 0) {
+                    projectilePool.release(projectile);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // HELPER: Boss9 neural nodes
+    // ═══════════════════════════════════════════════════════════════════
+    static checkNeuralNodes(projectile, boss9) {
+        if (!boss9.neuralNodes) return false;
+
+        for (let nn = boss9.neuralNodes.length - 1; nn >= 0; nn--) {
+            const node = boss9.neuralNodes[nn];
+            if (node.hp <= 0) continue;
+
+            const dx = projectile.x - node.x;
+            const dy = projectile.y - node.y;
+            const distSq = dx * dx + dy * dy;
+            const minDist = node.radius + projectile.radius;
+
+            if (distSq < minDist * minDist) {
+                let damage = gameState.playerStats.sniper ? 2 : 1;
+                node.hp -= damage;
+                spawnParticles(node.x, node.y, 3, 2, boss9.getPhaseColor());
                 playSound('hit');
 
                 projectile.penetration--;

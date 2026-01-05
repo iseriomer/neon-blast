@@ -3,7 +3,7 @@
 
 const BOSS_7_DATA = {
     name: 'THE SINGULARITY',
-    hp: 1000,
+    hp: 7000,
     score: 100000,
     colors: {
         phase1: '#00ffff',   // Cyan - Event Horizon
