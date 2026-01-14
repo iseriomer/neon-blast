@@ -71,63 +71,9 @@ function updateFilterStyles() {
     });
 }
 
-// Skoru Doğrula (Anti-Cheat)
-function validateScore(score, level) {
-    if (level < 1 || score < 0) return false;
-    if (level === 1 && score > 2000) return false; // Level 1 cap is 600. 2000 is generous buffer.
-
-    // Calculate Minimum Score required to REACH this level
-    // Level 1: 0
-    // Level 2: 600
-    // Level 3: 600 + 860 = 1460 
-    // ...
-
-    let currentLevelStep = 600;
-    let minScoreForLevel = 0;
-
-    // Calculate cummulative score to reach 'level'
-    // We loop from 1 to level-1
-    for (let l = 1; l < level; l++) {
-        minScoreForLevel += currentLevelStep;
-        currentLevelStep = Math.floor(currentLevelStep * 1.1) + 200;
-
-        // Safety Break for insane levels (prevent infinite loop / hang)
-        if (l > 500) {
-            // If level > 500, score must be astronomically high. 
-            // If score is small (like 62M), it's definitely fake.
-            if (score < 1000000000000) return false;
-            return true; // Give up checking exact bounds for super high levels
-        }
-    }
-
-    // 1. Lower Bound Check: Score MUST be at least the threshold to reach this level
-    // Allow small epsilon for potential off-by-one or float weirdness (though we stick to ints)
-    if (score < minScoreForLevel * 0.95) {
-        console.warn(`Cheating Detected: Score ${score} is too low for Level ${level} (Min: ${minScoreForLevel})`);
-        return false;
-    }
-
-    // 2. Upper Bound Check: Score should not be higher than threshold for Level + 2
-    // (Generous buffer for boss fights / not picking perks)
-    // Next level step is already calculated in loop state (roughly)
-    let maxExpected = minScoreForLevel + (currentLevelStep * 3); // 3 levels buffer
-    if (score > maxExpected) {
-        console.warn(`Cheating Detected: Score ${score} is too high for Level ${level} (Max Expected: ${maxExpected})`);
-        return false;
-    }
-
-    return true;
-}
-
 // Skoru Veritabanına Kaydet
 async function saveScoreToDB(name, score, level) {
     if (!name.trim()) return alert(Localization.t('lb_enter_name'));
-
-    // Anti-Cheat Validation
-    if (!validateScore(score, level)) {
-        alert(Localization.t('lb_error') + " (EC: 403)"); // Error Code 403 (Forbidden/Invalid)
-        return;
-    }
 
     submitBtn.disabled = true;
     submitBtn.innerText = Localization.t('lb_saving');

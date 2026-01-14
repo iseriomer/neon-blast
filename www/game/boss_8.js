@@ -67,8 +67,8 @@ class BossGalaxyDevourer extends BossBase {
         this.realityShatterZones = [];
 
         // Death Config
-        this.deathExplosionDuration = 10000;
-        this.deathHitstopDuration = 800;
+        this.deathExplosionDuration = 2000;
+        this.deathHitstopDuration = 120;
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -340,7 +340,7 @@ class BossGalaxyDevourer extends BossBase {
 
     getPhaseAttacks() {
         if (this.phase === 1) {
-            return ['attackSpiralBarrage', 'attackGravityWell', 'attackStarRain', 'attackMeteorStorm'];
+            return ['attackSpiralBarrage', /* 'attackGravityWell', */ 'attackStarRain', 'attackMeteorStorm'];
         } else if (this.phase === 2) {
             return ['attackVoidLasers', 'attackDimensionRift', 'attackGalaxyCrush', 'attackSupernovaPulse'];
         } else {

@@ -356,7 +356,7 @@ class ElectroMasterpieceSynth {
 }
 
 const Track5 = {
-    name: "Electro Masterpiece",
+    name: "Electro Piece",
     playFunction: (ctx, destination) => {
         const synth = new ElectroMasterpieceSynth(ctx, destination);
         synth.start();

@@ -2,7 +2,7 @@
 
 const BOSS_5_DATA = {
     name: 'CHRONOS',
-    hp: 20000, // Increased HP
+    hp: 5000, // Increased HP
     score: 15000,
     colors: {
         phase1: '#00aaff',
@@ -39,8 +39,8 @@ class BossChronos extends BossBase {
         this.burstCount = 0; // Track burst attacks
 
         // Death Config
-        this.deathExplosionDuration = 4000;
-        this.deathHitstopDuration = 250;
+        this.deathExplosionDuration = 2000;
+        this.deathHitstopDuration = 120;
     }
 
     spawn(x, y) {
@@ -247,8 +247,8 @@ class BossChronos extends BossBase {
             minion.minionAngle = minionAngle;
             minion.orbitRadius = orbitRadius;
             minion.orbitSpeed = 0.02 + Math.random() * 0.01;
-            minion.hp = 160;
-            minion.maxHp = 160;
+            minion.hp = 80;
+            minion.maxHp = 80;
             minion.radius = 18;
             minion.fireTimer = Math.random() * 60;
             minion.bossRef = this;
@@ -267,12 +267,12 @@ class BossChronos extends BossBase {
 
                 this.fireTimer -= dt;
                 if (this.fireTimer <= 0 && typeof player !== 'undefined') {
-                    this.fireTimer = 80;
+                    this.fireTimer = 100;
                     const aimAngle = Math.atan2(player.y - this.y, player.x - this.x);
                     const bullet = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
                     bullet.radius = 8;
-                    bullet.hp = 68;
-                    bullet.maxHp = 68;
+                    bullet.hp = 25;
+                    bullet.maxHp = 25;
                     bullet.color = this.bossRef.getPhaseColor();
                     bullet.isDead = false;
                     bullet.vx = Math.cos(aimAngle) * 4;
@@ -333,8 +333,8 @@ class BossChronos extends BossBase {
         const enemy = enemyPool.get(x, y, ENEMY_TYPES.BASIC, 1.5);
         enemy.color = this.getPhaseColor();
         enemy.radius = 12;
-        enemy.hp = 120;
-        enemy.maxHp = 120;
+        enemy.hp = 50;
+        enemy.maxHp = 50;
         enemy.isDead = false;
     }
 
@@ -381,25 +381,32 @@ class BossChronos extends BossBase {
     }
 
     // ═══════════════════════════════════════════════════════
-    // PHASE 1 ATTACKS - Introductory
+    // PHASE 1 ATTACKS - SKILL-TESTING
     // ═══════════════════════════════════════════════════════
 
     attackSpiralBurst() {
-        // Spiral pattern of enemies
-        const waves = 3;
-        for (let w = 0; w < waves; w++) {
+        // Spiral pattern with GAP - player must find safe angle
+        const gapAngle = Math.random() * Math.PI * 2;
+        const gapSize = 0.7; // ~40 degree gap
+
+        for (let w = 0; w < 2; w++) {
             setTimeout(() => {
-                const count = 12;
+                const count = 10;
                 for (let i = 0; i < count; i++) {
-                    const angle = (i / count) * Math.PI * 2 + (w * 0.3);
+                    const angle = (i / count) * Math.PI * 2 + (w * 0.2);
+
+                    // Skip enemies in gap zone
+                    const angleDiff = Math.abs(((angle - gapAngle + Math.PI) % (Math.PI * 2)) - Math.PI);
+                    if (angleDiff < gapSize / 2) continue;
+
                     const enemy = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
                     enemy.radius = 10;
-                    enemy.hp = 68;
-                    enemy.maxHp = 68;
+                    enemy.hp = 30;
+                    enemy.maxHp = 30;
                     enemy.color = '#00aaff';
                     enemy.isDead = false;
 
-                    const speed = 4 + w;
+                    const speed = 3.5 + w * 0.5;
                     enemy.vx = Math.cos(angle) * speed;
                     enemy.vy = Math.sin(angle) * speed;
                     enemy.update = function (p, d) {
@@ -408,25 +415,241 @@ class BossChronos extends BossBase {
                     };
                 }
                 if (window.playSound) playSound('shoot');
-            }, w * 300);
+            }, w * 400);
         }
     }
 
     attackClockSweep() {
-        // Sweeping arc of bullets like clock hands
-        const sweepCount = 30;
-        for (let i = 0; i < sweepCount; i++) {
-            setTimeout(() => {
-                const angle = this.hourHand + (i / sweepCount) * Math.PI;
+        // TELEGRAPHED sweeping arc with warning line first
+        const sweepStart = this.hourHand;
+
+        // Warning particles along sweep path
+        for (let i = 0; i < 10; i++) {
+            const angle = sweepStart + (i / 10) * Math.PI * 0.8;
+            spawnParticles(
+                this.x + Math.cos(angle) * 100,
+                this.y + Math.sin(angle) * 100,
+                3, 6, '#ff0000'
+            );
+        }
+
+        // Delayed actual bullets
+        setTimeout(() => {
+            const sweepCount = 12;
+            for (let i = 0; i < sweepCount; i++) {
+                setTimeout(() => {
+                    const angle = sweepStart + (i / sweepCount) * Math.PI * 0.8;
+                    const enemy = enemyPool.get(
+                        this.x + Math.cos(angle) * 60,
+                        this.y + Math.sin(angle) * 60,
+                        ENEMY_TYPES.BASIC, 1
+                    );
+                    enemy.radius = 12;
+                    enemy.hp = 25;
+                    enemy.maxHp = 25;
+                    enemy.color = '#88ccff';
+                    enemy.isDead = false;
+                    enemy.vx = Math.cos(angle) * 4;
+                    enemy.vy = Math.sin(angle) * 4;
+                    enemy.update = function (p, d) {
+                        this.x += this.vx * d;
+                        this.y += this.vy * d;
+                    };
+                }, i * 40);
+            }
+        }, 400);
+    }
+
+    attackTimeWave() {
+        // Horizontal wave with DESTROYABLE gaps
+        const gapPos = Math.floor(Math.random() * 4) + 3; // Gap position 3-6
+        const count = 8;
+
+        // Warning indicator
+        for (let i = 0; i < count; i++) {
+            if (i >= gapPos && i < gapPos + 2) continue;
+            const x = 80 + (CANVAS.width - 160) * (i / (count - 1));
+            spawnParticles(x, 50, 4, 6, '#ff0000');
+        }
+
+        // Delayed spawn
+        setTimeout(() => {
+            for (let i = 0; i < count; i++) {
+                if (i >= gapPos && i < gapPos + 2) continue; // Gap
+
                 const enemy = enemyPool.get(
-                    this.x + Math.cos(angle) * 80,
-                    this.y + Math.sin(angle) * 80,
+                    80 + (CANVAS.width - 160) * (i / (count - 1)),
+                    -30,
+                    ENEMY_TYPES.BASIC, 1
+                );
+                enemy.radius = 15;
+                enemy.hp = 35;
+                enemy.maxHp = 35;
+                enemy.color = '#00ffff';
+                enemy.isDead = false;
+            }
+            if (window.playSound) playSound('shoot');
+        }, 350);
+    }
+
+    attackMinionSpawn() {
+        // Fewer minions with INDICATOR
+        const count = 5;
+
+        // Show indicators first
+        for (let i = 0; i < count; i++) {
+            const angle = (i / count) * Math.PI * 2;
+            const dist = 130;
+            spawnParticles(
+                this.x + Math.cos(angle) * dist,
+                this.y + Math.sin(angle) * dist,
+                5, 8, '#ff0000'
+            );
+        }
+
+        // Delayed spawn
+        setTimeout(() => {
+            for (let i = 0; i < count; i++) {
+                const angle = (i / count) * Math.PI * 2;
+                const dist = 130;
+                const enemy = enemyPool.get(
+                    this.x + Math.cos(angle) * dist,
+                    this.y + Math.sin(angle) * dist,
                     ENEMY_TYPES.BASIC, 1
                 );
                 enemy.radius = 12;
-                enemy.hp = 68;
-                enemy.maxHp = 68;
-                enemy.color = '#88ccff';
+                enemy.hp = 40;
+                enemy.maxHp = 40;
+                enemy.color = '#00aaff';
+                enemy.isDead = false;
+            }
+            if (window.playSound) playSound('shoot');
+        }, 400);
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // PHASE 2 ATTACKS - SKILL-TESTING
+    // ═══════════════════════════════════════════════════════
+
+    attackEchoArmy() {
+        // DESTROYABLE echo clones with HP bars - priority targets!
+        const count = 3;
+        for (let i = 0; i < count; i++) {
+            const angle = (i / count) * Math.PI * 2;
+            const startX = this.x + Math.cos(angle) * 150;
+            const startY = this.y + Math.sin(angle) * 150;
+
+            const clone = enemyPool.get(startX, startY, ENEMY_TYPES.TANK, 1);
+            clone.isEchoClone = true;
+            clone.cloneAngle = angle;
+            clone.bossRef = this;
+            clone.radius = 30;
+            clone.hp = 100;
+            clone.maxHp = 100;
+            clone.fireTimer = 60;
+            clone.color = this.getPhaseColor();
+
+            clone.update = function (player, dt) {
+                if (!this.bossRef || !this.bossRef.active) {
+                    this.hp = 0;
+                    return;
+                }
+
+                this.cloneAngle += 0.012 * dt;
+                this.x = this.bossRef.x + Math.cos(this.cloneAngle) * 140;
+                this.y = this.bossRef.y + Math.sin(this.cloneAngle) * 140;
+
+                this.fireTimer -= dt;
+                if (this.fireTimer <= 0 && typeof player !== 'undefined') {
+                    this.fireTimer = 80;
+                    const aimAngle = Math.atan2(player.y - this.y, player.x - this.x);
+                    const bullet = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
+                    bullet.radius = 8;
+                    bullet.hp = 20;
+                    bullet.maxHp = 20;
+                    bullet.color = this.bossRef.getPhaseColor();
+                    bullet.isDead = false;
+                    bullet.vx = Math.cos(aimAngle) * 4;
+                    bullet.vy = Math.sin(aimAngle) * 4;
+                    bullet.update = function (p, d) {
+                        this.x += this.vx * d;
+                        this.y += this.vy * d;
+                    };
+                }
+            };
+
+            clone.draw = function () {
+                CTX.save();
+                CTX.translate(this.x, this.y);
+                CTX.shadowBlur = 15;
+                CTX.shadowColor = this.bossRef.getPhaseColor();
+                CTX.fillStyle = this.bossRef.getPhaseColor();
+                CTX.beginPath();
+                CTX.arc(0, 0, this.radius, 0, Math.PI * 2);
+                CTX.fill();
+                // HP bar
+                const hpPct = this.hp / this.maxHp;
+                CTX.fillStyle = hpPct > 0.5 ? '#00ff00' : '#ff0000';
+                CTX.fillRect(-20, -this.radius - 10, 40 * hpPct, 5);
+                CTX.restore();
+            };
+
+            this.echoClones.push(clone);
+        }
+        createExplosion(this.x, this.y, 80, 0);
+        if (window.playSound) playSound('powerup');
+    }
+
+    attackTemporalStorm() {
+        // TELEGRAPHED spawn positions with warning indicators
+        const spawnPoints = [];
+        for (let i = 0; i < 4; i++) {
+            const angle = (i / 4) * Math.PI * 2 + Math.random() * 0.5;
+            const dist = 250;
+            spawnPoints.push({
+                x: this.x + Math.cos(angle) * dist,
+                y: this.y + Math.sin(angle) * dist,
+                angle: angle
+            });
+        }
+
+        // Show warning indicators
+        spawnPoints.forEach(pt => {
+            spawnParticles(pt.x, pt.y, 6, 10, '#ff0000');
+        });
+
+        // Delayed spawn
+        setTimeout(() => {
+            spawnPoints.forEach(pt => {
+                const enemy = enemyPool.get(pt.x, pt.y, ENEMY_TYPES.BASIC, 1);
+                enemy.radius = 14;
+                enemy.hp = 35;
+                enemy.maxHp = 35;
+                enemy.color = '#aa00ff';
+                enemy.isDead = false;
+            });
+            if (window.playSound) playSound('shoot');
+        }, 500);
+    }
+
+    attackAccelerate() {
+        // TIME FREEZE then burst - warning visual first
+        spawnParticles(this.x, this.y, 20, 12, '#ffaa00');
+
+        setTimeout(() => {
+            // Radial burst with gaps
+            const gapAngle = Math.random() * Math.PI * 2;
+            const count = 12;
+            for (let i = 0; i < count; i++) {
+                const angle = (i / count) * Math.PI * 2;
+                const angleDiff = Math.abs(((angle - gapAngle + Math.PI) % (Math.PI * 2)) - Math.PI);
+                if (angleDiff < 0.4) continue; // Gap
+
+                const enemy = enemyPool.get(this.x, this.y, ENEMY_TYPES.SPEEDSTER, 1);
+                enemy.radius = 10;
+                enemy.hp = 30;
+                enemy.maxHp = 30;
+                enemy.color = '#ffaa00';
                 enemy.isDead = false;
                 enemy.vx = Math.cos(angle) * 5;
                 enemy.vy = Math.sin(angle) * 5;
@@ -434,358 +657,78 @@ class BossChronos extends BossBase {
                     this.x += this.vx * d;
                     this.y += this.vy * d;
                 };
-            }, i * 30);
-        }
-    }
-
-    attackTimeWave() {
-        // Horizontal wave of enemies
-        const count = 10;
-        for (let i = 0; i < count; i++) {
-            const enemy = enemyPool.get(
-                100 + (CANVAS.width - 200) * (i / count),
-                -30,
-                ENEMY_TYPES.BASIC, 1
-            );
-            enemy.radius = 15;
-            enemy.hp = 80;
-            enemy.maxHp = 80;
-            enemy.color = '#00ffff';
-            enemy.isDead = false;
-        }
-        if (window.playSound) playSound('shoot');
-    }
-
-    attackMinionSpawn() {
-        // Spawn multiple minions around
-        for (let i = 0; i < 8; i++) {
-            setTimeout(() => {
-                const angle = (i / 8) * Math.PI * 2;
-                const dist = 150;
-                const enemy = enemyPool.get(
-                    this.x + Math.cos(angle) * dist,
-                    this.y + Math.sin(angle) * dist,
-                    ENEMY_TYPES.BASIC, 1.2
-                );
-                enemy.radius = 12;
-                enemy.hp = 80;
-                enemy.maxHp = 80;
-                enemy.color = '#00aaff';
-                enemy.isDead = false;
-                spawnParticles(enemy.x, enemy.y, 5, 3, '#00aaff');
-            }, i * 100);
-        }
-    }
-
-    // ═══════════════════════════════════════════════════════
-    // PHASE 2 ATTACKS - Challenging
-    // ═══════════════════════════════════════════════════════
-
-    attackEchoArmy() {
-        // Multiple echo clones that attack using Enemy class
-        const count = 5;
-        for (let i = 0; i < count; i++) {
-            const angle = (i / count) * Math.PI * 2;
-            const startX = this.x + Math.cos(angle) * 180;
-            const startY = this.y + Math.sin(angle) * 180;
-
-            const clone = enemyPool.get(startX, startY, ENEMY_TYPES.BASIC, 1);
-            clone.isEchoClone = true;
-            clone.cloneAngle = angle;
-            clone.alpha = 0.7;
-            clone.life = 400;
-            clone.fireTimer = 20 + i * 30;
-            clone.burstMode = true;
-            clone.bossRef = this;
-            clone.radius = 35;
-            clone.hp = 120;
-            clone.maxHp = 120;
-            clone.color = this.getPhaseColor();
-
-            // Custom update
-            clone.update = function (player, dt) {
-                if (!this.bossRef || !this.bossRef.active) {
-                    this.hp = 0;
-                    return;
-                }
-
-                this.life -= dt;
-                if (this.life <= 0) {
-                    this.hp = 0;
-                    return;
-                }
-
-                this.cloneAngle += 0.015 * dt;
-                this.x = this.bossRef.x + Math.cos(this.cloneAngle) * 160;
-                this.y = this.bossRef.y + Math.sin(this.cloneAngle) * 160;
-
-                this.fireTimer -= dt;
-                if (this.fireTimer <= 0 && typeof player !== 'undefined') {
-                    this.fireTimer = this.burstMode ? 40 : 60;
-                    const aimAngle = Math.atan2(player.y - this.y, player.x - this.x);
-                    const bullet = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
-                    bullet.radius = 10;
-                    bullet.hp = 68;
-                    bullet.maxHp = 68;
-                    bullet.color = this.bossRef.getPhaseColor();
-                    bullet.isDead = false;
-                    bullet.vx = Math.cos(aimAngle) * 5;
-                    bullet.vy = Math.sin(aimAngle) * 5;
-                    bullet.update = function (p, d) {
-                        this.x += this.vx * d;
-                        this.y += this.vy * d;
-                    };
-                }
-
-                this.alpha = Math.min(0.7, this.life / 100);
-            };
-
-            // Custom draw
-            clone.draw = function () {
-                CTX.save();
-                CTX.globalAlpha = this.alpha;
-                CTX.translate(this.x, this.y);
-
-                CTX.shadowBlur = 20;
-                CTX.shadowColor = this.bossRef.getPhaseColor();
-                CTX.fillStyle = this.bossRef.getPhaseColor();
-
-                CTX.beginPath();
-                CTX.arc(0, 0, 35, 0, Math.PI * 2);
-                CTX.fill();
-
-                // Mini clock
-                CTX.strokeStyle = '#fff';
-                CTX.lineWidth = 2;
-                CTX.beginPath();
-                CTX.moveTo(0, 0);
-                CTX.lineTo(Math.cos(this.bossRef.minuteHand) * 20, Math.sin(this.bossRef.minuteHand) * 20);
-                CTX.stroke();
-
-                CTX.restore();
-            };
-
-            this.echoClones.push(clone);
-        }
-        createExplosion(this.x, this.y, 100, 0);
-        if (window.playSound) playSound('powerup');
-    }
-
-    attackTemporalStorm() {
-        // Rain of enemies from all directions
-        for (let wave = 0; wave < 4; wave++) {
-            setTimeout(() => {
-                for (let i = 0; i < 6; i++) {
-                    const angle = (i / 6) * Math.PI * 2 + wave * 0.5;
-                    const dist = 400;
-                    const enemy = enemyPool.get(
-                        this.x + Math.cos(angle) * dist,
-                        this.y + Math.sin(angle) * dist,
-                        ENEMY_TYPES.SPEEDSTER, 1.5
-                    );
-                    enemy.color = '#aa00ff';
-                    enemy.isDead = false;
-                }
-            }, wave * 200);
-        }
-    }
-
-    attackAccelerate() {
-        // Speed up all existing enemies + spawn more
-        enemyPool.getActive().forEach(enemy => {
-            if (!enemy.isDead) {
-                enemy.speed = (enemy.speed || 1) * 1.8;
             }
-        });
-
-        // Spawn fast enemies
-        for (let i = 0; i < 10; i++) {
-            const angle = (i / 10) * Math.PI * 2;
-            const enemy = enemyPool.get(
-                this.x + Math.cos(angle) * 100,
-                this.y + Math.sin(angle) * 100,
-                ENEMY_TYPES.SPEEDSTER, 2
-            );
-            enemy.color = '#ffaa00';
-            enemy.isDead = false;
-        }
-
-        createExplosion(this.x, this.y, 150, 0);
+            createExplosion(this.x, this.y, 120, 0);
+            if (window.playSound) playSound('shoot');
+        }, 400);
     }
 
     attackClockBomb() {
-        // Delayed explosion zones
-        for (let i = 0; i < 5; i++) {
-            let zoneX, zoneY;
-            let attempts = 0;
-            const minDistanceFromPlayer = 150; // Safe distance from player
+        // Fewer zones with better telegraphing
+        const zoneCount = 3;
+        for (let i = 0; i < zoneCount; i++) {
+            let zoneX = 150 + (CANVAS.width - 300) * (i / (zoneCount - 1 || 1));
+            let zoneY = 200 + Math.random() * 150;
 
-            // Find a safe position away from the player
-            do {
-                zoneX = Math.random() * (CANVAS.width - 200) + 100;
-                zoneY = Math.random() * (CANVAS.height - 200) + 100;
-                attempts++;
-
-                // If we can't find a good spot after 20 tries, just use what we have
-                if (attempts > 20) break;
-
-                // Check distance from player
-                if (typeof player !== 'undefined') {
-                    const distToPlayer = Math.hypot(player.x - zoneX, player.y - zoneY);
-                    if (distToPlayer >= minDistanceFromPlayer) {
-                        break; // Found a safe spot
-                    }
-                } else {
-                    break; // No player object, just use the position
-                }
-            } while (true);
-
+            // Visual warning zone
             this.timeZones.push({
                 x: zoneX,
                 y: zoneY,
                 radius: 0,
-                maxRadius: 100,
+                maxRadius: 80,
                 type: 'bomb',
-                life: 180,
-                color: 'rgba(255, 0, 100, 0.3)',
+                life: 150,
+                color: 'rgba(255, 0, 100, 0.4)',
                 spawned: false
             });
 
-            // After delay, spawn enemies at zone
+            // Delayed spawn - fewer enemies
             setTimeout(() => {
-                for (let j = 0; j < 5; j++) {
-                    const angle = (j / 5) * Math.PI * 2;
+                for (let j = 0; j < 3; j++) {
+                    const angle = (j / 3) * Math.PI * 2;
                     const enemy = enemyPool.get(
-                        zoneX + Math.cos(angle) * 30,
-                        zoneY + Math.sin(angle) * 30,
+                        zoneX + Math.cos(angle) * 25,
+                        zoneY + Math.sin(angle) * 25,
                         ENEMY_TYPES.BASIC, 1
                     );
                     enemy.radius = 10;
-                    enemy.hp = 68;
-                    enemy.maxHp = 68;
+                    enemy.hp = 30;
+                    enemy.maxHp = 30;
                     enemy.color = '#ff0066';
                     enemy.isDead = false;
                 }
-                createExplosion(zoneX, zoneY, 80, 0);
-            }, 1500);
+                createExplosion(zoneX, zoneY, 60, 0);
+            }, 1200);
         }
     }
 
     // ═══════════════════════════════════════════════════════
-    // PHASE 3 ATTACKS - BRUTAL
+    // PHASE 3 ATTACKS - SKILL-TESTING INTENSE
     // ═══════════════════════════════════════════════════════
 
     attackBulletHell() {
-        // Massive bullet hell pattern
-        this.burstCount++;
-        const totalWaves = 8;
+        // Reduced waves with GAPS for dodging
+        const totalWaves = 4;
+        const gapAngle = Math.random() * Math.PI * 2;
 
         for (let w = 0; w < totalWaves; w++) {
             setTimeout(() => {
-                const bulletCount = 20;
+                const bulletCount = 12;
                 for (let i = 0; i < bulletCount; i++) {
-                    const angle = (i / bulletCount) * Math.PI * 2 + (w * 0.2);
+                    const angle = (i / bulletCount) * Math.PI * 2 + (w * 0.25);
+
+                    // Gap check
+                    const angleDiff = Math.abs(((angle - gapAngle + Math.PI) % (Math.PI * 2)) - Math.PI);
+                    if (angleDiff < 0.5) continue;
+
                     const enemy = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
                     enemy.radius = 8;
-                    enemy.hp = 68;
-                    enemy.maxHp = 68;
+                    enemy.hp = 25;
+                    enemy.maxHp = 25;
                     enemy.color = '#ff0066';
                     enemy.isDead = false;
 
-                    const speed = 3 + (w % 2) * 2;
-                    enemy.vx = Math.cos(angle) * speed;
-                    enemy.vy = Math.sin(angle) * speed;
-                    enemy.update = function (p, d) {
-                        this.x += this.vx * d;
-                        this.y += this.vy * d;
-                    };
-                }
-            }, w * 150);
-        }
-    }
-
-    attackChaosSpiral() {
-        // Double spiral pattern
-        const arms = 2;
-        const bulletsPerArm = 25;
-
-        for (let arm = 0; arm < arms; arm++) {
-            for (let i = 0; i < bulletsPerArm; i++) {
-                setTimeout(() => {
-                    const baseAngle = (arm / arms) * Math.PI * 2;
-                    const spiralAngle = baseAngle + (i / bulletsPerArm) * Math.PI * 3;
-
-                    const enemy = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
-                    enemy.radius = 10;
-                    enemy.hp = 68;
-                    enemy.maxHp = 68;
-                    enemy.color = arm === 0 ? '#ff0066' : '#aa00ff';
-                    enemy.isDead = false;
-
-                    enemy.vx = Math.cos(spiralAngle) * 4;
-                    enemy.vy = Math.sin(spiralAngle) * 4;
-                    enemy.update = function (p, d) {
-                        this.x += this.vx * d;
-                        this.y += this.vy * d;
-                    };
-                }, i * 40 + arm * 20);
-            }
-        }
-    }
-
-    attackPhaseBarrage() {
-        // Rapid teleport attacks with enemy spawns
-        for (let i = 0; i < 12; i++) {
-            setTimeout(() => {
-                // Teleport boss
-                this.phaseShiftAlpha = 0.2;
-                const angle = Math.random() * Math.PI * 2;
-                this.x = CANVAS.width / 2 + Math.cos(angle) * 180;
-                this.y = 180 + Math.sin(angle) * 80;
-
-                // Spawn enemies at new position
-                for (let j = 0; j < 4; j++) {
-                    const spawnAngle = (j / 4) * Math.PI * 2;
-                    const enemy = enemyPool.get(
-                        this.x + Math.cos(spawnAngle) * 60,
-                        this.y + Math.sin(spawnAngle) * 60,
-                        ENEMY_TYPES.BASIC, 1
-                    );
-                    enemy.radius = 10;
-                    enemy.hp = 68;
-                    enemy.maxHp = 68;
-                    enemy.color = '#ff0066';
-                    enemy.isDead = false;
-                }
-
-                spawnParticles(this.x, this.y, 10, 4, '#ff0066');
-
-                setTimeout(() => {
-                    this.phaseShiftAlpha = 1;
-                }, 80);
-            }, i * 120);
-        }
-    }
-
-    attackDoomsday() {
-        // Ultimate attack - massive enemy spawn + screen chaos
-        if (window.triggerHitstop) triggerHitstop(50);
-        createExplosion(this.x, this.y, 300, 0);
-
-        // Spawn enemies from center
-        for (let wave = 0; wave < 5; wave++) {
-            setTimeout(() => {
-                const count = 12 + wave * 3;
-                for (let i = 0; i < count; i++) {
-                    const angle = (i / count) * Math.PI * 2;
-                    const enemy = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
-                    enemy.radius = 8 + wave;
-                    enemy.hp = 68;
-                    enemy.maxHp = 68;
-                    enemy.color = wave % 2 === 0 ? '#ff0066' : '#aa00ff';
-                    enemy.isDead = false;
-
-                    const speed = 3 + wave * 0.5;
+                    const speed = 3 + (w % 2);
                     enemy.vx = Math.cos(angle) * speed;
                     enemy.vy = Math.sin(angle) * speed;
                     enemy.update = function (p, d) {
@@ -794,25 +737,150 @@ class BossChronos extends BossBase {
                     };
                 }
                 if (window.playSound) playSound('shoot');
-            }, wave * 300);
+            }, w * 200);
+        }
+    }
+
+    attackChaosSpiral() {
+        // Reduced spiral with destroyable nodes
+        const arms = 2;
+        const bulletsPerArm = 12;
+
+        for (let arm = 0; arm < arms; arm++) {
+            for (let i = 0; i < bulletsPerArm; i++) {
+                setTimeout(() => {
+                    const baseAngle = (arm / arms) * Math.PI + this.clockAngle;
+                    const spiralAngle = baseAngle + (i / bulletsPerArm) * Math.PI * 2;
+
+                    const enemy = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
+                    enemy.radius = 10;
+                    enemy.hp = 25;
+                    enemy.maxHp = 25;
+                    enemy.color = arm === 0 ? '#ff0066' : '#aa00ff';
+                    enemy.isDead = false;
+
+                    enemy.vx = Math.cos(spiralAngle) * 3.5;
+                    enemy.vy = Math.sin(spiralAngle) * 3.5;
+                    enemy.update = function (p, d) {
+                        this.x += this.vx * d;
+                        this.y += this.vy * d;
+                    };
+                }, i * 50 + arm * 25);
+            }
+        }
+    }
+
+    attackPhaseBarrage() {
+        // Fewer teleports with TELEGRAPHED delayed bursts
+        for (let i = 0; i < 4; i++) {
+            setTimeout(() => {
+                const oldX = this.x;
+                const oldY = this.y;
+
+                // Teleport boss
+                this.phaseShiftAlpha = 0.3;
+                const angle = Math.random() * Math.PI * 2;
+                this.x = CANVAS.width / 2 + Math.cos(angle) * 140;
+                this.y = 170 + Math.sin(angle) * 60;
+
+                // Warning at old position
+                spawnParticles(oldX, oldY, 8, 8, '#ff0000');
+
+                // Delayed burst from old position
+                setTimeout(() => {
+                    for (let j = 0; j < 6; j++) {
+                        const burstAngle = (j / 6) * Math.PI * 2;
+                        const enemy = enemyPool.get(oldX, oldY, ENEMY_TYPES.BASIC, 1);
+                        enemy.radius = 10;
+                        enemy.hp = 25;
+                        enemy.maxHp = 25;
+                        enemy.color = '#ff0066';
+                        enemy.isDead = false;
+                        enemy.vx = Math.cos(burstAngle) * 4;
+                        enemy.vy = Math.sin(burstAngle) * 4;
+                        enemy.update = function (p, d) {
+                            this.x += this.vx * d;
+                            this.y += this.vy * d;
+                        };
+                    }
+                }, 350);
+
+                setTimeout(() => { this.phaseShiftAlpha = 1; }, 120);
+            }, i * 400);
+        }
+    }
+
+    attackDoomsday() {
+        // Multi-phase finale: Spiral → Ring → Burst. All destroyable!
+        createExplosion(this.x, this.y, 200, 0);
+
+        // Phase 1: Spiral
+        const spiralCount = 10;
+        for (let i = 0; i < spiralCount; i++) {
+            setTimeout(() => {
+                const angle = (i / spiralCount) * Math.PI * 3 + this.clockAngle;
+                const enemy = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
+                enemy.radius = 10;
+                enemy.hp = 25;
+                enemy.maxHp = 25;
+                enemy.color = '#ff0066';
+                enemy.isDead = false;
+                enemy.vx = Math.cos(angle) * 3.5;
+                enemy.vy = Math.sin(angle) * 3.5;
+                enemy.update = function (p, d) {
+                    this.x += this.vx * d;
+                    this.y += this.vy * d;
+                };
+            }, i * 50);
         }
 
-        // Also spawn from edges
-        for (let i = 0; i < 20; i++) {
-            setTimeout(() => {
-                // Only spawn from top, left, right - NOT bottom (player is there)
-                const side = Math.floor(Math.random() * 3);
-                let x, y;
-                switch (side) {
-                    case 0: x = Math.random() * CANVAS.width; y = -20; break; // Top
-                    case 1: x = CANVAS.width + 20; y = Math.random() * (CANVAS.height * 0.7); break; // Right
-                    case 2: x = -20; y = Math.random() * (CANVAS.height * 0.7); break; // Left
-                }
-                const enemy = enemyPool.get(x, y, ENEMY_TYPES.SPEEDSTER, 2);
-                enemy.color = '#ff3300';
+        // Phase 2: Ring (delayed)
+        setTimeout(() => {
+            const ringCount = 12;
+            const gapAngle = Math.random() * Math.PI * 2;
+            for (let i = 0; i < ringCount; i++) {
+                const angle = (i / ringCount) * Math.PI * 2;
+                const angleDiff = Math.abs(((angle - gapAngle + Math.PI) % (Math.PI * 2)) - Math.PI);
+                if (angleDiff < 0.5) continue;
+
+                const enemy = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
+                enemy.radius = 12;
+                enemy.hp = 30;
+                enemy.maxHp = 30;
+                enemy.color = '#aa00ff';
                 enemy.isDead = false;
-            }, i * 80);
-        }
+                enemy.vx = Math.cos(angle) * 3;
+                enemy.vy = Math.sin(angle) * 3;
+                enemy.update = function (p, d) {
+                    this.x += this.vx * d;
+                    this.y += this.vy * d;
+                };
+            }
+            if (window.playSound) playSound('shoot');
+        }, 600);
+
+        // Phase 3: Targeted burst
+        setTimeout(() => {
+            const targetPlayer = typeof player !== 'undefined' ? player : { x: CANVAS.width / 2, y: CANVAS.height - 100 };
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    const aimAngle = Math.atan2(targetPlayer.y - this.y, targetPlayer.x - this.x);
+                    const spreadAngle = aimAngle + (Math.random() - 0.5) * 0.6;
+                    const enemy = enemyPool.get(this.x, this.y, ENEMY_TYPES.SPEEDSTER, 1);
+                    enemy.radius = 12;
+                    enemy.hp = 35;
+                    enemy.maxHp = 35;
+                    enemy.color = '#ff3300';
+                    enemy.isDead = false;
+                    enemy.vx = Math.cos(spreadAngle) * 5;
+                    enemy.vy = Math.sin(spreadAngle) * 5;
+                    enemy.update = function (p, d) {
+                        this.x += this.vx * d;
+                        this.y += this.vy * d;
+                    };
+                }, i * 80);
+            }
+        }, 1100);
     }
 
     // ═══════════════════════════════════════════════════════

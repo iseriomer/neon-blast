@@ -67,8 +67,8 @@ class BossNeuralNexus extends BossBase {
         this.isRebooting = false;
 
         // Death Config
-        this.deathExplosionDuration = 8000;
-        this.deathHitstopDuration = 600;
+        this.deathExplosionDuration = 2000;
+        this.deathHitstopDuration = 120;
     }
 
     // ═══════════════════════════════════════════════════════════════════

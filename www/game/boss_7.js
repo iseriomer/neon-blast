@@ -65,8 +65,8 @@ class BossSingularity extends BossBase {
         this.isVulnerable = false;
 
         // Death Config
-        this.deathExplosionDuration = 8000;
-        this.deathHitstopDuration = 500;
+        this.deathExplosionDuration = 2000;
+        this.deathHitstopDuration = 120;
     }
 
     spawn(x, y) {
@@ -326,7 +326,7 @@ class BossSingularity extends BossBase {
     attackHorizonBeam(player) {
         // Sweeping beam attack - chain of Enemy segments
         const angleToPlayer = Math.atan2(player.y - this.y, player.x - this.x);
-        const segmentCount = 15;
+        const segmentCount = 4;
         const segmentSpacing = 30 * GAME_SCALE;
 
         for (let i = 0; i < segmentCount; i++) {

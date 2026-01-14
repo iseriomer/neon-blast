@@ -44,7 +44,7 @@ class BossSwarm extends BossBase {
         };
 
         // Death Config
-        this.deathExplosionDuration = 2500;
+        this.deathExplosionDuration = 2000;
         this.deathHitstopDuration = 120;
     }
 

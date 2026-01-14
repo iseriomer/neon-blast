@@ -44,8 +44,8 @@ class BossVoidReaper extends BossBase {
         this.pullRadius = 400;
 
         // Death Config
-        this.deathExplosionDuration = 6000; // Epic death
-        this.deathHitstopDuration = 300;
+        this.deathExplosionDuration = 2000; // Epic death
+        this.deathHitstopDuration = 120;
     }
 
     spawn(x, y) {
@@ -254,7 +254,7 @@ class BossVoidReaper extends BossBase {
             document.getElementById('boss-name').innerText = BOSS_6_DATA.name;
             document.getElementById('boss-name').style.color = BOSS_6_DATA.colors.phase1;
             createExplosion(this.x, this.y, 300, 0);
-            if (window.triggerHitstop) triggerHitstop(60);
+
             if (window.playSound) playSound('levelup');
         }
     }
@@ -299,7 +299,7 @@ class BossVoidReaper extends BossBase {
 
         createExplosion(this.x, this.y, 600, 0);
         if (window.playSound) playSound('powerup');
-        if (window.triggerHitstop) triggerHitstop(80);
+
 
         // Clear and respawn mechanics
         this.realityTears = [];
@@ -402,24 +402,32 @@ class BossVoidReaper extends BossBase {
     }
 
     // ═══════════════════════════════════════════════════════
-    // PHASE 1 ATTACKS - Introduction
+    // PHASE 1 ATTACKS - SKILL-TESTING
     // ═══════════════════════════════════════════════════════
 
     attackVoidPulse() {
-        // Expanding rings of enemies
-        for (let ring = 0; ring < 4; ring++) {
+        // Expanding ring with a GAP - player must find and shoot through
+        const gapAngle = Math.random() * Math.PI * 2;
+        const gapSize = 0.6; // ~35 degrees gap
+
+        for (let ring = 0; ring < 3; ring++) {
             setTimeout(() => {
-                const count = 14 + ring * 2;
+                const count = 14;
                 for (let i = 0; i < count; i++) {
-                    const angle = (i / count) * Math.PI * 2 + (ring * 0.2);
+                    const angle = (i / count) * Math.PI * 2 + ring * 0.15;
+                    // Skip enemies in the gap zone
+                    const angleDiff = Math.abs(((angle - gapAngle + Math.PI) % (Math.PI * 2)) - Math.PI);
+                    if (angleDiff < gapSize / 2) continue;
+
                     const enemy = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
-                    enemy.radius = 11;
-                    enemy.hp = 120;
-                    enemy.maxHp = 120;
+                    enemy.radius = 14;
+                    enemy.hp = 40;
+                    enemy.maxHp = 40;
                     enemy.color = '#6600ff';
                     enemy.isDead = false;
+                    enemy.ringSegment = true;
 
-                    const speed = 3 + ring * 0.5;
+                    const speed = 2.5 + ring * 0.3;
                     enemy.vx = Math.cos(angle) * speed;
                     enemy.vy = Math.sin(angle) * speed;
                     enemy.update = function (p, d) {
@@ -427,580 +435,730 @@ class BossVoidReaper extends BossBase {
                         this.y += this.vy * d;
                     };
                 }
+                spawnParticles(this.x, this.y, 8, 5, '#6600ff');
                 if (window.playSound) playSound('shoot');
-            }, ring * 350);
+            }, ring * 400);
         }
     }
 
     attackGravityWell() {
-        // Spawn gravity wells using Enemy class
-        for (let i = 0; i < 3; i++) {
-            const wellX = 150 + Math.random() * (CANVAS.width - 300);
-            const wellY = 150 + Math.random() * (CANVAS.height - 300);
+        // DESTROYABLE gravity wells that pull bullets off-course
+        const wellCount = 2;
+        for (let i = 0; i < wellCount; i++) {
+            const wellX = 150 + (CANVAS.width - 300) * (i / (wellCount - 1 || 1));
+            const wellY = CANVAS.height * 0.4 + Math.random() * 100;
 
             const well = enemyPool.get(wellX, wellY, ENEMY_TYPES.TANK, 1);
             well.isGravityWell = true;
-            well.radius = 80;
-            well.life = 400;
-            well.strength = 0.4;
-            well.hp = 999999; // Non-destructible zone
-            well.maxHp = 999999;
-            well.color = 'rgba(102, 0, 255, 0.2)';
+            well.radius = 50;
+            well.hp = 200;
+            well.maxHp = 200;
+            well.color = '#6600ff';
+            well.pulsePhase = Math.random() * Math.PI * 2;
 
             well.update = function (player, dt) {
-                this.life -= dt;
-                if (this.life <= 0) {
-                    this.hp = 0;
-                    return;
+                this.pulsePhase += 0.08 * dt;
+                // Spawn orbiting projectiles periodically
+                if (Math.random() < 0.02) {
+                    const orbitAngle = Math.random() * Math.PI * 2;
+                    const proj = enemyPool.get(
+                        this.x + Math.cos(orbitAngle) * 60,
+                        this.y + Math.sin(orbitAngle) * 60,
+                        ENEMY_TYPES.BASIC, 1
+                    );
+                    proj.radius = 8;
+                    proj.hp = 15;
+                    proj.maxHp = 15;
+                    proj.color = '#9933ff';
+                    proj.isDead = false;
+                    proj.vx = Math.cos(orbitAngle) * 3;
+                    proj.vy = Math.sin(orbitAngle) * 3;
+                    proj.update = function (p, d) {
+                        this.x += this.vx * d;
+                        this.y += this.vy * d;
+                    };
                 }
-
-                // Apply gravity to nearby enemies
-                enemyPool.getActive().forEach(enemy => {
-                    if (!enemy.isDead && enemy !== this && !enemy.isGravityWell) {
-                        const dx = this.x - enemy.x;
-                        const dy = this.y - enemy.y;
-                        const dist = Math.hypot(dx, dy);
-                        if (dist < this.radius) {
-                            const pullStrength = this.strength * (1 - dist / this.radius);
-                            enemy.x += (dx / dist) * pullStrength * dt;
-                            enemy.y += (dy / dist) * pullStrength * dt;
-                        }
-                    }
-                });
             };
 
             well.draw = function () {
+                const pulse = 1 + Math.sin(this.pulsePhase) * 0.15;
                 CTX.save();
                 CTX.beginPath();
-                CTX.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                CTX.fillStyle = this.color;
+                CTX.arc(this.x, this.y, this.radius * pulse, 0, Math.PI * 2);
+                CTX.fillStyle = 'rgba(102, 0, 255, 0.3)';
                 CTX.fill();
                 CTX.strokeStyle = '#6600ff';
-                CTX.lineWidth = 3;
+                CTX.lineWidth = 4;
                 CTX.stroke();
+                // HP bar
+                const hpPct = this.hp / this.maxHp;
+                CTX.fillStyle = hpPct > 0.5 ? '#00ff00' : '#ff0000';
+                CTX.fillRect(this.x - 30, this.y - this.radius - 15, 60 * hpPct, 6);
                 CTX.restore();
             };
 
             this.gravityWells.push(well);
-
-            // Spawn enemies around well
-            for (let j = 0; j < 8; j++) {
-                const angle = (j / 8) * Math.PI * 2;
-                const enemy = enemyPool.get(
-                    wellX + Math.cos(angle) * 100,
-                    wellY + Math.sin(angle) * 100,
-                    ENEMY_TYPES.BASIC, 1
-                );
-                enemy.radius = 12;
-                enemy.hp = 150;
-                enemy.maxHp = 150;
-                enemy.color = '#8833ff';
-                enemy.isDead = false;
-            }
         }
         createExplosion(this.x, this.y, 100, 0);
     }
 
     attackOrbitalStrike() {
-        // Void orbitals release bullet patterns
+        // Orbitals fire TELEGRAPHED aimed shots with warning lines
+        const targetPlayer = typeof player !== 'undefined' ? player : { x: CANVAS.width / 2, y: CANVAS.height - 100 };
+
         this.voidOrbitals.forEach((orbital, idx) => {
             setTimeout(() => {
-                const orbitalX = this.x + Math.cos(orbital.angle) * orbital.orbitRadius;
-                const orbitalY = this.y + Math.sin(orbital.angle) * orbital.orbitRadius;
+                const orbX = this.x + Math.cos(orbital.orbAngle) * orbital.orbitRadius;
+                const orbY = this.y + Math.sin(orbital.orbAngle) * orbital.orbitRadius;
+                const aimAngle = Math.atan2(targetPlayer.y - orbY, targetPlayer.x - orbX);
 
-                // 3-way spread from each orbital
-                for (let i = -1; i <= 1; i++) {
-                    const angle = orbital.angle + i * 0.4;
-                    const enemy = enemyPool.get(orbitalX, orbitalY, ENEMY_TYPES.BASIC, 1);
-                    enemy.radius = 10;
-                    enemy.hp = 105;
-                    enemy.maxHp = 105;
-                    enemy.color = '#6600ff';
-                    enemy.isDead = false;
-                    enemy.vx = Math.cos(angle) * 5;
-                    enemy.vy = Math.sin(angle) * 5;
-                    enemy.update = function (p, d) {
+                // Telegraph line (visual warning)
+                spawnParticles(orbX, orbY, 3, 8, '#ff0000');
+
+                // Delayed shot
+                setTimeout(() => {
+                    const bullet = enemyPool.get(orbX, orbY, ENEMY_TYPES.BASIC, 1);
+                    bullet.radius = 12;
+                    bullet.hp = 30;
+                    bullet.maxHp = 30;
+                    bullet.color = '#ff3366';
+                    bullet.isDead = false;
+                    bullet.vx = Math.cos(aimAngle) * 6;
+                    bullet.vy = Math.sin(aimAngle) * 6;
+                    bullet.update = function (p, d) {
                         this.x += this.vx * d;
                         this.y += this.vy * d;
                     };
-                }
-                if (window.playSound) playSound('shoot');
-            }, idx * 80);
+                    if (window.playSound) playSound('shoot');
+                }, 300);
+            }, idx * 120);
         });
     }
 
     attackDarkMatter() {
-        // Horizontal wave of tankier enemies
-        const count = 12;
-        for (let i = 0; i < count; i++) {
-            const enemy = enemyPool.get(
-                150 + (CANVAS.width - 300) * (i / count),
-                -40,
-                ENEMY_TYPES.TANK, 0.8
-            );
-            enemy.radius = 18;
-            enemy.hp = 300;
-            enemy.maxHp = 300;
-            enemy.color = '#000033';
-            enemy.isDead = false;
+        // Slow walls from alternating sides with GAPS + INDICATOR
+        const waves = 2;
+        for (let wave = 0; wave < waves; wave++) {
+            const fromLeft = wave % 2 === 0;
+            const gapStart = Math.floor(Math.random() * 4) + 2;
+            const gapSize = 3;
+
+            // INDICATOR - show warning particles where walls will spawn
+            setTimeout(() => {
+                for (let i = 0; i < 8; i++) {
+                    if (i >= gapStart && i < gapStart + gapSize) continue;
+                    const y = 80 + (CANVAS.height - 160) * (i / 7);
+                    const x = fromLeft ? 30 : CANVAS.width - 30;
+                    spawnParticles(x, y, 5, 8, '#ff0000');
+                }
+                if (window.playSound) playSound('shoot');
+            }, wave * 1200);
+
+            // ACTUAL SPAWN - delayed after indicator
+            setTimeout(() => {
+                for (let i = 0; i < 8; i++) {
+                    if (i >= gapStart && i < gapStart + gapSize) continue;
+
+                    const y = 80 + (CANVAS.height - 160) * (i / 7);
+                    const x = fromLeft ? -30 : CANVAS.width + 30;
+
+                    const wall = enemyPool.get(x, y, ENEMY_TYPES.TANK, 1);
+                    wall.radius = 20;
+                    wall.hp = 40;
+                    wall.maxHp = 40;
+                    wall.color = '#220044';
+                    wall.isDead = false;
+                    wall.vx = fromLeft ? 2 : -2;
+                    wall.update = function (p, d) {
+                        this.x += this.vx * d;
+                    };
+                }
+            }, wave * 1200 + 500);
         }
-        if (window.playSound) playSound('shoot');
     }
 
     // ═══════════════════════════════════════════════════════
-    // PHASE 2 ATTACKS - Challenging
+    // PHASE 2 ATTACKS - SKILL-TESTING
     // ═══════════════════════════════════════════════════════
 
     attackRealityTear() {
-        // Spawn reality tears using Enemy class
-        const tearCount = 4;
+        // DESTROYABLE portals that spawn homing missiles - destroy portal to stop flow
+        const tearCount = 2;
         for (let i = 0; i < tearCount; i++) {
-            const tearX = 200 + Math.random() * (CANVAS.width - 400);
-            const tearY = 150 + Math.random() * (CANVAS.height * 0.6);
+            const tearX = 150 + (CANVAS.width - 300) * (i / (tearCount - 1 || 1));
+            const tearY = 120 + Math.random() * 100;
 
             const tear = enemyPool.get(tearX, tearY, ENEMY_TYPES.TANK, 1);
             tear.isRealityTear = true;
-            tear.radius = 40;
-            tear.life = 500;
+            tear.radius = 35;
+            tear.hp = 250;
+            tear.maxHp = 250;
             tear.spawnTimer = 0;
-            tear.spawnRate = 70;
-            tear.enemiesSpawned = 0;
-            tear.maxEnemies = 15;
-            tear.hp = 999999; // Non-destructible
-            tear.maxHp = 999999;
             tear.color = '#cc00ff';
+            tear.pulsePhase = Math.random() * Math.PI * 2;
 
             tear.update = function (player, dt) {
-                this.life -= dt;
+                this.pulsePhase += 0.1 * dt;
                 this.spawnTimer += dt;
 
-                if (this.spawnTimer >= this.spawnRate && this.enemiesSpawned < this.maxEnemies) {
+                // Spawn homing missile every 80 frames
+                if (this.spawnTimer >= 80 && typeof player !== 'undefined') {
                     this.spawnTimer = 0;
-                    this.enemiesSpawned++;
-                    const angle = Math.random() * Math.PI * 2;
-                    const enemy = enemyPool.get(
-                        this.x + Math.cos(angle) * this.radius,
-                        this.y + Math.sin(angle) * this.radius,
-                        ENEMY_TYPES.BASIC, 1
-                    );
-                    enemy.radius = 11;
-                    enemy.hp = 120;
-                    enemy.maxHp = 120;
-                    enemy.color = '#cc00ff';
-                    enemy.isDead = false;
-                }
-
-                if (this.life <= 0) {
-                    spawnParticles(this.x, this.y, 10, 6, '#cc00ff');
-                    this.hp = 0;
+                    const missile = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
+                    missile.radius = 10;
+                    missile.hp = 20;
+                    missile.maxHp = 20;
+                    missile.color = '#ff00ff';
+                    missile.isDead = false;
+                    missile.targetRef = player;
+                    missile.update = function (p, d) {
+                        if (!this.targetRef) return;
+                        const angle = Math.atan2(this.targetRef.y - this.y, this.targetRef.x - this.x);
+                        this.x += Math.cos(angle) * 3 * d;
+                        this.y += Math.sin(angle) * 3 * d;
+                    };
                 }
             };
 
             tear.draw = function () {
+                const pulse = 1 + Math.sin(this.pulsePhase) * 0.2;
                 CTX.save();
                 CTX.beginPath();
-                CTX.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                CTX.fillStyle = 'rgba(204, 0, 255, 0.3)';
+                CTX.arc(this.x, this.y, this.radius * pulse, 0, Math.PI * 2);
+                CTX.fillStyle = 'rgba(204, 0, 255, 0.4)';
                 CTX.fill();
                 CTX.strokeStyle = '#cc00ff';
                 CTX.lineWidth = 4;
-                CTX.setLineDash([10, 5]);
+                CTX.setLineDash([8, 4]);
                 CTX.stroke();
                 CTX.setLineDash([]);
+                // HP bar
+                const hpPct = this.hp / this.maxHp;
+                CTX.fillStyle = hpPct > 0.5 ? '#00ff00' : '#ff0000';
+                CTX.fillRect(this.x - 25, this.y - this.radius - 12, 50 * hpPct, 5);
                 CTX.restore();
             };
 
             this.realityTears.push(tear);
-            spawnParticles(tearX, tearY, 15, 8, '#cc00ff');
+            spawnParticles(tearX, tearY, 10, 6, '#cc00ff');
         }
-        createExplosion(this.x, this.y, 150, 0);
+        createExplosion(this.x, this.y, 120, 0);
     }
 
     attackCosmicStorm() {
-        // Massive spiral from multiple directions
-        const arms = 3;
-        const bulletsPerArm = 30;
+        // Double-helix spiral with DESTROYABLE nodes at key positions
+        const arms = 2;
+        const nodesPerArm = 10;
 
         for (let arm = 0; arm < arms; arm++) {
-            for (let i = 0; i < bulletsPerArm; i++) {
+            for (let i = 0; i < nodesPerArm; i++) {
                 setTimeout(() => {
-                    const baseAngle = (arm / arms) * Math.PI * 2;
-                    const spiralAngle = baseAngle + (i / bulletsPerArm) * Math.PI * 4;
+                    const baseAngle = (arm / arms) * Math.PI + this.coreAngle;
+                    const spiralAngle = baseAngle + (i / nodesPerArm) * Math.PI * 3;
 
                     const enemy = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
-                    enemy.radius = 11;
-                    enemy.hp = 120;
-                    enemy.maxHp = 120;
-                    enemy.color = '#cc00ff';
+                    enemy.radius = 12;
+                    enemy.hp = 30;
+                    enemy.maxHp = 30;
+                    enemy.color = arm === 0 ? '#cc00ff' : '#ff00cc';
                     enemy.isDead = false;
-                    enemy.vx = Math.cos(spiralAngle) * 4.5;
-                    enemy.vy = Math.sin(spiralAngle) * 4.5;
+
+                    const speed = 3.5;
+                    enemy.vx = Math.cos(spiralAngle) * speed;
+                    enemy.vy = Math.sin(spiralAngle) * speed;
                     enemy.update = function (p, d) {
                         this.x += this.vx * d;
                         this.y += this.vy * d;
                     };
-                }, i * 35 + arm * 15);
+                }, i * 50 + arm * 25);
             }
         }
+        if (window.playSound) playSound('shoot');
     }
 
     attackVoidClones() {
-        // Spawn phantom clones using Enemy class
-        const count = 3;
+        // SHIELDED sentinels - must destroy shield first, then core
+        const count = 2;
         for (let i = 0; i < count; i++) {
             const angle = (i / count) * Math.PI * 2;
-            const startX = this.x + Math.cos(angle) * 220;
-            const startY = this.y + Math.sin(angle) * 220;
+            const startX = this.x + Math.cos(angle) * 180;
+            const startY = this.y + Math.sin(angle) * 180;
 
-            const clone = enemyPool.get(startX, startY, ENEMY_TYPES.BASIC, 1);
-            clone.isVoidClone = true;
-            clone.cloneAngle = angle;
-            clone.alpha = 0.6;
-            clone.life = 450;
-            clone.fireTimer = 30 + i * 40;
-            clone.phase = this.phase;
-            clone.bossRef = this;
-            clone.radius = 40;
-            clone.hp = 50;
-            clone.maxHp = 50;
-            clone.color = this.getPhaseColor();
+            // Shield (outer)
+            const shield = enemyPool.get(startX, startY, ENEMY_TYPES.TANK, 1);
+            shield.isShield = true;
+            shield.radius = 45;
+            shield.hp = 150;
+            shield.maxHp = 150;
+            shield.color = '#cc00ff';
+            shield.coreRef = null;
+            shield.orbitAngle = angle;
+            shield.bossRef = this;
 
-            clone.update = function (player, dt) {
+            // Core (spawned when shield dies)
+            shield.update = function (player, dt) {
                 if (!this.bossRef || !this.bossRef.active) {
                     this.hp = 0;
                     return;
                 }
-
-                this.life -= dt;
-                if (this.life <= 0) {
-                    this.hp = 0;
-                    return;
-                }
-
-                this.cloneAngle += 0.01 * dt;
-                this.x = this.bossRef.x + Math.cos(this.cloneAngle) * 200;
-                this.y = this.bossRef.y + Math.sin(this.cloneAngle) * 200;
-
-                this.fireTimer -= dt;
-                if (this.fireTimer <= 0 && typeof player !== 'undefined') {
-                    this.fireTimer = 50;
-                    for (let j = -1; j <= 1; j++) {
-                        const aimAngle = Math.atan2(player.y - this.y, player.x - this.x) + j * 0.3;
-                        const bullet = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
-                        bullet.radius = 10;
-                        bullet.hp = 105;
-                        bullet.maxHp = 105;
-                        bullet.color = this.bossRef.getPhaseColor();
-                        bullet.isDead = false;
-                        bullet.vx = Math.cos(aimAngle) * 5;
-                        bullet.vy = Math.sin(aimAngle) * 5;
-                        bullet.update = function (p, d) {
-                            this.x += this.vx * d;
-                            this.y += this.vy * d;
-                        };
-                    }
-                }
-
-                this.alpha = Math.min(0.6, this.life / 150);
+                this.orbitAngle += 0.015 * dt;
+                this.x = this.bossRef.x + Math.cos(this.orbitAngle) * 180;
+                this.y = this.bossRef.y + Math.sin(this.orbitAngle) * 180;
             };
 
-            clone.draw = function () {
+            shield.draw = function () {
                 CTX.save();
-                CTX.globalAlpha = this.alpha;
-                CTX.translate(this.x, this.y);
-                CTX.shadowBlur = 25;
-                CTX.shadowColor = this.bossRef.getPhaseColor();
-                CTX.fillStyle = this.bossRef.getPhaseColor();
                 CTX.beginPath();
-                CTX.arc(0, 0, 40, 0, Math.PI * 2);
-                CTX.fill();
-                CTX.strokeStyle = '#fff';
-                CTX.lineWidth = 3;
+                CTX.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                CTX.strokeStyle = '#cc00ff';
+                CTX.lineWidth = 6;
+                CTX.shadowBlur = 15;
+                CTX.shadowColor = '#cc00ff';
                 CTX.stroke();
+                // HP bar
+                const hpPct = this.hp / this.maxHp;
+                CTX.fillStyle = '#00ffff';
+                CTX.fillRect(this.x - 30, this.y - this.radius - 10, 60 * hpPct, 5);
                 CTX.restore();
             };
 
-            this.voidClones.push(clone);
+            this.voidClones.push(shield);
         }
-        createExplosion(this.x, this.y, 120, 0);
+        createExplosion(this.x, this.y, 100, 0);
         if (window.playSound) playSound('powerup');
     }
 
     attackGravitySpike() {
-        // Sudden gravitational pull then explosive burst
-        if (window.triggerHitstop) triggerHitstop(40);
+        // Compression toward center then radial burst with safe zones
+        const targetPlayer = typeof player !== 'undefined' ? player : { x: CANVAS.width / 2, y: CANVAS.height - 100 };
 
-        // Intensify gravity temporarily
-        const originalPull = this.gravitationalPull;
-        this.gravitationalPull = 3.0;
+        // Visual warning
+        spawnParticles(this.x, this.y, 20, 10, '#ff0066');
 
         setTimeout(() => {
-            this.gravitationalPull = originalPull;
+            // Radial burst with gaps
+            const gapAngles = [
+                Math.atan2(targetPlayer.y - this.y, targetPlayer.x - this.x), // Gap toward player
+                Math.atan2(targetPlayer.y - this.y, targetPlayer.x - this.x) + Math.PI // Opposite gap
+            ];
+            const gapSize = 0.5;
 
-            // Explosive burst of enemies
-            const count = 25;
+            const count = 16;
             for (let i = 0; i < count; i++) {
                 const angle = (i / count) * Math.PI * 2;
-                const enemy = enemyPool.get(this.x, this.y, ENEMY_TYPES.SPEEDSTER, 1.5);
-                enemy.radius = 12;
-                enemy.hp = 150;
-                enemy.maxHp = 150;
+
+                // Check if in gap zone
+                let inGap = false;
+                for (const gapAngle of gapAngles) {
+                    const diff = Math.abs(((angle - gapAngle + Math.PI) % (Math.PI * 2)) - Math.PI);
+                    if (diff < gapSize / 2) inGap = true;
+                }
+                if (inGap) continue;
+
+                const enemy = enemyPool.get(this.x, this.y, ENEMY_TYPES.SPEEDSTER, 1);
+                enemy.radius = 14;
+                enemy.hp = 50;
+                enemy.maxHp = 50;
                 enemy.color = '#cc00ff';
                 enemy.isDead = false;
-                const speed = 5;
-                enemy.vx = Math.cos(angle) * speed;
-                enemy.vy = Math.sin(angle) * speed;
+                enemy.vx = Math.cos(angle) * 5;
+                enemy.vy = Math.sin(angle) * 5;
                 enemy.update = function (p, d) {
                     this.x += this.vx * d;
                     this.y += this.vy * d;
                 };
             }
-            createExplosion(this.x, this.y, 250, 0);
-        }, 800);
+            createExplosion(this.x, this.y, 200, 0);
+            if (window.playSound) playSound('shoot');
+        }, 600);
     }
 
     // ═══════════════════════════════════════════════════════
-    // PHASE 3 ATTACKS - INTENSE
+    // PHASE 3 ATTACKS - SKILL-TESTING INTENSE
     // ═══════════════════════════════════════════════════════
 
     attackSingularity() {
-        // Black hole effect - massive pull then release
-        if (window.triggerHitstop) triggerHitstop(60);
+        // Central vortex with orbiting debris that SHIELDS boss - destroy debris first!
+        const debrisCount = 6;
+        for (let i = 0; i < debrisCount; i++) {
+            const angle = (i / debrisCount) * Math.PI * 2;
+            const debris = enemyPool.get(
+                this.x + Math.cos(angle) * 120,
+                this.y + Math.sin(angle) * 120,
+                ENEMY_TYPES.TANK, 1
+            );
+            debris.isDebris = true;
+            debris.radius = 18;
+            debris.hp = 80;
+            debris.maxHp = 80;
+            debris.color = '#ffffff';
+            debris.orbitAngle = angle;
+            debris.bossRef = this;
 
-        const originalPull = this.gravitationalPull;
-        this.gravitationalPull = 5.0;
-        this.pullRadius = 800;
+            debris.update = function (player, dt) {
+                if (!this.bossRef || !this.bossRef.active) {
+                    this.hp = 0;
+                    return;
+                }
+                this.orbitAngle += 0.02 * dt;
+                this.x = this.bossRef.x + Math.cos(this.orbitAngle) * 120;
+                this.y = this.bossRef.y + Math.sin(this.orbitAngle) * 120;
+            };
 
-        setTimeout(() => {
-            // Release explosion
-            this.gravitationalPull = originalPull;
-            this.pullRadius = 400;
+            debris.draw = function () {
+                CTX.save();
+                CTX.translate(this.x, this.y);
+                CTX.fillStyle = '#ffffff';
+                CTX.shadowBlur = 10;
+                CTX.shadowColor = '#ffffff';
+                CTX.beginPath();
+                CTX.arc(0, 0, this.radius, 0, Math.PI * 2);
+                CTX.fill();
+                // HP bar
+                const hpPct = this.hp / this.maxHp;
+                CTX.fillStyle = '#00ffff';
+                CTX.fillRect(-15, -this.radius - 8, 30 * hpPct, 4);
+                CTX.restore();
+            };
+        }
+        createExplosion(this.x, this.y, 150, 0);
+        if (window.playSound) playSound('powerup');
+    }
 
-            for (let wave = 0; wave < 3; wave++) {
+    attackEventHorizon() {
+        // Expanding death ring with DESTROYABLE segments - shoot to create gaps!
+        const segments = 12;
+        const ringRadius = 80;
+
+        for (let i = 0; i < segments; i++) {
+            const angle = (i / segments) * Math.PI * 2;
+            const seg = enemyPool.get(
+                this.x + Math.cos(angle) * ringRadius,
+                this.y + Math.sin(angle) * ringRadius,
+                ENEMY_TYPES.BASIC, 1
+            );
+            seg.radius = 16;
+            seg.hp = 40;
+            seg.maxHp = 40;
+            seg.color = '#ffffff';
+            seg.isDead = false;
+            seg.segAngle = angle;
+            seg.expandSpeed = 3;
+            seg.bossRef = this;
+
+            seg.update = function (p, d) {
+                if (!this.bossRef) return;
+                const dist = Math.hypot(this.x - this.bossRef.x, this.y - this.bossRef.y);
+                this.x += Math.cos(this.segAngle) * this.expandSpeed * d;
+                this.y += Math.sin(this.segAngle) * this.expandSpeed * d;
+            };
+        }
+        spawnParticles(this.x, this.y, 15, 8, '#ffffff');
+        if (window.playSound) playSound('shoot');
+    }
+
+    attackDimensionalShift() {
+        // Boss teleports, leaves afterimage that fires delayed burst
+        const positions = [];
+        for (let i = 0; i < 3; i++) {
+            setTimeout(() => {
+                // Store position
+                const oldX = this.x;
+                const oldY = this.y;
+                positions.push({ x: oldX, y: oldY });
+
+                // Teleport to new position
+                this.phaseShiftAlpha = 0.3;
+                const angle = Math.random() * Math.PI * 2;
+                this.x = CANVAS.width / 2 + Math.cos(angle) * 150;
+                this.y = 180 + Math.sin(angle) * 60;
+
+                // Spawn warning at old position
+                spawnParticles(oldX, oldY, 8, 6, '#ff0066');
+
+                // Delayed burst from old position
                 setTimeout(() => {
-                    const count = 18;
-                    for (let i = 0; i < count; i++) {
-                        const angle = (i / count) * Math.PI * 2 + wave * 0.3;
-                        const enemy = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
-                        enemy.radius = 10;
-                        enemy.hp = 120;
-                        enemy.maxHp = 120;
-                        enemy.color = '#ffffff';
+                    const burstCount = 6;
+                    for (let j = 0; j < burstCount; j++) {
+                        const burstAngle = (j / burstCount) * Math.PI * 2;
+                        const enemy = enemyPool.get(oldX, oldY, ENEMY_TYPES.BASIC, 1);
+                        enemy.radius = 12;
+                        enemy.hp = 30;
+                        enemy.maxHp = 30;
+                        enemy.color = '#ff0066';
                         enemy.isDead = false;
-                        const speed = 6 + wave;
-                        enemy.vx = Math.cos(angle) * speed;
-                        enemy.vy = Math.sin(angle) * speed;
+                        enemy.vx = Math.cos(burstAngle) * 4;
+                        enemy.vy = Math.sin(burstAngle) * 4;
                         enemy.update = function (p, d) {
                             this.x += this.vx * d;
                             this.y += this.vy * d;
                         };
                     }
-                }, wave * 250);
-            }
-            createExplosion(this.x, this.y, 400, 0);
-        }, 1200);
-    }
+                }, 400);
 
-    attackEventHorizon() {
-        // Dense ring of bullets around boss perimeter
-        const rings = 3;
-        for (let ring = 0; ring < rings; ring++) {
-            setTimeout(() => {
-                const count = 24 + ring * 6;
-                const ringRadius = 150 + ring * 50;
-                for (let i = 0; i < count; i++) {
-                    const angle = (i / count) * Math.PI * 2;
-                    const startX = this.x + Math.cos(angle) * ringRadius;
-                    const startY = this.y + Math.sin(angle) * ringRadius;
-
-                    const enemy = enemyPool.get(startX, startY, ENEMY_TYPES.BASIC, 1);
-                    enemy.radius = 9;
-                    enemy.hp = 105;
-                    enemy.maxHp = 105;
-                    enemy.color = '#ffffff';
-                    enemy.isDead = false;
-                    enemy.vx = Math.cos(angle) * 3;
-                    enemy.vy = Math.sin(angle) * 3;
-                    enemy.update = function (p, d) {
-                        this.x += this.vx * d;
-                        this.y += this.vy * d;
-                    };
-                }
-                if (window.playSound) playSound('shoot');
-            }, ring * 300);
-        }
-    }
-
-    attackDimensionalShift() {
-        // Rapid teleportation leaving void trails
-        for (let i = 0; i < 10; i++) {
-            setTimeout(() => {
-                // Teleport
-                this.phaseShiftAlpha = 0.2;
-                const angle = Math.random() * Math.PI * 2;
-                this.x = CANVAS.width / 2 + Math.cos(angle) * 200;
-                this.y = 200 + Math.sin(angle) * 80;
-
-                // Spawn enemies at new position
-                for (let j = 0; j < 5; j++) {
-                    const spawnAngle = (j / 5) * Math.PI * 2;
-                    const enemy = enemyPool.get(
-                        this.x + Math.cos(spawnAngle) * 70,
-                        this.y + Math.sin(spawnAngle) * 70,
-                        ENEMY_TYPES.BASIC, 1
-                    );
-                    enemy.radius = 11;
-                    enemy.hp = 120;
-                    enemy.maxHp = 120;
-                    enemy.color = '#ffffff';
-                    enemy.isDead = false;
-                }
-
-                spawnParticles(this.x, this.y, 12, 5, '#ffffff');
-
-                setTimeout(() => {
-                    this.phaseShiftAlpha = 1;
-                }, 100);
-            }, i * 150);
+                setTimeout(() => { this.phaseShiftAlpha = 1; }, 150);
+            }, i * 350);
         }
     }
 
     attackSupernova() {
-        // Massive radial explosion
-        if (window.triggerHitstop) triggerHitstop(70);
-        createExplosion(this.x, this.y, 400, 0);
+        // Massive charge-up with warning, safe zone at EDGES
+        spawnParticles(this.x, this.y, 25, 12, '#ffaa00');
 
-        for (let wave = 0; wave < 5; wave++) {
-            setTimeout(() => {
-                const count = 16 + wave * 4;
-                for (let i = 0; i < count; i++) {
-                    const angle = (i / count) * Math.PI * 2;
-                    const enemy = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
-                    enemy.radius = 10 + wave;
-                    enemy.hp = 120;
-                    enemy.maxHp = 120;
-                    enemy.color = wave % 2 === 0 ? '#ffffff' : '#ffaa00';
-                    enemy.isDead = false;
+        // Warning pulse
+        setTimeout(() => {
+            // Inner danger zone - radial burst but edges are safe
+            const count = 14;
+            for (let i = 0; i < count; i++) {
+                const angle = (i / count) * Math.PI * 2;
+                const enemy = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
+                enemy.radius = 14;
+                enemy.hp = 40;
+                enemy.maxHp = 40;
+                enemy.color = '#ffaa00';
+                enemy.isDead = false;
 
-                    const speed = 3.5 + wave * 0.8;
-                    enemy.vx = Math.cos(angle) * speed;
-                    enemy.vy = Math.sin(angle) * speed;
-                    enemy.update = function (p, d) {
-                        this.x += this.vx * d;
-                        this.y += this.vy * d;
-                    };
-                }
-                if (window.playSound) playSound('shoot');
-            }, wave * 250);
-        }
+                // Variable speed - faster means reaches edge, slower stays center
+                const speed = 2 + Math.random() * 2;
+                enemy.vx = Math.cos(angle) * speed;
+                enemy.vy = Math.sin(angle) * speed;
+                enemy.lifeTimer = 300; // Despawn after time (don't reach edges)
+                enemy.update = function (p, d) {
+                    this.x += this.vx * d;
+                    this.y += this.vy * d;
+                    this.lifeTimer -= d;
+                    if (this.lifeTimer <= 0) this.hp = 0;
+                };
+            }
+            createExplosion(this.x, this.y, 300, 0);
+            if (window.playSound) playSound('shoot');
+        }, 800);
     }
 
     // ═══════════════════════════════════════════════════════
-    // PHASE 4 ATTACKS - ULTIMATE DESTRUCTION
+    // PHASE 4 ATTACKS - ULTIMATE SKILL TEST
     // ═══════════════════════════════════════════════════════
 
     attackVoidTsunami() {
-        // Screen-filling wave from all sides
-        if (window.triggerHitstop) triggerHitstop(50);
-
-        // From all 4 sides
-        const sides = ['top', 'bottom', 'left', 'right'];
-        sides.forEach((side, sideIdx) => {
+        // Alternating screen-sweep walls - DESTROY segments to create gaps!
+        const waves = 2;
+        for (let wave = 0; wave < waves; wave++) {
             setTimeout(() => {
-                for (let i = 0; i < 15; i++) {
-                    let x, y;
-                    switch (side) {
-                        case 'top':
-                            x = (CANVAS.width / 15) * i;
-                            y = -30;
-                            break;
-                        case 'bottom':
-                            x = (CANVAS.width / 15) * i;
-                            y = CANVAS.height + 30;
-                            break;
-                        case 'left':
-                            x = -30;
-                            y = (CANVAS.height / 15) * i;
-                            break;
-                        case 'right':
-                            x = CANVAS.width + 30;
-                            y = (CANVAS.height / 15) * i;
-                            break;
-                    }
+                const fromTop = wave % 2 === 0;
+                const segmentCount = 8;
 
-                    const enemy = enemyPool.get(x, y, ENEMY_TYPES.SPEEDSTER, 2);
-                    enemy.color = '#ff0033';
-                    enemy.radius = 14;
-                    enemy.hp = 180;
-                    enemy.maxHp = 180;
-                    enemy.isDead = false;
+                for (let i = 0; i < segmentCount; i++) {
+                    const x = (CANVAS.width / segmentCount) * (i + 0.5);
+                    const y = fromTop ? -30 : CANVAS.height + 30;
+
+                    const wall = enemyPool.get(x, y, ENEMY_TYPES.TANK, 1);
+                    wall.radius = 25;
+                    wall.hp = 60;
+                    wall.maxHp = 60;
+                    wall.color = '#ff0033';
+                    wall.isDead = false;
+                    wall.vy = fromTop ? 2.5 : -2.5;
+
+                    wall.update = function (p, d) {
+                        this.y += this.vy * d;
+                    };
+
+                    wall.draw = function () {
+                        CTX.save();
+                        CTX.fillStyle = '#ff0033';
+                        CTX.shadowBlur = 15;
+                        CTX.shadowColor = '#ff0033';
+                        CTX.beginPath();
+                        CTX.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                        CTX.fill();
+                        // HP indicator
+                        const hpPct = this.hp / this.maxHp;
+                        CTX.fillStyle = '#ffffff';
+                        CTX.fillRect(this.x - 20, this.y - this.radius - 8, 40 * hpPct, 4);
+                        CTX.restore();
+                    };
                 }
-            }, sideIdx * 200);
-        });
+                if (window.playSound) playSound('shoot');
+            }, wave * 600);
+        }
     }
 
     attackRealityCollapse() {
-        // Multiple reality tears + gravity wells
-        this.attackRealityTear();
-        setTimeout(() => {
-            this.attackGravityWell();
-        }, 400);
+        // Screen divided into quadrants with rotating laser barriers
+        const quadrantCount = 4;
+        for (let q = 0; q < quadrantCount; q++) {
+            const qx = (q % 2) * (CANVAS.width / 2) + CANVAS.width / 4;
+            const qy = Math.floor(q / 2) * (CANVAS.height / 2) + CANVAS.height / 4;
+
+            // Spawn rotating barrier in each quadrant
+            const barrier = enemyPool.get(qx, qy, ENEMY_TYPES.TANK, 1);
+            barrier.isBarrier = true;
+            barrier.radius = 30;
+            barrier.hp = 120;
+            barrier.maxHp = 120;
+            barrier.color = '#ff0066';
+            barrier.rotAngle = (q / quadrantCount) * Math.PI * 2;
+            barrier.laserLength = 80;
+
+            barrier.update = function (player, dt) {
+                this.rotAngle += 0.03 * dt;
+            };
+
+            barrier.draw = function () {
+                CTX.save();
+                CTX.translate(this.x, this.y);
+
+                // Core
+                CTX.fillStyle = '#ff0066';
+                CTX.shadowBlur = 20;
+                CTX.shadowColor = '#ff0066';
+                CTX.beginPath();
+                CTX.arc(0, 0, this.radius, 0, Math.PI * 2);
+                CTX.fill();
+
+                // Rotating laser arms
+                CTX.strokeStyle = '#ff3399';
+                CTX.lineWidth = 8;
+                for (let arm = 0; arm < 2; arm++) {
+                    const armAngle = this.rotAngle + arm * Math.PI;
+                    CTX.beginPath();
+                    CTX.moveTo(0, 0);
+                    CTX.lineTo(Math.cos(armAngle) * this.laserLength, Math.sin(armAngle) * this.laserLength);
+                    CTX.stroke();
+                }
+
+                // HP bar
+                const hpPct = this.hp / this.maxHp;
+                CTX.fillStyle = '#00ffff';
+                CTX.fillRect(-25, -this.radius - 10, 50 * hpPct, 5);
+                CTX.restore();
+            };
+        }
+        createExplosion(this.x, this.y, 200, 0);
+        if (window.playSound) playSound('powerup');
     }
 
     attackFinalHour() {
-        // Combines multiple attacks rapidly
-        this.attackVoidPulse();
-        setTimeout(() => this.attackCosmicStorm(), 600);
-        setTimeout(() => this.attackEventHorizon(), 1200);
+        // Chain-kill mechanic: Spawn weak adds near boss that damage it when killed!
+        const addCount = 8;
+        for (let i = 0; i < addCount; i++) {
+            setTimeout(() => {
+                const angle = (i / addCount) * Math.PI * 2;
+                const dist = 100 + Math.random() * 50;
+
+                const add = enemyPool.get(
+                    this.x + Math.cos(angle) * dist,
+                    this.y + Math.sin(angle) * dist,
+                    ENEMY_TYPES.BASIC, 1
+                );
+                add.radius = 15;
+                add.hp = 25;
+                add.maxHp = 25;
+                add.color = '#00ff00'; // Green = good to kill!
+                add.isDead = false;
+                add.isChainKill = true;
+                add.bossRef = this;
+                add.orbitAngle = angle;
+
+                add.update = function (player, dt) {
+                    if (!this.bossRef || !this.bossRef.active) return;
+                    this.orbitAngle += 0.015 * dt;
+                    const targetX = this.bossRef.x + Math.cos(this.orbitAngle) * 130;
+                    const targetY = this.bossRef.y + Math.sin(this.orbitAngle) * 130;
+                    this.x += (targetX - this.x) * 0.05 * dt;
+                    this.y += (targetY - this.y) * 0.05 * dt;
+                };
+
+                add.draw = function () {
+                    CTX.save();
+                    CTX.translate(this.x, this.y);
+                    CTX.fillStyle = '#00ff00';
+                    CTX.shadowBlur = 15;
+                    CTX.shadowColor = '#00ff00';
+                    CTX.beginPath();
+                    CTX.arc(0, 0, this.radius, 0, Math.PI * 2);
+                    CTX.fill();
+                    // Pulsing glow
+                    CTX.strokeStyle = '#88ff88';
+                    CTX.lineWidth = 3;
+                    CTX.stroke();
+                    CTX.restore();
+                };
+            }, i * 80);
+        }
+        spawnParticles(this.x, this.y, 20, 8, '#00ff00');
+        if (window.playSound) playSound('powerup');
     }
 
     attackOblivion() {
-        // Ultimate attack - chaos everywhere
-        if (window.triggerHitstop) triggerHitstop(80);
-        createExplosion(this.x, this.y, 500, 0);
+        // Multi-phase finale: Spiral → Ring → Targeted burst. All destroyable!
 
-        // Center burst
-        for (let wave = 0; wave < 6; wave++) {
+        // Phase 1: Spiral
+        const spiralCount = 12;
+        for (let i = 0; i < spiralCount; i++) {
             setTimeout(() => {
-                const count = 14 + wave * 3;
-                for (let i = 0; i < count; i++) {
-                    const angle = (i / count) * Math.PI * 2;
-                    const enemy = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
-                    enemy.radius = 9;
-                    enemy.hp = 120;
-                    enemy.maxHp = 120;
-                    enemy.color = wave % 2 === 0 ? '#ff0033' : '#000000';
-                    enemy.isDead = false;
+                const angle = (i / spiralCount) * Math.PI * 4 + this.coreAngle;
+                const enemy = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
+                enemy.radius = 12;
+                enemy.hp = 30;
+                enemy.maxHp = 30;
+                enemy.color = '#ff0033';
+                enemy.isDead = false;
+                enemy.vx = Math.cos(angle) * 4;
+                enemy.vy = Math.sin(angle) * 4;
+                enemy.update = function (p, d) {
+                    this.x += this.vx * d;
+                    this.y += this.vy * d;
+                };
+            }, i * 40);
+        }
 
-                    const speed = 3 + wave * 0.6;
-                    enemy.vx = Math.cos(angle) * speed;
-                    enemy.vy = Math.sin(angle) * speed;
+        // Phase 2: Ring (delayed)
+        setTimeout(() => {
+            const ringCount = 14;
+            for (let i = 0; i < ringCount; i++) {
+                const angle = (i / ringCount) * Math.PI * 2;
+                const enemy = enemyPool.get(this.x, this.y, ENEMY_TYPES.BASIC, 1);
+                enemy.radius = 14;
+                enemy.hp = 35;
+                enemy.maxHp = 35;
+                enemy.color = '#ffffff';
+                enemy.isDead = false;
+                enemy.vx = Math.cos(angle) * 3;
+                enemy.vy = Math.sin(angle) * 3;
+                enemy.update = function (p, d) {
+                    this.x += this.vx * d;
+                    this.y += this.vy * d;
+                };
+            }
+            if (window.playSound) playSound('shoot');
+        }, 700);
+
+        // Phase 3: Targeted burst (delayed)
+        setTimeout(() => {
+            const targetPlayer = typeof player !== 'undefined' ? player : { x: CANVAS.width / 2, y: CANVAS.height - 100 };
+            const burstCount = 6;
+            for (let i = 0; i < burstCount; i++) {
+                setTimeout(() => {
+                    const aimAngle = Math.atan2(targetPlayer.y - this.y, targetPlayer.x - this.x);
+                    const spreadAngle = aimAngle + (Math.random() - 0.5) * 0.5;
+                    const enemy = enemyPool.get(this.x, this.y, ENEMY_TYPES.SPEEDSTER, 1);
+                    enemy.radius = 16;
+                    enemy.hp = 40;
+                    enemy.maxHp = 40;
+                    enemy.color = '#ff6600';
+                    enemy.isDead = false;
+                    enemy.vx = Math.cos(spreadAngle) * 5;
+                    enemy.vy = Math.sin(spreadAngle) * 5;
                     enemy.update = function (p, d) {
                         this.x += this.vx * d;
                         this.y += this.vy * d;
                     };
-                }
-                if (window.playSound) playSound('shoot');
-            }, wave * 200);
-        }
+                }, i * 60);
+            }
+        }, 1400);
 
-        // Edge spawns
-        for (let i = 0; i < 30; i++) {
-            setTimeout(() => {
-                const side = Math.floor(Math.random() * 3);
-                let x, y;
-                switch (side) {
-                    case 0: x = Math.random() * CANVAS.width; y = -20; break;
-                    case 1: x = CANVAS.width + 20; y = Math.random() * CANVAS.height * 0.7; break;
-                    case 2: x = -20; y = Math.random() * CANVAS.height * 0.7; break;
-                }
-                const enemy = enemyPool.get(x, y, ENEMY_TYPES.SPEEDSTER, 2.5);
-                enemy.hp *= 15;
-                enemy.maxHp *= 15;
-                enemy.color = '#ff0033';
-                enemy.isDead = false;
-            }, i * 70);
-        }
+        createExplosion(this.x, this.y, 400, 0);
     }
 
     // ═══════════════════════════════════════════════════════
@@ -1042,7 +1200,7 @@ class BossVoidReaper extends BossBase {
         }
 
         // EPIC DEATH SEQUENCE
-        if (window.triggerHitstop) triggerHitstop(200);
+        if (window.triggerHitstop) triggerHitstop(60);
 
         // Massive explosion waves
         for (let wave = 0; wave < 12; wave++) {
