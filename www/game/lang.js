@@ -157,8 +157,12 @@ const Localization = {
 
             // Daily Quests
             daily_quests_title: "DAILY QUESTS",
+            quest_panel_title: "DAILY QUESTS",
+            quest_play_games: "Play {n} Games",
             quest_reach_level: "Reach Level {n}",
             quest_kill_enemies: "Destroy {n} Enemies",
+            quest_kill_boss: "Defeat {n} Bosses",
+            quest_earn_coins: "Earn {n} Neon Coins",
             quest_survive: "Survive {n} Seconds",
             quest_score: "Score {n} Points",
             quest_perks: "Select {n} Perks",
@@ -166,7 +170,13 @@ const Localization = {
             all_quests_completed: "ALL QUESTS COMPLETED!",
             quest_bonus_ad: "QUEST BONUS: +{coins} COINS (WATCH AD)",
             quest_bonus_claimed: "QUEST BONUS CLAIMED",
+            quest_close_btn: "CLOSE",
             quests_loading: "Loading quests...",
+            tab_store: "STORE",
+            tab_ships: "STARSHIPS",
+            section_cipher_crates: "CIPHER CRATES",
+            section_special_offers: "SPECIAL OFFERS & VIP",
+            section_coin_packs: "NEON COIN PACKS",
 
             // Premium Store
             store_title: "PREMIUM STORE",
@@ -441,8 +451,12 @@ const Localization = {
 
             // Daily Quests
             daily_quests_title: "GÜNLÜK GÖREVLER",
+            quest_panel_title: "GÜNLÜK GÖREVLER",
+            quest_play_games: "{n} Oyun Oyna",
             quest_reach_level: "Level {n}'e Ulaş",
             quest_kill_enemies: "{n} Düşman Yok Et",
+            quest_kill_boss: "{n} Boss Yok Et",
+            quest_earn_coins: "{n} Coin Kazan",
             quest_survive: "{n} Saniye Hayatta Kal",
             quest_score: "{n} Skor Yap",
             quest_perks: "{n} Perk Seç",
@@ -450,7 +464,13 @@ const Localization = {
             all_quests_completed: "TÜM GÖREVLER TAMAMLANDI!",
             quest_bonus_ad: "GÖREV BONUSU: +{coins} COIN (REKLAM İZLE)",
             quest_bonus_claimed: "GÖREV BONUSU ALINDI",
+            quest_close_btn: "KAPAT",
             quests_loading: "Görevler yükleniyor...",
+            tab_store: "MAĞAZA",
+            tab_ships: "UZAY GEMİLERİ",
+            section_cipher_crates: "ŞANS SANDIKLARI",
+            section_special_offers: "ÖZEL FIRSATLAR & VIP",
+            section_coin_packs: "NEON COIN PAKETLERİ",
 
             // Premium Store
             store_title: "PREMİUM MAĞAZA",
@@ -674,8 +694,12 @@ const Localization = {
 
             // Daily Quests
             daily_quests_title: "MISSIONS QUOTIDIENNES",
+            quest_panel_title: "MISSIONS QUOTIDIENNES",
+            quest_play_games: "Jouer {n} Parties",
             quest_reach_level: "Atteindre le niveau {n}",
             quest_kill_enemies: "Détruire {n} ennemis",
+            quest_kill_boss: "Vaincre {n} Boss",
+            quest_earn_coins: "Gagner {n} Pièces Neon",
             quest_survive: "Survivre {n} secondes",
             quest_score: "Marquer {n} points",
             quest_perks: "Choisir {n} atouts",
@@ -683,7 +707,13 @@ const Localization = {
             all_quests_completed: "TOUTES LES MISSIONS TERMINÉES !",
             quest_bonus_ad: "BONUS MISSION : +{coins} PIÈCES (PUB)",
             quest_bonus_claimed: "BONUS MISSION RÉCUPÉRÉ",
+            quest_close_btn: "FERMER",
             quests_loading: "Chargement des missions...",
+            tab_store: "BOUTIQUE",
+            tab_ships: "VAISSEAUX",
+            section_cipher_crates: "COFFRES CRYPTÉS",
+            section_special_offers: "OFFRES SPÉCIALES & VIP",
+            section_coin_packs: "PACKS DE PIÈCES NÉON",
 
             // Premium Store
             store_title: "BOUTIQUE PREMIUM",
@@ -891,8 +921,12 @@ const Localization = {
 
             // Daily Quests
             daily_quests_title: "MISIONES DIARIAS",
+            quest_panel_title: "MISIONES DIARIAS",
+            quest_play_games: "Jugar {n} Partidas",
             quest_reach_level: "Alcanza el nivel {n}",
             quest_kill_enemies: "Destruye {n} enemigos",
+            quest_kill_boss: "Derrotar {n} Jefes",
+            quest_earn_coins: "Ganar {n} Monedas Neón",
             quest_survive: "Sobrevive {n} segundos",
             quest_score: "Consigue {n} puntos",
             quest_perks: "Elige {n} mejoras",
@@ -900,7 +934,13 @@ const Localization = {
             all_quests_completed: "¡TODAS LAS MISIONES COMPLETADAS!",
             quest_bonus_ad: "BONO MISIÓN: +{coins} MONEDAS (ANUNCIO)",
             quest_bonus_claimed: "BONO RECLAMADO",
+            quest_close_btn: "CERRAR",
             quests_loading: "Cargando misiones...",
+            tab_store: "TIENDA",
+            tab_ships: "NAVES",
+            section_cipher_crates: "CAJAS DE LA SUERTE",
+            section_special_offers: "OFERTAS ESPECIALES & VIP",
+            section_coin_packs: "PACKS DE MONEDAS NEÓN",
 
             // Premium Store
             store_title: "TIENDA PREMIUM",
@@ -1108,8 +1148,12 @@ const Localization = {
 
             // Daily Quests
             daily_quests_title: "TÄGLICHE MISSIONEN",
+            quest_panel_title: "TÄGLICHE MISSIONEN",
+            quest_play_games: "Spiele {n} Spiele",
             quest_reach_level: "Erreiche Level {n}",
             quest_kill_enemies: "Zerstöre {n} Feinde",
+            quest_kill_boss: "Besiege {n} Bosse",
+            quest_earn_coins: "Verdiene {n} Neon-Münzen",
             quest_survive: "Überlebe {n} Sekunden",
             quest_score: "Erziele {n} Punkte",
             quest_perks: "Wähle {n} Perks",
@@ -1117,7 +1161,13 @@ const Localization = {
             all_quests_completed: "ALLE MISSIONEN ERFÜLLT!",
             quest_bonus_ad: "MISSIONS-BONUS: +{coins} MÜNZEN (WERBUNG)",
             quest_bonus_claimed: "BONUS EINGESAMMELT",
+            quest_close_btn: "SCHLIESSEN",
             quests_loading: "Missionen laden...",
+            tab_store: "SHOP",
+            tab_ships: "RAUMSCHIFFE",
+            section_cipher_crates: "CHIPHER-KISTEN",
+            section_special_offers: "ANGEBOTE & VIP",
+            section_coin_packs: "NEON-MÜNZPAKETE",
 
             // Premium Store
             store_title: "PREMIUM SHOP",
@@ -1325,8 +1375,12 @@ const Localization = {
 
             // Daily Quests
             daily_quests_title: "MISSIONI GIORNALIERE",
+            quest_panel_title: "MISSIONI GIORNALIERE",
+            quest_play_games: "Gioca {n} Partite",
             quest_reach_level: "Raggiungi il livello {n}",
             quest_kill_enemies: "Distruggi {n} nemici",
+            quest_kill_boss: "Sconfiggi {n} Boss",
+            quest_earn_coins: "Guadagna {n} Monete Neon",
             quest_survive: "Sopravvivi {n} secondi",
             quest_score: "Ottieni {n} punti",
             quest_perks: "Scegli {n} perk",
@@ -1334,7 +1388,13 @@ const Localization = {
             all_quests_completed: "TUTTE LE MISSIONI COMPLETATE!",
             quest_bonus_ad: "BONUS MISSIONE: +{coins} MONETE (PUBBL)",
             quest_bonus_claimed: "BONUS RISCATTATO",
+            quest_close_btn: "CHIUDI",
             quests_loading: "Caricamento missioni...",
+            tab_store: "NEGOZIO",
+            tab_ships: "NAVICELLE",
+            section_cipher_crates: "CASSE CIFRATE",
+            section_special_offers: "OFFERTE SPECIALI & VIP",
+            section_coin_packs: "PACCHETTI DI MONETE NEON",
 
             // Premium Store
             store_title: "NEGOZIO PREMIUM",
@@ -1522,6 +1582,11 @@ const Localization = {
         // Re-render Premium Store if available
         if (typeof PremiumStoreManager !== 'undefined' && typeof PremiumStoreManager.renderStore === 'function') {
             PremiumStoreManager.renderStore();
+        }
+
+        // Re-render Quest Panel if available to update quests in real-time
+        if (typeof QuestManager !== 'undefined' && typeof QuestManager.renderQuestPanel === 'function') {
+            QuestManager.renderQuestPanel();
         }
     }
 };

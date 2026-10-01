@@ -73,6 +73,7 @@ class QuestManager {
             const diffIdx = Math.floor(Math.random() * template.targets.length);
             return {
                 templateId: template.id,
+                titleKey: template.titleKey,
                 type: template.type,
                 iconKey: template.iconKey,
                 title: template.title.replace('{n}', template.targets[diffIdx]),
@@ -169,7 +170,8 @@ class QuestManager {
                 ? getIcon('check', 18)
                 : `<span class="quest-coin-badge">${getIcon('coin', 16)} <strong>+${quest.reward}</strong></span>`;
 
-            const displayTitle = quest.titleKey ? t(quest.titleKey, { n: quest.targetValue }) : quest.title;
+            const tKey = quest.titleKey || (this.QUEST_TEMPLATES.find(tpl => tpl.id === quest.templateId)?.titleKey);
+            const displayTitle = tKey ? t(tKey, { n: quest.targetValue }) : quest.title;
 
             html += `
                 <div class="quest-row ${statusClass}">

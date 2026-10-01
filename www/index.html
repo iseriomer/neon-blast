@@ -270,16 +270,10 @@
 
             <!-- Armory Nav Tabs -->
             <div class="armory-tabs">
-                <button class="armory-tab-btn cipher-tab active" data-tab="packs" data-i18n="tab_packs">SANDIKLAR</button>
-                <button class="armory-tab-btn" data-tab="cores" data-i18n="tab_cores">ÇEKİRDEK</button>
+                <button class="armory-tab-btn cipher-tab active" data-tab="store" data-i18n="tab_store">MAĞAZA</button>
+                <button class="armory-tab-btn" data-tab="cores" data-i18n="tab_ships">UZAY GEMİLERİ</button>
                 <button class="armory-tab-btn" data-tab="projectiles" data-i18n="tab_projectiles">MERMİLER</button>
                 <button class="armory-tab-btn" data-tab="backgrounds" data-i18n="tab_backgrounds">ARKA PLAN</button>
-                <button class="armory-tab-btn premium-tab" data-tab="premium">
-                    <span class="tab-icon-slot">
-                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#c084fc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 18 3 22 9 12 22 2 9" fill="rgba(192,132,252,0.3)"/><polyline points="2 9 12 22 22 9"/><polyline points="6 3 12 9 18 3"/></svg>
-                    </span>
-                    <span data-i18n="tab_premium">PREMIUM</span>
-                </button>
             </div>
 
             <!-- Dynamic Tab Content -->
@@ -302,8 +296,8 @@
                 <!-- Cosmetics Grid (Cores, Projectiles, Backgrounds) -->
                 <div id="armory-items-grid" class="armory-grid hidden"></div>
 
-                <!-- Cipher Packs Section -->
-                <div id="armory-packs-view" class="armory-packs-container">
+                <!-- Unified Storefront (Ciphers + In-App Purchases) -->
+                <div id="armory-store-view" class="armory-store-container">
                     <!-- Daily Free Ad Airdrop Banner -->
                     <div class="store-airdrop-banner">
                         <div class="airdrop-glow"></div>
@@ -321,12 +315,26 @@
                         </div>
                     </div>
 
+                    <!-- 1. Holographic Cipher Pods (Sandıklar) -->
+                    <div class="store-section-header">
+                        <h3 class="store-section-title" data-i18n="section_cipher_crates">ŞANS SANDIKLARI</h3>
+                        <span class="store-section-badge">GÜVENCELİ İÇERİK</span>
+                    </div>
                     <div class="packs-grid" id="cipher-packs-grid"></div>
-                </div>
 
-                <!-- Premium Store Tab Content -->
-                <div id="armory-premium-view" class="armory-premium-container hidden">
-                    <div id="premium-store-content"></div>
+                    <!-- 2. Special Offers & VIP In-App Purchases -->
+                    <div class="store-section-header" style="margin-top: 24px;">
+                        <h3 class="store-section-title" data-i18n="section_special_offers">ÖZEL FIRSATLAR & VIP</h3>
+                        <span class="store-section-badge" style="border-color:#c084fc; color:#c084fc;">PREMIUM</span>
+                    </div>
+                    <div class="premium-offers-grid" id="store-premium-offers-grid"></div>
+
+                    <!-- 3. Neon Coin Packs -->
+                    <div class="store-section-header" style="margin-top: 24px;">
+                        <h3 class="store-section-title" data-i18n="section_coin_packs">NEON COIN PAKETLERİ</h3>
+                        <span class="store-section-badge" style="border-color:#fbbf24; color:#fbbf24;">EKONOMİ</span>
+                    </div>
+                    <div class="coin-offers-grid" id="store-coin-offers-grid"></div>
                 </div>
             </div>
         </div>
@@ -345,10 +353,10 @@
                 <span class="title-icon-slot">
                     <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#00f0ff" stroke-width="2"><polygon points="12 2 21 7 21 17 12 22 3 17 3 7" fill="rgba(0,240,255,0.2)"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="15" x2="13" y2="15"/></svg>
                 </span>
-                GÜNLÜK GÖREVLER
+                <span data-i18n="quest_panel_title">GÜNLÜK GÖREVLER</span>
             </h2>
             <div id="quest-panel-content"></div>
-            <button class="main-btn quest-close-btn" id="quest-close-btn">KAPAT</button>
+            <button class="main-btn quest-close-btn" id="quest-close-btn" data-i18n="quest_close_btn">KAPAT</button>
         </div>
     </div>
 

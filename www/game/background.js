@@ -15,15 +15,11 @@ const BackgroundManager = {
     configs: {
         nebula: {
             name: 'Derin Uzay',
-            base: [5, 5, 14],          // #05050e deep midnight
-            bufferBase: '#04040c',
-            nebulaAlpha: 0.42,
-            dustColor: 'rgba(168, 130, 255, 0.18)',
-            clouds: [
-                { color: 'rgba(68, 28, 110, 0.48)', stop: 'rgba(28, 14, 55, 0.20)' },  // Cosmic Violet
-                { color: 'rgba(18, 54, 92, 0.40)', stop: 'rgba(10, 26, 50, 0.16)' },   // Deep Ocean Teal
-                { color: 'rgba(85, 25, 105, 0.36)', stop: 'rgba(38, 12, 58, 0.12)' }   // Royal Amethyst
-            ]
+            base: [0, 0, 0],          // #000000 Pure Pitch Black Space
+            bufferBase: '#000000',
+            nebulaAlpha: 0,
+            dustColor: 'transparent',
+            clouds: []
         },
         synthgrid: {
             name: 'Synthwave Şafak',
@@ -194,59 +190,64 @@ const BackgroundManager = {
         CTX.fillStyle = `rgba(${r}, ${g}, ${b}, 0.18)`;
         CTX.fillRect(0, 0, CANVAS.width, CANVAS.height);
 
-        // 2. Render Silky Blurred Nebula Clouds in Low-Res Offscreen Buffer
-        const bCtx = this.bufferCtx;
-        const bw = this.bufferCanvas.width;
-        const bh = this.bufferCanvas.height;
-
-        bCtx.fillStyle = config.bufferBase;
-        bCtx.fillRect(0, 0, bw, bh);
-
+        // 2. Render Silky Blurred Nebula Clouds in Low-Res Offscreen Buffer (if clouds defined)
         const cloudDefs = config.clouds;
+        if (cloudDefs && cloudDefs.length > 0 && config.nebulaAlpha > 0) {
+            const bCtx = this.bufferCtx;
+            const bw = this.bufferCanvas.width;
+            const bh = this.bufferCanvas.height;
 
-        // Cloud 1: Drifting & breathing in upper-left / central region
-        const c1x = bw * 0.35 + Math.sin(t * 0.85) * bw * 0.22;
-        const c1y = bh * 0.38 + Math.cos(t * 0.70) * bh * 0.18;
-        const c1r = bh * (0.85 + Math.sin(t * 1.1) * 0.22);
-        const grad1 = bCtx.createRadialGradient(c1x, c1y, 0, c1x, c1y, c1r);
-        grad1.addColorStop(0, cloudDefs[0].color);
-        grad1.addColorStop(0.55, cloudDefs[0].stop);
-        grad1.addColorStop(1, 'transparent');
-        bCtx.fillStyle = grad1;
-        bCtx.fillRect(0, 0, bw, bh);
-
-        // Cloud 2: Counter-drifting & expanding in lower-right region
-        const c2x = bw * 0.68 + Math.cos(t * 0.75) * bw * 0.22;
-        const c2y = bh * 0.62 + Math.sin(t * 0.85) * bh * 0.20;
-        const c2r = bh * (0.95 + Math.cos(t * 0.95) * 0.22);
-        const grad2 = bCtx.createRadialGradient(c2x, c2y, 0, c2x, c2y, c2r);
-        grad2.addColorStop(0, cloudDefs[1].color);
-        grad2.addColorStop(0.55, cloudDefs[1].stop);
-        grad2.addColorStop(1, 'transparent');
-        bCtx.fillStyle = grad2;
-        bCtx.fillRect(0, 0, bw, bh);
-
-        // Cloud 3: Harmonic core nexus breathing in center
-        if (cloudDefs[2]) {
-            const c3x = bw * 0.50 + Math.sin(t * 0.55) * bw * 0.16;
-            const c3y = bh * 0.50 + Math.cos(t * 0.65) * bh * 0.16;
-            const c3r = bh * (0.80 + Math.sin(t * 1.3) * 0.25);
-            const grad3 = bCtx.createRadialGradient(c3x, c3y, 0, c3x, c3y, c3r);
-            grad3.addColorStop(0, cloudDefs[2].color);
-            grad3.addColorStop(0.50, cloudDefs[2].stop);
-            grad3.addColorStop(1, 'transparent');
-            bCtx.fillStyle = grad3;
+            bCtx.fillStyle = config.bufferBase;
             bCtx.fillRect(0, 0, bw, bh);
+
+            // Cloud 1: Drifting & breathing in upper-left / central region
+            if (cloudDefs[0]) {
+                const c1x = bw * 0.35 + Math.sin(t * 0.85) * bw * 0.22;
+                const c1y = bh * 0.38 + Math.cos(t * 0.70) * bh * 0.18;
+                const c1r = bh * (0.85 + Math.sin(t * 1.1) * 0.22);
+                const grad1 = bCtx.createRadialGradient(c1x, c1y, 0, c1x, c1y, c1r);
+                grad1.addColorStop(0, cloudDefs[0].color);
+                grad1.addColorStop(0.55, cloudDefs[0].stop);
+                grad1.addColorStop(1, 'transparent');
+                bCtx.fillStyle = grad1;
+                bCtx.fillRect(0, 0, bw, bh);
+            }
+
+            // Cloud 2: Counter-drifting & expanding in lower-right region
+            if (cloudDefs[1]) {
+                const c2x = bw * 0.68 + Math.cos(t * 0.75) * bw * 0.22;
+                const c2y = bh * 0.62 + Math.sin(t * 0.85) * bh * 0.20;
+                const c2r = bh * (0.95 + Math.cos(t * 0.95) * 0.22);
+                const grad2 = bCtx.createRadialGradient(c2x, c2y, 0, c2x, c2y, c2r);
+                grad2.addColorStop(0, cloudDefs[1].color);
+                grad2.addColorStop(0.55, cloudDefs[1].stop);
+                grad2.addColorStop(1, 'transparent');
+                bCtx.fillStyle = grad2;
+                bCtx.fillRect(0, 0, bw, bh);
+            }
+
+            // Cloud 3: Harmonic core nexus breathing in center
+            if (cloudDefs[2]) {
+                const c3x = bw * 0.50 + Math.sin(t * 0.55) * bw * 0.16;
+                const c3y = bh * 0.50 + Math.cos(t * 0.65) * bh * 0.16;
+                const c3r = bh * (0.80 + Math.sin(t * 1.3) * 0.25);
+                const grad3 = bCtx.createRadialGradient(c3x, c3y, 0, c3x, c3y, c3r);
+                grad3.addColorStop(0, cloudDefs[2].color);
+                grad3.addColorStop(0.50, cloudDefs[2].stop);
+                grad3.addColorStop(1, 'transparent');
+                bCtx.fillStyle = grad3;
+                bCtx.fillRect(0, 0, bw, bh);
+            }
+
+            // 3. Blit blurred buffer onto main canvas using bilinear smoothing
+            CTX.save();
+            CTX.globalAlpha = config.nebulaAlpha || 0.44;
+            CTX.drawImage(this.bufferCanvas, 0, 0, CANVAS.width, CANVAS.height);
+            CTX.restore();
         }
 
-        // 3. Blit blurred buffer onto main canvas using bilinear smoothing
-        CTX.save();
-        CTX.globalAlpha = config.nebulaAlpha || 0.44;
-        CTX.drawImage(this.bufferCanvas, 0, 0, CANVAS.width, CANVAS.height);
-        CTX.restore();
-
-        // 4. Ambient Cosmic Dust Motes (Floating gently with soft sway & twinkle)
-        if (this.dustParticles.length > 0) {
+        // 4. Ambient Cosmic Dust Motes (only if dustColor is not transparent)
+        if (config.dustColor && config.dustColor !== 'transparent' && this.dustParticles.length > 0) {
             CTX.save();
             const w = CANVAS.width;
             const h = CANVAS.height;

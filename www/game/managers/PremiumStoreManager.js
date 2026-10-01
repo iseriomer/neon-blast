@@ -254,8 +254,22 @@ class PremiumStoreManager {
             return;
         }
 
-        // 3. Web simulation: directly grant (for dev & testing)
+        // 3. Native Guard: On real Android/iOS, never grant free purchases without Play Store confirmation!
+        const isNative = (window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform());
+        if (isNative) {
+            console.warn('Google Play Store is connecting or product not loaded yet:', productId);
+            if (typeof ArmoryUI !== 'undefined' && ArmoryUI.showToast) {
+                ArmoryUI.showToast('Google Play Store bağlantısı kuruluyor... Lütfen tekrar deneyin.', false);
+            }
+            return;
+        }
+
+        // 4. Web browser dev simulation ONLY
+        console.log('Web browser simulation: granting test purchase for', productId);
         this.grantPurchase(productId);
+        if (typeof ArmoryUI !== 'undefined' && ArmoryUI.showToast) {
+            ArmoryUI.showToast('Test Satın Alma (Web Simülasyonu)', true);
+        }
     }
 
     static grantPurchase(productId) {

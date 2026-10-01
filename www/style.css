@@ -3025,6 +3025,258 @@ button.main-btn:active {
     box-shadow: 7px 7px 0 #000 !important;
 }
 
+/* ==========================================================================
+   ARMORY UNIFIED STOREFRONT SECTIONS
+   ========================================================================== */
+
+.armory-store-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-bottom: 24px;
+}
+
+.store-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid rgba(0, 240, 255, 0.25);
+    padding-bottom: 8px;
+    margin-top: 18px;
+    margin-bottom: 12px;
+}
+
+.store-section-title {
+    font-size: 1.15rem;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-family: monospace;
+    margin: 0;
+    text-shadow: 2px 2px 0 #000;
+}
+
+.store-section-badge {
+    font-size: 0.65rem;
+    font-weight: 900;
+    padding: 3px 8px;
+    border: 1px solid #00f0ff;
+    color: #00f0ff;
+    background: rgba(0, 240, 255, 0.1);
+    letter-spacing: 1px;
+    font-family: monospace;
+    text-transform: uppercase;
+}
+
+/* Premium Offers Grid (VIP & Special Bundles) */
+.premium-offers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+}
+
+.premium-offer-card {
+    background: #141226;
+    border: 2px solid #c084fc;
+    border-radius: 0; /* KESKİN */
+    padding: 18px 16px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.6);
+    transition: all 0.2s ease;
+    font-family: monospace;
+}
+
+.premium-offer-card:hover {
+    background: #1e1a3a;
+    transform: translate(-3px, -3px);
+    box-shadow: 9px 9px 0 #c084fc;
+}
+
+.premium-offer-card.is-owned {
+    border-color: #22c55e;
+    opacity: 0.75;
+}
+
+.offer-badge {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    font-size: 0.65rem;
+    font-weight: 900;
+    padding: 2px 8px;
+    background: #7c3aed;
+    color: #fff;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    box-shadow: 2px 2px 0 #000;
+}
+
+.offer-title {
+    font-size: 1.15rem;
+    font-weight: 900;
+    color: #f3e8ff;
+    margin: 0 0 6px 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-shadow: 2px 2px 0 #000;
+}
+
+.offer-desc {
+    font-size: 0.75rem;
+    color: #cbd5e1;
+    margin: 0 0 12px 0;
+    line-height: 1.4;
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    text-align: left;
+}
+
+.offer-benefits-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 16px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.offer-benefits-list li {
+    font-size: 0.72rem;
+    color: #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.bullet-check {
+    color: #22c55e;
+    font-weight: 900;
+}
+
+.offer-footer {
+    margin-top: auto;
+}
+
+.offer-buy-btn {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 0.9rem !important;
+    font-weight: 900 !important;
+    letter-spacing: 1px !important;
+    background: #7c3aed !important;
+    border: 2px solid #a855f7 !important;
+    border-radius: 0 !important; /* KESKİN */
+    color: #fff !important;
+    cursor: pointer;
+    box-shadow: 4px 4px 0 #000 !important;
+    transform: skew(-2deg);
+    transition: all 0.2s ease;
+    font-family: monospace;
+    text-transform: uppercase;
+}
+
+.offer-buy-btn:hover:not([disabled]) {
+    background: #a855f7 !important;
+    color: #000 !important;
+    transform: skew(-2deg) translate(-2px, -2px);
+    box-shadow: 6px 6px 0 #000 !important;
+}
+
+.offer-buy-btn.owned-btn {
+    background: #1e293b !important;
+    border-color: #22c55e !important;
+    color: #22c55e !important;
+    cursor: default;
+    transform: none !important;
+}
+
+/* Neon Coin Packs Grid */
+.coin-offers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+}
+
+.coin-offer-card {
+    background: #161426;
+    border: 2px solid #fbbf24;
+    border-radius: 0; /* KESKİN */
+    padding: 18px 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.6);
+    font-family: monospace;
+    transition: all 0.2s ease;
+}
+
+.coin-offer-card:hover {
+    background: #241f3d;
+    transform: translate(-2px, -2px);
+    box-shadow: 7px 7px 0 #fbbf24;
+}
+
+.coin-badge-pill {
+    position: absolute;
+    top: -10px;
+    background: #d97706;
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 900;
+    padding: 2px 8px;
+    border: 1px solid #fef08a;
+    box-shadow: 2px 2px 0 #000;
+    letter-spacing: 1px;
+}
+
+.coin-offer-amount {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.35rem;
+    font-weight: 900;
+    color: #fbbf24;
+    margin: 8px 0 4px 0;
+    text-shadow: 2px 2px 0 #000;
+}
+
+.coin-offer-name {
+    font-size: 0.72rem;
+    color: #cbd5e1;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+}
+
+.coin-buy-btn {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 0.85rem !important;
+    font-weight: 900 !important;
+    background: #1a1a2e !important;
+    border: 2px solid #fbbf24 !important;
+    border-radius: 0 !important; /* KESKİN */
+    color: #fbbf24 !important;
+    cursor: pointer;
+    box-shadow: 3px 3px 0 #000 !important;
+    transform: skew(-2deg);
+    transition: all 0.2s ease;
+    font-family: monospace;
+}
+
+.coin-buy-btn:hover {
+    background: #fbbf24 !important;
+    color: #000 !important;
+    transform: skew(-2deg) translate(-2px, -2px);
+    box-shadow: 5px 5px 0 #000 !important;
+}
+
 /* Pack Opening Reveal Modal */
 #pack-opening-modal {
     position: fixed;
@@ -3587,157 +3839,257 @@ button.main-btn:active {
     transform: translateY(-2px);
 }
 
-/* === Daily Reward Modal === */
+/* === Daily Reward Modal (Obsidian Cyberpunk Overhaul) === */
 .dr-card {
-    background: linear-gradient(145deg, #0f172a, #1e293b);
-    border: 2px solid rgba(245, 158, 11, 0.5);
-    border-radius: 16px;
-    padding: 24px;
-    max-width: 400px;
-    width: 90%;
+    background: #0e0b1c;
+    border: 3px solid #ffd700;
+    border-radius: 0; /* KESKİN - Arcade Style */
+    padding: 24px 20px;
+    max-width: 440px;
+    width: 92%;
     text-align: center;
-    box-shadow: 0 0 40px rgba(245, 158, 11, 0.15);
+    box-shadow: 10px 10px 0 rgba(0, 0, 0, 0.85), 0 0 30px rgba(255, 215, 0, 0.2);
+    font-family: monospace;
+    position: relative;
 }
 
-.dr-header { margin-bottom: 16px; }
+.dr-header { 
+    margin-bottom: 18px; 
+    border-bottom: 2px solid rgba(255, 215, 0, 0.25);
+    padding-bottom: 12px;
+}
 
 .dr-streak-badge {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
+    background: #ffd700;
     color: #000;
     padding: 4px 16px;
-    border-radius: 20px;
+    border-radius: 0; /* KESKİN */
     font-size: 0.8rem;
-    font-weight: 800;
-    display: inline-block;
+    font-weight: 900;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     margin-bottom: 8px;
+    text-transform: uppercase;
+    box-shadow: 3px 3px 0 #000;
+    letter-spacing: 1px;
 }
 
 .dr-title {
-    color: #fbbf24;
-    font-size: 1.4rem;
-    margin: 0;
-    text-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
+    color: #ffd700;
+    font-size: 1.45rem;
+    font-weight: 900;
+    margin: 4px 0 0 0;
+    text-transform: uppercase;
+    font-family: 'Arial Black', monospace, sans-serif;
+    transform: skew(-3deg);
+    letter-spacing: 1px;
+    text-shadow: 3px 3px 0 #000;
 }
 
 .dr-days-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 4px;
-    margin: 16px 0;
+    gap: 6px;
+    margin: 18px 0;
 }
 
 .dr-day {
-    background: rgba(15, 23, 42, 0.8);
-    border: 1px solid rgba(100, 116, 139, 0.3);
-    border-radius: 6px;
-    padding: 6px 2px;
-    font-size: 0.6rem;
+    background: #141226;
+    border: 1.5px solid #334155;
+    border-radius: 0; /* KESKİN */
+    padding: 8px 3px;
+    font-size: 0.65rem;
     text-align: center;
+    transition: all 0.2s ease;
+    box-shadow: 2px 2px 0 #000;
 }
 
 .dr-day.current {
-    border-color: #f59e0b;
-    background: rgba(245, 158, 11, 0.15);
-    box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
+    border-color: #ffd700;
+    background: #231c0a;
+    box-shadow: 0 0 14px rgba(255, 215, 0, 0.4), 3px 3px 0 #000;
+    transform: translateY(-2px);
 }
 
 .dr-day.claimed {
-    border-color: #22c55e;
-    opacity: 0.6;
+    border-color: #10b981;
+    background: #062b1a;
+    opacity: 0.8;
 }
 
-.dr-day-num { color: #94a3b8; font-weight: 600; font-size: 0.55rem; }
-.dr-day-icon { font-size: 1.2rem; margin: 4px 0; }
-.dr-day-label { color: #cbd5e1; font-size: 0.5rem; }
+.dr-day-num { 
+    color: #94a3b8; 
+    font-weight: 800; 
+    font-size: 0.6rem; 
+    text-transform: uppercase;
+}
+
+.dr-day-icon { 
+    font-size: 1.3rem; 
+    margin: 4px 0; 
+}
+
+.dr-day-label { 
+    color: #cbd5e1; 
+    font-size: 0.55rem; 
+    font-weight: bold;
+}
 
 .dr-reward-highlight {
-    background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.1));
-    border: 1px solid #f59e0b;
-    border-radius: 10px;
-    padding: 12px;
-    margin: 12px 0;
+    background: #1a1608;
+    border: 2px solid #ffd700;
+    border-radius: 0; /* KESKİN */
+    padding: 14px;
+    margin: 14px 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 12px;
+    box-shadow: 4px 4px 0 #000;
 }
 
 .dr-reward-icon { font-size: 2rem; }
-.dr-reward-text { color: #fbbf24; font-size: 1.1rem; font-weight: 700; }
+.dr-reward-text { 
+    color: #ffd700; 
+    font-size: 1.15rem; 
+    font-weight: 900; 
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-shadow: 2px 2px 0 #000;
+}
 
-.dr-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.dr-actions { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 10px; 
+    margin-top: 14px; 
+}
 
 .dr-claim-btn {
-    background: linear-gradient(135deg, #22c55e, #16a34a) !important;
-    border-color: #22c55e !important;
+    background: #10b981 !important;
+    border: 2px solid #34d399 !important;
+    border-radius: 0 !important; /* KESKİN */
+    color: #000 !important;
+    font-weight: 900 !important;
+    font-size: 1.05rem !important;
+    padding: 12px !important;
+    box-shadow: 4px 4px 0 #000 !important;
+    transform: skew(-2deg);
+    cursor: pointer;
+    text-transform: uppercase;
+}
+
+.dr-claim-btn:hover {
+    background: #34d399 !important;
+    transform: skew(-2deg) translate(-2px, -2px);
+    box-shadow: 6px 6px 0 #000 !important;
 }
 
 .dr-double-btn {
-    background: linear-gradient(135deg, #f59e0b, #d97706) !important;
-    border-color: #f59e0b !important;
+    background: #d97706 !important;
+    border: 2px solid #ffd700 !important;
+    border-radius: 0 !important; /* KESKİN */
     color: #000 !important;
+    font-weight: 900 !important;
+    font-size: 1rem !important;
+    padding: 12px !important;
+    box-shadow: 4px 4px 0 #000 !important;
+    transform: skew(-2deg);
+    cursor: pointer;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.dr-double-btn:hover {
+    background: #fbbf24 !important;
+    transform: skew(-2deg) translate(-2px, -2px);
+    box-shadow: 6px 6px 0 #000 !important;
 }
 
 .dr-close-btn {
     background: none;
     border: none;
-    color: #64748b;
+    color: #94a3b8;
     cursor: pointer;
-    margin-top: 8px;
-    font-size: 0.8rem;
+    margin-top: 10px;
+    font-size: 0.85rem;
+    font-family: monospace;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
 }
 
-/* === Lucky Spin Wheel === */
+.dr-close-btn:hover {
+    color: #ffffff;
+}
+
+/* === Lucky Spin Wheel (Obsidian Cyberpunk Overhaul) === */
 .ls-card {
-    background: linear-gradient(145deg, #0f172a, #1e293b);
-    border: 2px solid rgba(0, 240, 255, 0.4);
-    border-radius: 16px;
-    padding: 24px;
-    max-width: 380px;
-    width: 90%;
+    background: #0b0918;
+    border: 3px solid #00f0ff;
+    border-radius: 0; /* KESKİN - Arcade Style */
+    padding: 24px 20px;
+    max-width: 400px;
+    width: 92%;
     text-align: center;
+    box-shadow: 10px 10px 0 rgba(0, 0, 0, 0.85), 0 0 30px rgba(0, 240, 255, 0.2);
+    font-family: monospace;
+    position: relative;
 }
 
 .ls-title {
     color: #00f0ff;
-    font-size: 1.4rem;
+    font-size: 1.45rem;
+    font-weight: 900;
     margin: 0 0 16px;
-    text-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+    text-transform: uppercase;
+    font-family: 'Arial Black', monospace, sans-serif;
+    transform: skew(-3deg);
+    letter-spacing: 1.5px;
+    text-shadow: 3px 3px 0 #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
 }
 
 .ls-wheel-container {
     position: relative;
     display: inline-block;
-    margin: 0 auto 16px;
+    margin: 4px auto 16px;
 }
 
 .ls-pointer {
     position: absolute;
-    top: -8px;
+    top: -10px;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 24px;
-    color: #f59e0b;
-    z-index: 2;
-    filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.6));
+    z-index: 10;
+    filter: drop-shadow(0 0 8px #f59e0b);
 }
 
 #ls-wheel-canvas {
     border-radius: 50%;
-    border: 3px solid rgba(0, 240, 255, 0.3);
-    box-shadow: 0 0 25px rgba(0, 240, 255, 0.15);
+    border: 3px solid #00f0ff;
+    box-shadow: 0 0 25px rgba(0, 240, 255, 0.3), inset 0 0 15px rgba(0, 240, 255, 0.2);
+    background: #05040a;
 }
 
 .ls-result {
-    background: rgba(245, 158, 11, 0.15);
-    border: 1px solid #f59e0b;
-    border-radius: 10px;
+    background: #1f1807;
+    border: 2px solid #ffd700;
+    border-radius: 0; /* KESKİN */
     padding: 12px;
     margin: 12px 0;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
+    box-shadow: 4px 4px 0 #000;
     animation: resultPop 0.4s ease;
 }
 
@@ -3747,33 +4099,84 @@ button.main-btn:active {
 }
 
 .ls-result-icon { font-size: 1.8rem; }
-.ls-result-text { color: #fbbf24; font-size: 1.1rem; font-weight: 700; }
+.ls-result-text { 
+    color: #ffd700; 
+    font-size: 1.15rem; 
+    font-weight: 900; 
+    text-shadow: 2px 2px 0 #000;
+    letter-spacing: 1px;
+}
 
-.ls-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.ls-actions { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 10px; 
+    margin-top: 14px; 
+}
 
 .ls-spin-btn {
-    background: linear-gradient(135deg, #22c55e, #16a34a) !important;
-    border-color: #22c55e !important;
+    background: #10b981 !important;
+    border: 2px solid #34d399 !important;
+    border-radius: 0 !important; /* KESKİN */
+    color: #000 !important;
+    font-weight: 900 !important;
+    font-size: 1.05rem !important;
+    padding: 12px !important;
+    box-shadow: 4px 4px 0 #000 !important;
+    transform: skew(-2deg);
+    cursor: pointer;
+    text-transform: uppercase;
+}
+
+.ls-spin-btn:hover {
+    background: #34d399 !important;
+    transform: skew(-2deg) translate(-2px, -2px);
+    box-shadow: 6px 6px 0 #000 !important;
 }
 
 .ls-ad-spin-btn {
-    background: linear-gradient(135deg, #7c3aed, #6d28d9) !important;
-    border-color: #7c3aed !important;
+    background: #7c3aed !important;
+    border: 2px solid #a855f7 !important;
+    border-radius: 0 !important; /* KESKİN */
+    color: #fff !important;
+    font-weight: 900 !important;
+    font-size: 1rem !important;
+    padding: 12px !important;
+    box-shadow: 4px 4px 0 #000 !important;
+    transform: skew(-2deg);
+    cursor: pointer;
+    text-transform: uppercase;
+}
+
+.ls-ad-spin-btn:hover {
+    background: #a855f7 !important;
+    transform: skew(-2deg) translate(-2px, -2px);
+    box-shadow: 6px 6px 0 #000 !important;
 }
 
 .ls-free-used, .ls-ad-used {
-    color: #64748b;
-    font-size: 0.8rem;
-    padding: 6px;
+    color: #94a3b8;
+    font-size: 0.85rem;
+    padding: 8px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
 }
 
 .ls-close-btn {
     background: none;
     border: none;
-    color: #64748b;
+    color: #94a3b8;
     cursor: pointer;
-    margin-top: 8px;
-    font-size: 0.8rem;
+    margin-top: 10px;
+    font-size: 0.85rem;
+    font-family: monospace;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.ls-close-btn:hover {
+    color: #ffffff;
 }
 
 /* === Quest Panel === */

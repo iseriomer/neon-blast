@@ -322,6 +322,28 @@ class CosmeticsManager {
         if (normalized === 'background' && window.BackgroundManager) {
             window.BackgroundManager.applyCosmeticBackground(itemId);
         }
+
+        // Live update in-game player and projectile styles immediately without requiring restart!
+        if (normalized === 'core') {
+            const item = this.ITEMS[itemId];
+            if (typeof player !== 'undefined') {
+                player.skin = itemId;
+            }
+            if (item && item.color && typeof gameState !== 'undefined' && gameState.playerStats) {
+                gameState.playerStats.color = item.color;
+                if (typeof updateXPBarColor === 'function') updateXPBarColor(item.color);
+            }
+        } else if (normalized === 'projectile') {
+            const item = this.ITEMS[itemId];
+            if (typeof projectilePool !== 'undefined') {
+                const active = projectilePool.getActive();
+                for (let i = 0; i < active.length; i++) {
+                    active[i].skinId = itemId;
+                    if (item && item.color) active[i].color = item.color;
+                }
+            }
+        }
+
         this.updateUI();
         return true;
     }

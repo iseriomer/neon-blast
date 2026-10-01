@@ -57,33 +57,70 @@ const RenderOptimizer = {
             ? CosmeticsManager.getEquipped('projectile')
             : 'proj_default';
 
-        // 3. Draw each color group with gradient glow (MUCH faster than shadowBlur)
-        for (const color in this._projGroups) {
-            const group = this._projGroups[color];
+        const cosmeticItem = (typeof CosmeticsManager !== 'undefined' && CosmeticsManager.ITEMS)
+            ? CosmeticsManager.ITEMS[projSkin]
+            : null;
+
+        // 3. Draw each color group with high performance
+        for (const defaultColor in this._projGroups) {
+            const group = this._projGroups[defaultColor];
             if (group.length === 0) continue;
 
-            // Draw glow layer first (only for small groups)
+            const skinColor = (cosmeticItem && cosmeticItem.color) ? cosmeticItem.color : defaultColor;
+
+            // Draw glow layer for small/medium groups
             if (this.useShadows && group.length < 5000) {
                 for (let i = 0; i < group.length; i++) {
                     const proj = group[i];
-                    const gradient = CTX.createRadialGradient(
-                        proj.x, proj.y, proj.radius * 0.5,
-                        proj.x, proj.y, proj.radius * 1.7
-                    );
-                    gradient.addColorStop(0, color);
-                    gradient.addColorStop(1, 'rgba(0,0,0,0)');
+                    if (projSkin === 'proj_pixel') {
+                        // Sharp pixel glow block
+                        const s = proj.radius * 1.5;
+                        CTX.fillStyle = 'rgba(34, 197, 94, 0.28)';
+                        CTX.fillRect(proj.x - s * 1.3, proj.y - s * 1.3, s * 2.6, s * 2.6);
+                    } else {
+                        const gradient = CTX.createRadialGradient(
+                            proj.x, proj.y, proj.radius * 0.4,
+                            proj.x, proj.y, proj.radius * 1.8
+                        );
+                        gradient.addColorStop(0, skinColor);
+                        gradient.addColorStop(1, 'rgba(0,0,0,0)');
 
-                    CTX.fillStyle = gradient;
-                    CTX.beginPath();
-                    CTX.arc(proj.x, proj.y, proj.radius * 1.7, 0, Math.PI * 2);
-                    CTX.fill();
+                        CTX.fillStyle = gradient;
+                        CTX.beginPath();
+                        CTX.arc(proj.x, proj.y, proj.radius * 1.8, 0, Math.PI * 2);
+                        CTX.fill();
+                    }
                 }
             }
 
-            // Draw main projectiles according to equipped cosmetic skin
-            CTX.beginPath();
+            if (projSkin === 'proj_pixel') {
+                // AUTHENTIC 8-BIT ARCADE PIXEL BULLET:
+                // Chunky retro square slug + white pixel core + trailing pixel bits
+                for (let i = 0; i < group.length; i++) {
+                    const proj = group[i];
+                    const s = proj.radius * 1.35;
+                    const vx = proj.velocity.x || 0;
+                    const vy = proj.velocity.y || 0;
+                    const len = Math.hypot(vx, vy) || 1;
+                    const nx = vx / len;
+                    const ny = vy / len;
 
-            if (projSkin === 'proj_laser') {
+                    // Trailing 8-bit pixel motes
+                    CTX.fillStyle = 'rgba(34, 197, 94, 0.65)';
+                    CTX.fillRect(proj.x - nx * s * 1.8 - s * 0.4, proj.y - ny * s * 1.8 - s * 0.4, s * 0.8, s * 0.8);
+                    CTX.fillStyle = 'rgba(34, 197, 94, 0.35)';
+                    CTX.fillRect(proj.x - nx * s * 3.1 - s * 0.25, proj.y - ny * s * 3.1 - s * 0.25, s * 0.5, s * 0.5);
+
+                    // Main 8-bit green pixel block
+                    CTX.fillStyle = '#22c55e';
+                    CTX.fillRect(proj.x - s, proj.y - s, s * 2, s * 2);
+
+                    // White-hot center pixel
+                    CTX.fillStyle = '#ffffff';
+                    CTX.fillRect(proj.x - s * 0.45, proj.y - s * 0.45, s * 0.9, s * 0.9);
+                }
+            } else if (projSkin === 'proj_laser') {
+                // High-tech laser dart with velocity alignment
                 for (let i = 0; i < group.length; i++) {
                     const proj = group[i];
                     const vx = proj.velocity.x || 0;
@@ -91,54 +128,68 @@ const RenderOptimizer = {
                     const len = Math.hypot(vx, vy) || 1;
                     const nx = vx / len;
                     const ny = vy / len;
-                    const beamLen = proj.radius * 2.6;
-                    const beamWidth = proj.radius * 0.65;
+                    const beamLen = proj.radius * 2.8;
+                    const beamWidth = proj.radius * 0.7;
                     const px = -ny * beamWidth;
                     const py = nx * beamWidth;
 
+                    CTX.beginPath();
                     CTX.moveTo(proj.x + nx * beamLen, proj.y + ny * beamLen);
                     CTX.lineTo(proj.x + px, proj.y + py);
                     CTX.lineTo(proj.x - nx * (beamLen * 0.5), proj.y - ny * (beamLen * 0.5));
                     CTX.lineTo(proj.x - px, proj.y - py);
                     CTX.closePath();
+                    CTX.fillStyle = skinColor;
+                    CTX.fill();
+
+                    // White inner beam
+                    CTX.beginPath();
+                    CTX.moveTo(proj.x + nx * (beamLen * 0.7), proj.y + ny * (beamLen * 0.7));
+                    CTX.lineTo(proj.x + px * 0.35, proj.y + py * 0.35);
+                    CTX.lineTo(proj.x - nx * (beamLen * 0.2), proj.y - ny * (beamLen * 0.2));
+                    CTX.lineTo(proj.x - px * 0.35, proj.y - py * 0.35);
+                    CTX.closePath();
+                    CTX.fillStyle = '#ffffff';
+                    CTX.fill();
                 }
             } else if (projSkin === 'proj_plasma') {
                 for (let i = 0; i < group.length; i++) {
                     const proj = group[i];
-                    CTX.moveTo(proj.x + proj.radius * 1.3, proj.y);
-                    CTX.arc(proj.x, proj.y, proj.radius * 1.3, 0, Math.PI * 2, false);
-                    CTX.moveTo(proj.x + proj.radius * 0.6, proj.y);
-                    CTX.arc(proj.x, proj.y, proj.radius * 0.6, 0, Math.PI * 2, true);
+                    CTX.beginPath();
+                    CTX.arc(proj.x, proj.y, proj.radius * 1.35, 0, Math.PI * 2);
+                    CTX.strokeStyle = skinColor;
+                    CTX.lineWidth = Math.max(2, proj.radius * 0.45);
+                    CTX.stroke();
+
+                    CTX.beginPath();
+                    CTX.arc(proj.x, proj.y, proj.radius * 0.4, 0, Math.PI * 2);
+                    CTX.fillStyle = '#ffffff';
+                    CTX.fill();
                 }
             } else if (projSkin === 'proj_shuriken') {
-                const nowT = Date.now() * 0.015;
+                const nowT = Date.now() * 0.018;
                 for (let i = 0; i < group.length; i++) {
                     const proj = group[i];
                     const rot = nowT + (proj.x * 0.02);
-                    const rOuter = proj.radius * 1.5;
+                    const rOuter = proj.radius * 1.6;
                     const rInner = proj.radius * 0.45;
 
+                    CTX.beginPath();
                     for (let s = 0; s < 4; s++) {
                         const a = rot + (s * Math.PI / 2);
                         const aMid = a + Math.PI / 4;
-                        if (s === 0) {
-                            CTX.moveTo(proj.x + Math.cos(a) * rOuter, proj.y + Math.sin(a) * rOuter);
-                        } else {
-                            CTX.lineTo(proj.x + Math.cos(a) * rOuter, proj.y + Math.sin(a) * rOuter);
-                        }
+                        if (s === 0) CTX.moveTo(proj.x + Math.cos(a) * rOuter, proj.y + Math.sin(a) * rOuter);
+                        else CTX.lineTo(proj.x + Math.cos(a) * rOuter, proj.y + Math.sin(a) * rOuter);
                         CTX.lineTo(proj.x + Math.cos(aMid) * rInner, proj.y + Math.sin(aMid) * rInner);
                     }
                     CTX.closePath();
-                }
-            } else if (projSkin === 'proj_pixel') {
-                for (let i = 0; i < group.length; i++) {
-                    const proj = group[i];
-                    const rPix = proj.radius * 1.25;
-                    CTX.moveTo(proj.x, proj.y - rPix);
-                    CTX.lineTo(proj.x + rPix, proj.y);
-                    CTX.lineTo(proj.x, proj.y + rPix);
-                    CTX.lineTo(proj.x - rPix, proj.y);
-                    CTX.closePath();
+                    CTX.fillStyle = skinColor;
+                    CTX.fill();
+
+                    CTX.beginPath();
+                    CTX.arc(proj.x, proj.y, proj.radius * 0.35, 0, Math.PI * 2);
+                    CTX.fillStyle = '#ffffff';
+                    CTX.fill();
                 }
             } else if (projSkin === 'proj_void') {
                 for (let i = 0; i < group.length; i++) {
@@ -152,23 +203,40 @@ const RenderOptimizer = {
                     const px = -ny * rV * 0.8;
                     const py = nx * rV * 0.8;
 
-                    CTX.moveTo(proj.x + nx * rV * 1.6, proj.y + ny * rV * 1.6);
+                    CTX.beginPath();
+                    CTX.moveTo(proj.x + nx * rV * 1.8, proj.y + ny * rV * 1.8);
                     CTX.lineTo(proj.x - nx * rV * 0.8 + px, proj.y - ny * rV * 0.8 + py);
                     CTX.lineTo(proj.x - nx * rV * 0.25, proj.y - ny * rV * 0.25);
                     CTX.lineTo(proj.x - nx * rV * 0.8 - px, proj.y - ny * rV * 0.8 - py);
                     CTX.closePath();
+                    CTX.fillStyle = skinColor;
+                    CTX.fill();
+
+                    CTX.beginPath();
+                    CTX.arc(proj.x, proj.y, proj.radius * 0.35, 0, Math.PI * 2);
+                    CTX.fillStyle = '#ffffff';
+                    CTX.fill();
                 }
             } else {
-                // Default: Smooth Neon Sphere
+                // Default: Smooth Neon Sphere with bright core
+                CTX.beginPath();
                 for (let i = 0; i < group.length; i++) {
                     const proj = group[i];
                     CTX.moveTo(proj.x + proj.radius, proj.y);
                     CTX.arc(proj.x, proj.y, proj.radius, 0, Math.PI * 2);
                 }
-            }
+                CTX.fillStyle = skinColor;
+                CTX.fill();
 
-            CTX.fillStyle = color;
-            CTX.fill();
+                CTX.beginPath();
+                for (let i = 0; i < group.length; i++) {
+                    const proj = group[i];
+                    CTX.moveTo(proj.x + proj.radius * 0.5, proj.y);
+                    CTX.arc(proj.x, proj.y, proj.radius * 0.5, 0, Math.PI * 2);
+                }
+                CTX.fillStyle = '#ffffff';
+                CTX.fill();
+            }
         }
     },
 

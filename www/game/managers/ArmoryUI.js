@@ -39,7 +39,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
 }
 
 const ArmoryUI = {
-    currentTab: 'packs',
+    currentTab: 'store',
     isOpeningPack: false,
     inspectedItem: null,
     animFrameId: null,
@@ -174,8 +174,10 @@ const ArmoryUI = {
     },
 
     openArmory() {
+        this.testProjectiles = [];
+        this.lastShotTime = Date.now();
         this.updateCoinBadges();
-        this.switchTab(this.currentTab);
+        this.switchTab(this.currentTab || 'store');
         const modal = document.getElementById('armory-modal');
         if (modal) modal.classList.remove('hidden');
         if (typeof playSound === 'function') playSound('levelup');
@@ -185,6 +187,7 @@ const ArmoryUI = {
     closeArmory() {
         const modal = document.getElementById('armory-modal');
         if (modal) modal.classList.add('hidden');
+        this.testProjectiles = [];
         this.updateCoinBadges();
         this.stopAnimationLoop();
     },
@@ -202,34 +205,124 @@ const ArmoryUI = {
         });
 
         const gridView = document.getElementById('armory-items-grid');
-        const packsView = document.getElementById('armory-packs-view');
+        const storeView = document.getElementById('armory-store-view');
         const hangarDeck = document.getElementById('armory-hangar-deck');
-        const premiumView = document.getElementById('armory-premium-view');
 
-        // Hide all views first
-        if (gridView) gridView.classList.add('hidden');
-        if (packsView) packsView.classList.add('hidden');
-        if (hangarDeck) hangarDeck.classList.add('hidden');
-        if (premiumView) premiumView.classList.add('hidden');
+        this.testProjectiles = [];
+        this.lastShotTime = Date.now();
 
-        if (tabName === 'packs') {
-            if (packsView) packsView.classList.remove('hidden');
-            this.renderPacks();
-        } else if (tabName === 'premium') {
-            if (premiumView) premiumView.classList.remove('hidden');
-            if (typeof PremiumStoreManager !== 'undefined') {
-                PremiumStoreManager.renderStore();
-            }
+        if (tabName === 'store' || tabName === 'packs') {
+            if (storeView) storeView.classList.remove('hidden');
+            if (gridView) gridView.classList.add('hidden');
+            if (hangarDeck) hangarDeck.classList.add('hidden');
+            this.renderStore();
         } else {
+            if (storeView) storeView.classList.add('hidden');
             if (hangarDeck) hangarDeck.classList.remove('hidden');
             if (gridView) gridView.classList.remove('hidden');
 
-            // Default inspected item is currently equipped item in this category
-            const equippedId = CosmeticsManager.getEquipped(tabName);
+            // Category normalization ('cores' -> 'core', 'projectiles' -> 'projectile', 'backgrounds' -> 'background')
+            const cat = tabName.replace(/s$/, '');
+            const equippedId = CosmeticsManager.getEquipped(cat);
             this.inspectedItem = CosmeticsManager.ITEMS[equippedId] || null;
             this.updateHangarHUD();
-            this.renderItems(tabName);
+            this.renderItems(cat);
         }
+    },
+
+    renderStore() {
+        this.renderPacks();
+        this.renderPremiumOffers();
+        this.renderCoinOffers();
+    },
+
+    renderPremiumOffers() {
+        const grid = document.getElementById('store-premium-offers-grid');
+        if (!grid || typeof PremiumStoreManager === 'undefined') return;
+        grid.innerHTML = '';
+
+        const offerIds = ['remove_ads', 'starter_pack', 'premium_cosmetic_pack'];
+        offerIds.forEach(id => {
+            const prod = PremiumStoreManager.PRODUCTS[id];
+            if (!prod) return;
+
+            const isOwned = (id === 'remove_ads' && PremiumStoreManager.state.adsRemoved) ||
+                            (id === 'starter_pack' && PremiumStoreManager.state.starterPackBought) ||
+                            (PremiumStoreManager.state.purchaseHistory && PremiumStoreManager.state.purchaseHistory.includes(id));
+
+            const card = document.createElement('div');
+            card.className = `premium-offer-card ${isOwned ? 'is-owned' : ''}`;
+
+            let benefitsHtml = '';
+            if (prod.benefits && prod.benefits.length > 0) {
+                benefitsHtml = `<ul class="offer-benefits-list">` +
+                    prod.benefits.map(b => `<li><span class="bullet-check">✓</span> ${b}</li>`).join('') +
+                    `</ul>`;
+            }
+
+            const buyBtnText = isOwned ? 'SAHİP OLUNDU' : `${prod.price} - SATIN AL`;
+
+            card.innerHTML = `
+                <div class="offer-badge">${prod.badge || 'ÖZEL'}</div>
+                <h4 class="offer-title">${prod.name}</h4>
+                <p class="offer-desc">${prod.description}</p>
+                ${benefitsHtml}
+                <div class="offer-footer">
+                    <button class="main-btn offer-buy-btn ${isOwned ? 'owned-btn' : ''}" data-prod-id="${id}" ${isOwned ? 'disabled' : ''}>
+                        ${buyBtnText}
+                    </button>
+                </div>
+            `;
+
+            grid.appendChild(card);
+        });
+
+        grid.querySelectorAll('.offer-buy-btn:not([disabled])').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const prodId = e.currentTarget.getAttribute('data-prod-id');
+                if (prodId && typeof PremiumStoreManager !== 'undefined') {
+                    PremiumStoreManager.purchase(prodId);
+                }
+            });
+        });
+    },
+
+    renderCoinOffers() {
+        const grid = document.getElementById('store-coin-offers-grid');
+        if (!grid || typeof PremiumStoreManager === 'undefined') return;
+        grid.innerHTML = '';
+
+        const coinIds = ['coin_500', 'coin_1500', 'coin_5000'];
+        coinIds.forEach(id => {
+            const prod = PremiumStoreManager.PRODUCTS[id];
+            if (!prod) return;
+
+            const card = document.createElement('div');
+            card.className = 'coin-offer-card';
+
+            card.innerHTML = `
+                ${prod.badge ? `<div class="coin-badge-pill">${prod.badge}</div>` : ''}
+                <div class="coin-offer-amount">
+                    ${getNeonCoinSVG(24)}
+                    <span>${prod.coins.toLocaleString()}</span>
+                </div>
+                <div class="coin-offer-name">${prod.name}</div>
+                <button class="main-btn coin-buy-btn" data-prod-id="${id}">
+                    ${prod.price}
+                </button>
+            `;
+
+            grid.appendChild(card);
+        });
+
+        grid.querySelectorAll('.coin-buy-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const prodId = e.currentTarget.getAttribute('data-prod-id');
+                if (prodId && typeof PremiumStoreManager !== 'undefined') {
+                    PremiumStoreManager.purchase(prodId);
+                }
+            });
+        });
     },
 
     renderCurrentView() {
@@ -597,7 +690,7 @@ const ArmoryUI = {
 
             const time = timestamp * 0.002;
 
-            if (this.currentTab === 'packs') {
+            if (this.currentTab === 'store' || this.currentTab === 'packs') {
                 this.drawAllPacks(time);
             } else {
                 this.drawHangarPreview(time);
@@ -751,19 +844,32 @@ const ArmoryUI = {
             }
         }
 
-        // 5. Draw the Floating Ship Core
+        // 5. Draw the Floating Spacecraft Hull
         const floatY = cy + Math.sin(time * 3) * 3;
         ctx.save();
         ctx.translate(cx, floatY);
-        this.drawCoreInstance(ctx, previewCore, time, false);
+        if (typeof window.drawSpacecraftHull === 'function') {
+            const shipColor = CosmeticsManager.ITEMS[previewCore]?.color || '#00f0ff';
+            window.drawSpacecraftHull(ctx, previewCore, shipColor, 20, time, true);
+        } else {
+            this.drawCoreInstance(ctx, previewCore, time, false);
+        }
         ctx.restore();
     },
 
-    // Draw single Core in canvas context
+    // Draw single Core/Spacecraft in canvas context
     drawCoreInstance(ctx, coreId, time, isLocked = false) {
         const item = CosmeticsManager.ITEMS[coreId] || CosmeticsManager.ITEMS.core_default;
         const color = isLocked ? '#475569' : (item.color || '#00ffff');
         const r = 18;
+
+        if (typeof window.drawSpacecraftHull === 'function') {
+            ctx.save();
+            if (isLocked) ctx.globalAlpha = 0.55;
+            window.drawSpacecraftHull(ctx, coreId, color, r, time, true);
+            ctx.restore();
+            return;
+        }
 
         if (isLocked) {
             ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
@@ -1364,7 +1470,7 @@ const ArmoryUI = {
         ctx.stroke();
     },
 
-    // Procedural High-Tech Cipher Pods
+    // Procedural High-Tech Holographic Cipher Pods
     drawPackGraphic(ctx, packId, time) {
         const w = ctx.canvas.width;
         const h = ctx.canvas.height;
@@ -1374,61 +1480,123 @@ const ArmoryUI = {
         const cy = h / 2;
 
         let primaryColor = '#00f0ff';
-        let coreColor = 'rgba(0, 240, 255, 0.4)';
+        let secondaryColor = '#38bdf8';
+        let coreColor = 'rgba(0, 240, 255, 0.6)';
         if (packId === 'pack_quantum') {
             primaryColor = '#d946ef';
-            coreColor = 'rgba(217, 70, 239, 0.45)';
+            secondaryColor = '#f472b6';
+            coreColor = 'rgba(217, 70, 239, 0.65)';
         } else if (packId === 'pack_void') {
             primaryColor = '#ffd700';
-            coreColor = 'rgba(255, 215, 0, 0.5)';
+            secondaryColor = '#f59e0b';
+            coreColor = 'rgba(255, 215, 0, 0.7)';
         }
 
         ctx.save();
         ctx.translate(cx, cy);
 
-        // Orbital ring 1
-        ctx.strokeStyle = primaryColor;
-        ctx.lineWidth = 2;
-        ctx.shadowColor = primaryColor;
-        ctx.shadowBlur = 12;
-        ctx.beginPath();
-        ctx.ellipse(0, 0, 48, 16, time, 0, Math.PI * 2);
-        ctx.stroke();
+        // 1. Ambient Glow
+        const bgGlow = ctx.createRadialGradient(0, 0, 10, 0, 0, 56);
+        bgGlow.addColorStop(0, coreColor);
+        bgGlow.addColorStop(1, 'transparent');
+        ctx.fillStyle = bgGlow;
+        ctx.fillRect(-60, -60, 120, 120);
 
-        // Orbital ring 2 (counter-rotating)
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+        // 2. Holographic Gimbal Rings (3 axes)
+        // Outer Ring
+        ctx.save();
+        ctx.rotate(time * 0.7);
+        ctx.strokeStyle = primaryColor;
+        ctx.lineWidth = 1.8;
+        ctx.shadowColor = primaryColor;
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 52, 20, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+
+        // Inner Counter-Ring
+        ctx.save();
+        ctx.rotate(-time * 0.95 + 1.2);
+        ctx.strokeStyle = secondaryColor;
         ctx.lineWidth = 1.4;
         ctx.beginPath();
-        ctx.ellipse(0, 0, 44, 15, -time * 0.9, 0, Math.PI * 2);
+        ctx.ellipse(0, 0, 46, 17, 0, 0, Math.PI * 2);
         ctx.stroke();
+        ctx.restore();
 
-        // Center Cyber Pod Capsule
+        // Diagonal Laser Ring with dashed ticks
+        ctx.save();
+        ctx.rotate(time * 1.3);
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.2;
+        ctx.setLineDash([6, 10]);
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 40, 14, Math.PI / 4, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
+
+        // 3. Central Armored Pod Capsule Chassis
         const podW = 34;
-        const podH = 46;
-        ctx.fillStyle = 'rgba(10, 8, 24, 0.92)';
+        const podH = 48;
+        const floatY = Math.sin(time * 2.5) * 3;
+
+        ctx.save();
+        ctx.translate(0, floatY);
+
+        // Dark obsidian chassis
+        ctx.fillStyle = '#070512';
         ctx.strokeStyle = primaryColor;
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 2.2;
+        ctx.shadowColor = primaryColor;
+        ctx.shadowBlur = 12;
         ctx.beginPath();
         ctx.roundRect(-podW / 2, -podH / 2, podW, podH, 8);
         ctx.fill();
         ctx.stroke();
+        ctx.shadowBlur = 0;
 
-        // Glowing core crystal inside
-        ctx.fillStyle = coreColor;
+        // Metallic corner armor plates
+        ctx.fillStyle = '#1e1b4b';
+        ctx.fillRect(-podW / 2 + 3, -podH / 2 + 3, 6, 6);
+        ctx.fillRect(podW / 2 - 9, -podH / 2 + 3, 6, 6);
+        ctx.fillRect(-podW / 2 + 3, podH / 2 - 9, 6, 6);
+        ctx.fillRect(podW / 2 - 9, podH / 2 - 9, 6, 6);
+
+        // Glowing internal reactor core
+        const coreGrad = ctx.createLinearGradient(0, -podH / 2 + 8, 0, podH / 2 - 8);
+        coreGrad.addColorStop(0, secondaryColor);
+        coreGrad.addColorStop(0.5, '#ffffff');
+        coreGrad.addColorStop(1, primaryColor);
+        ctx.fillStyle = coreGrad;
         ctx.beginPath();
-        ctx.roundRect(-podW / 2 + 4, -podH / 2 + 4, podW - 8, podH - 8, 5);
+        ctx.roundRect(-podW / 2 + 6, -podH / 2 + 8, podW - 12, podH - 16, 5);
         ctx.fill();
 
-        // Biometric / High-tech cross tick
+        // Scanning Laser Sweep Line
+        const scanY = -podH / 2 + 10 + ((Math.sin(time * 4) + 1) * 0.5) * (podH - 20);
         ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.shadowColor = '#ffffff';
+        ctx.shadowBlur = 6;
+        ctx.beginPath();
+        ctx.moveTo(-podW / 2 + 4, scanY);
+        ctx.lineTo(podW / 2 - 4, scanY);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // High-tech emitter cross ticks
+        ctx.strokeStyle = primaryColor;
         ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.moveTo(-6, 0);
-        ctx.lineTo(6, 0);
-        ctx.moveTo(0, -6);
-        ctx.lineTo(0, 6);
+        ctx.moveTo(0, -podH / 2);
+        ctx.lineTo(0, -podH / 2 - 4);
+        ctx.moveTo(0, podH / 2);
+        ctx.lineTo(0, podH / 2 + 4);
         ctx.stroke();
 
+        ctx.restore();
         ctx.restore();
     }
 };
