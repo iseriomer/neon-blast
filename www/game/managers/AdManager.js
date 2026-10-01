@@ -9,13 +9,13 @@ const AdManager = {
     // Uses Google's official Android Test Ad Unit IDs by default so ads work out-of-the-box in testing.
     // When deploying to Google Play Store: set isTesting: false and paste your real AdMob Ad Unit IDs!
     CONFIG: {
-        isTesting: true,
+        isTesting: false, // Live production mode with real AdMob ads
         // Official Google Sample/Test Ad Units for Android:
         testRewardedId: 'ca-app-pub-3940256099942544/5224354917',
         testInterstitialId: 'ca-app-pub-3940256099942544/1033173712',
-        // Real Production Ad Units (Paste from your Google AdMob Dashboard):
-        prodRewardedId: '',
-        prodInterstitialId: ''
+        // Real Production Ad Units (Google AdMob):
+        prodRewardedId: 'ca-app-pub-8309052672141776/7177520893',
+        prodInterstitialId: 'ca-app-pub-8309052672141776/5559680299'
     },
 
     getRewardedAdId() {
