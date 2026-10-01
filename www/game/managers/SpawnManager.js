@@ -183,9 +183,11 @@ class SpawnManager {
                     <div class="perk-icon-slot">
                         <span class="perk-decrypt-scan"></span>
                     </div>
-                    <div class="perk-title" style="font-family: monospace;">INIT...</div>
                 </div>
-                <div class="perk-desc">DECRYPTING ARCHIVE...</div>
+                <div class="perk-info-wrap">
+                    <div class="perk-title" style="font-family: monospace;">INIT...</div>
+                    <div class="perk-desc">${Localization.t('perk_decrypting')}</div>
+                </div>
             `;
             div.style.pointerEvents = 'none';
             perkListEl.appendChild(div);
@@ -249,9 +251,11 @@ class SpawnManager {
                 card.innerHTML = `
                     <div class="perk-card-top">
                         <div class="perk-icon-slot">${iconSvg}</div>
-                        <div class="perk-title">${Localization.t(finalPerk.title)}</div>
                     </div>
-                    <div class="perk-desc">${displayDesc}</div>
+                    <div class="perk-info-wrap">
+                        <div class="perk-title">${Localization.t(finalPerk.title)}</div>
+                        <div class="perk-desc">${displayDesc}</div>
+                    </div>
                 `;
 
                 card.classList.remove('perk-shuffling');
@@ -267,20 +271,29 @@ class SpawnManager {
         // Setup Reroll button
         const rerollBtn = document.getElementById('perk-reroll-btn');
         const rerollText = document.getElementById('perk-reroll-text');
-        const rerollTag = rerollBtn ? rerollBtn.querySelector('.reroll-tag') : null;
+        const rerollTag = document.getElementById('perk-reroll-tag') || (rerollBtn ? rerollBtn.querySelector('.reroll-tag') : null);
+        const rerollHint = document.getElementById('perk-reroll-hint');
+
         if (rerollBtn) {
             const isVip = (typeof PremiumStoreManager !== 'undefined' && !PremiumStoreManager.shouldShowInterstitial());
             if (rerollText) {
-                rerollText.innerText = 'YENİDEN DAĞIT';
+                rerollText.innerText = isVip
+                    ? Localization.t('perk_reroll_vip_label')
+                    : Localization.t('perk_reroll_ad_label');
             }
             if (rerollTag) {
                 if (isVip) {
-                    rerollTag.innerText = 'VIP';
+                    rerollTag.innerText = Localization.t('tag_vip');
                     rerollTag.classList.add('free');
                 } else {
-                    rerollTag.innerText = 'REKLAM';
+                    rerollTag.innerText = Localization.t('tag_ad');
                     rerollTag.classList.remove('free');
                 }
+            }
+            if (rerollHint) {
+                rerollHint.innerText = isVip
+                    ? Localization.t('perk_reroll_hint_vip')
+                    : Localization.t('perk_reroll_hint');
             }
             rerollBtn.disabled = false;
             rerollBtn.onclick = () => {

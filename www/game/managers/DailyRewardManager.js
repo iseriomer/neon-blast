@@ -88,18 +88,21 @@ class DailyRewardManager {
         const getIcon = (key, size = 20) => typeof IconSystem !== 'undefined' ? IconSystem.get(key, { size }) : '';
         const checkIcon = typeof IconSystem !== 'undefined' ? IconSystem.get('check', { size: 16, color: '#22c55e' }) : '✓';
 
+        const t = (key, params) => typeof Localization !== 'undefined' ? Localization.t(key, params) : key;
+        const alreadyClaimed = this.hasClaimedToday();
+
         // Build day indicators
         let daysHTML = '';
         for (let i = 0; i < 7; i++) {
             const r = this.REWARDS[i];
             const isCurrent = (i === dayIndex);
-            const isPast = (i < dayIndex);
-            const statusClass = isCurrent ? 'current' : (isPast ? 'claimed' : 'locked');
+            const isPast = (i < dayIndex) || (alreadyClaimed && i === dayIndex);
+            const statusClass = (alreadyClaimed && isCurrent) ? 'claimed' : (isCurrent ? 'current' : (isPast ? 'claimed' : 'locked'));
             const daySvg = isPast ? checkIcon : getIcon(r.iconKey, 20);
 
             daysHTML += `
                 <div class="dr-day ${statusClass}">
-                    <div class="dr-day-num">GÜN ${i + 1}</div>
+                    <div class="dr-day-num">${t('daily_day_badge', { day: i + 1 })}</div>
                     <div class="dr-day-icon">${daySvg}</div>
                     <div class="dr-day-label">${r.label}</div>
                 </div>
@@ -115,9 +118,9 @@ class DailyRewardManager {
                 <div class="dr-header">
                     <div class="dr-streak-badge">
                         ${streakIcon}
-                        <span>${streakDay}. GÜN SERİSİ</span>
+                        <span>${t('daily_streak', { streak: streakDay })}</span>
                     </div>
-                    <h2 class="dr-title">GÜNLÜK ÖDÜL</h2>
+                    <h2 class="dr-title">${t('daily_rewards_title')}</h2>
                 </div>
                 <div class="dr-days-grid">${daysHTML}</div>
                 <div class="dr-reward-highlight">
@@ -125,36 +128,44 @@ class DailyRewardManager {
                     <span class="dr-reward-text">${reward.label}</span>
                 </div>
                 <div class="dr-actions">
-                    <button class="main-btn dr-claim-btn" id="dr-claim-btn">TOPLA</button>
-                    <button class="main-btn dr-double-btn" id="dr-double-btn">
-                        ${boltSvg} <span>2X ÖDÜL (REKLAM İZLE)</span>
-                    </button>
+                    ${alreadyClaimed
+                        ? `<div class="ls-free-used" style="padding: 10px; font-weight: bold; color: #22c55e;">${t('come_back_tomorrow')}</div>`
+                        : `
+                            <button class="main-btn dr-claim-btn" id="dr-claim-btn">${t('claim_reward')}</button>
+                            <button class="main-btn dr-double-btn" id="dr-double-btn">
+                                ${boltSvg} <span>${t('double_reward_ad')}</span>
+                            </button>
+                        `
+                    }
                 </div>
-                <button class="dr-close-btn" id="dr-close-btn">SONRA</button>
+                <button class="dr-close-btn" id="dr-close-btn">${t('close_btn')}</button>
             </div>
         `;
 
         modal.classList.remove('hidden');
 
-        document.getElementById('dr-claim-btn').addEventListener('click', () => {
-            this.claimReward(false);
-        });
+        const closeBtn = document.getElementById('dr-close-btn');
+        if (closeBtn) closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
 
-        document.getElementById('dr-double-btn').addEventListener('click', () => {
-            if (typeof AdManager !== 'undefined') {
-                AdManager.showRewardedAd({
-                    rewardType: 'DAILY_DOUBLE',
-                    onSuccess: () => this.claimReward(true),
-                    onDismiss: () => {}
+        if (!alreadyClaimed) {
+            const claimBtn = document.getElementById('dr-claim-btn');
+            if (claimBtn) claimBtn.addEventListener('click', () => this.claimReward(false));
+
+            const doubleBtn = document.getElementById('dr-double-btn');
+            if (doubleBtn) {
+                doubleBtn.addEventListener('click', () => {
+                    if (typeof AdManager !== 'undefined') {
+                        AdManager.showRewardedAd({
+                            rewardType: 'DAILY_REWARD_2X',
+                            onSuccess: () => this.claimReward(true),
+                            onDismiss: () => {}
+                        });
+                    } else {
+                        this.claimReward(true);
+                    }
                 });
-            } else {
-                this.claimReward(true);
             }
-        });
-
-        document.getElementById('dr-close-btn').addEventListener('click', () => {
-            modal.classList.add('hidden');
-        });
+        }
     }
 
     static claimReward(doubled) {

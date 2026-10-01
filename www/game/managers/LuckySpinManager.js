@@ -79,11 +79,13 @@ class LuckySpinManager {
             ? IconSystem.get('wheel', { size: 24, color: '#00f0ff' })
             : '';
 
+        const t = (key, params) => typeof Localization !== 'undefined' ? Localization.t(key, params) : key;
+
         modal.innerHTML = `
             <div class="ls-card">
                 <h2 class="ls-title">
                     ${wheelSvg}
-                    <span>ŞANS ÇARKI</span>
+                    <span>${t('wheel_title')}</span>
                 </h2>
                 <div class="ls-wheel-container">
                     <div class="ls-pointer"><svg width="24" height="24" viewBox="0 0 24 24" style="filter: drop-shadow(0 0 6px #f59e0b);"><polygon points="4,4 20,4 12,22" fill="#f59e0b" stroke="#ffffff" stroke-width="1.5" stroke-linejoin="round"/></svg></div>
@@ -95,15 +97,15 @@ class LuckySpinManager {
                 </div>
                 <div class="ls-actions">
                     ${hasFree
-                        ? `<button class="main-btn ls-spin-btn" id="ls-free-spin">ÜCRETSİZ ÇEVİR</button>`
-                        : `<div class="ls-free-used">GÜNLÜK ÜCRETSİZ HAK KULLANILDI</div>`
+                        ? `<button class="main-btn ls-spin-btn" id="ls-free-spin">${t('wheel_spin_free')}</button>`
+                        : `<div class="ls-free-used">${t('wheel_free_used')}</div>`
                     }
                     ${canAd
-                        ? `<button class="main-btn ls-ad-spin-btn" id="ls-ad-spin">REKLAM İZLE → ÇEVİR (${remainingAd} HAK)</button>`
-                        : `<div class="ls-ad-used">REKLAM HAKLARI TÜKENDİ</div>`
+                        ? `<button class="main-btn ls-ad-spin-btn" id="ls-ad-spin">${t('wheel_spin_ad', { n: remainingAd })}</button>`
+                        : `<div class="ls-ad-used">${t('wheel_ad_exhausted')}</div>`
                     }
                 </div>
-                <button class="ls-close-btn" id="ls-close-btn">KAPAT</button>
+                <button class="ls-close-btn" id="ls-close-btn">${t('close_btn')}</button>
             </div>
         `;
 
@@ -297,7 +299,11 @@ class LuckySpinManager {
                     if (iconEl && typeof IconSystem !== 'undefined') {
                         iconEl.innerHTML = IconSystem.get('coin', { size: 32 });
                     }
-                    if (textEl) textEl.innerText = `+${reward.coins} NEON COIN!`;
+                    if (textEl) {
+                        textEl.innerText = typeof Localization !== 'undefined'
+                            ? Localization.t('wheel_won_coins', { n: reward.coins })
+                            : `+${reward.coins} NEON COIN!`;
+                    }
                     resultEl.classList.remove('hidden');
                 }
 

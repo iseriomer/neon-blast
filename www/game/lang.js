@@ -42,6 +42,71 @@ const Localization = {
             tab_projectiles: "PROJECTILES",
             tab_backgrounds: "BACKGROUNDS",
             tab_packs: "CRATES",
+            tab_premium: "PREMIUM",
+
+            // Engagement & Monetization
+            lucky_spin_btn: "LUCKY SPIN",
+            daily_rewards_btn: "DAILY REWARDS",
+            quests_btn: "QUESTS",
+            close_btn: "CLOSE",
+
+            // Level Up Reroll
+            perk_reroll_btn: "REROLL",
+            perk_reroll_ad_label: "WATCH AD: REROLL",
+            perk_reroll_vip_label: "REROLL (VIP FREE)",
+            perk_reroll_hint: "Watch an ad to roll 3 different perks (current excluded)",
+            perk_reroll_hint_vip: "VIP Perk: Instantly roll 3 different perks",
+            tag_ad: "AD",
+            tag_vip: "VIP FREE",
+            perk_decrypting: "DECRYPTING ARCHIVE...",
+
+            // Lucky Spin
+            wheel_title: "LUCKY SPIN",
+            wheel_spin_free: "FREE SPIN",
+            wheel_spin_ad: "WATCH AD → SPIN ({n} LEFT)",
+            wheel_free_used: "DAILY FREE SPIN USED",
+            wheel_ad_exhausted: "AD SPINS EXHAUSTED",
+            wheel_won_coins: "+{n} NEON COINS!",
+
+            // Daily Rewards
+            daily_rewards_title: "DAILY REWARDS",
+            daily_streak: "Login Streak: {streak} Days",
+            daily_day_badge: "DAY {day}",
+            claim_reward: "CLAIM REWARD",
+            double_reward_ad: "2X DOUBLE (WATCH AD)",
+            come_back_tomorrow: "COME BACK TOMORROW",
+            all_days_claimed: "ALL REWARDS CLAIMED",
+
+            // Daily Quests
+            daily_quests_title: "DAILY QUESTS",
+            quest_reach_level: "Reach Level {n}",
+            quest_kill_enemies: "Destroy {n} Enemies",
+            quest_survive: "Survive {n} Seconds",
+            quest_score: "Score {n} Points",
+            quest_perks: "Select {n} Perks",
+            quest_completed: "COMPLETED",
+            all_quests_completed: "ALL QUESTS COMPLETED!",
+            quest_bonus_ad: "QUEST BONUS: +{coins} COINS (WATCH AD)",
+            quest_bonus_claimed: "QUEST BONUS CLAIMED",
+            quests_loading: "Loading quests...",
+
+            // Premium Store
+            store_title: "PREMIUM STORE",
+            prod_remove_ads_title: "NO ADS (VIP PASS)",
+            prod_remove_ads_desc: "Removes all interstitial ads. Free unlimited perk rerolls & +100 bonus coins!",
+            prod_starter_pack_title: "STARTER PACK",
+            prod_starter_pack_desc: "1000 Neon Coins + 1 Gold Crate + Exclusive Neon Dragon Core!",
+            prod_cosmetic_pack_title: "PREMIUM COSMETIC SET",
+            prod_cosmetic_pack_desc: "3 exclusive premium cosmetics: Dragon Core, Plasma Storm & Cyber City!",
+            prod_coin_packs_title: "NEON COIN PACKS",
+            badge_most_popular: "MOST POPULAR",
+            badge_limited_time: "LIMITED TIME",
+            badge_best_value: "BEST VALUE",
+            badge_special: "SPECIAL",
+            purchased_label: "PURCHASED",
+            buy_with_price: "BUY FOR {price}",
+            timer_expired: "EXPIRED",
+            time_remaining: "{hours}h {minutes}m left",
 
             // Settings
             paused: "PAUSED",
@@ -183,6 +248,71 @@ const Localization = {
             tab_projectiles: "MERMİLER",
             tab_backgrounds: "ARKA PLAN",
             tab_packs: "SANDIKLAR",
+            tab_premium: "PREMİUM",
+
+            // Engagement & Monetization
+            lucky_spin_btn: "ŞANS ÇARKI",
+            daily_rewards_btn: "GÜNLÜK ÖDÜLLER",
+            quests_btn: "GÖREVLER",
+            close_btn: "KAPAT",
+
+            // Level Up Reroll
+            perk_reroll_btn: "YENİDEN DAĞIT",
+            perk_reroll_ad_label: "REKLAM İZLE: YENİDEN DAĞIT",
+            perk_reroll_vip_label: "YENİDEN DAĞIT (VIP)",
+            perk_reroll_hint: "Kısa bir reklam izleyerek 3 farklı özellik çek (mevcutlar elenir)",
+            perk_reroll_hint_vip: "VIP Ayrıcalığı: Reklamsız anında 3 farklı özellik çek",
+            tag_ad: "REKLAM",
+            tag_vip: "VIP ÜCRETSİZ",
+            perk_decrypting: "ARŞİV ÇÖZÜLÜYOR...",
+
+            // Lucky Spin
+            wheel_title: "ŞANS ÇARKI",
+            wheel_spin_free: "ÜCRETSİZ ÇEVİR",
+            wheel_spin_ad: "REKLAM İZLE → ÇEVİR ({n} HAK)",
+            wheel_free_used: "GÜNLÜK ÜCRETSİZ HAK KULLANILDI",
+            wheel_ad_exhausted: "REKLAM HAKLARI TÜKENDİ",
+            wheel_won_coins: "+{n} NEON COIN!",
+
+            // Daily Rewards
+            daily_rewards_title: "GÜNLÜK ÖDÜLLER",
+            daily_streak: "Giriş Serisi: {streak} Gün",
+            daily_day_badge: "GÜN {day}",
+            claim_reward: "ÖDÜLÜ AL",
+            double_reward_ad: "2X KATLA (REKLAM İZLE)",
+            come_back_tomorrow: "YARIN TEKRAR GEL",
+            all_days_claimed: "TÜM GÜNLER ALINDI",
+
+            // Daily Quests
+            daily_quests_title: "GÜNLÜK GÖREVLER",
+            quest_reach_level: "Level {n}'e Ulaş",
+            quest_kill_enemies: "{n} Düşman Yok Et",
+            quest_survive: "{n} Saniye Hayatta Kal",
+            quest_score: "{n} Skor Yap",
+            quest_perks: "{n} Perk Seç",
+            quest_completed: "TAMAMLANDI",
+            all_quests_completed: "TÜM GÖREVLER TAMAMLANDI!",
+            quest_bonus_ad: "GÖREV BONUSU: +{coins} COIN (REKLAM İZLE)",
+            quest_bonus_claimed: "GÖREV BONUSU ALINDI",
+            quests_loading: "Görevler yükleniyor...",
+
+            // Premium Store
+            store_title: "PREMİUM MAĞAZA",
+            prod_remove_ads_title: "REKLAMLARI KALDIR (VIP)",
+            prod_remove_ads_desc: "Tüm geçiş reklamlarını kaldırır. Ücretsiz sınırsız seviye reroll hakkı!",
+            prod_starter_pack_title: "BAŞLANGIÇ PAKETİ",
+            prod_starter_pack_desc: "1000 Neon Coin + 1 Altın Sandık + Özel Neon Ejderha Çekirdeği!",
+            prod_cosmetic_pack_title: "PREMİUM KOZMETİK SETİ",
+            prod_cosmetic_pack_desc: "Özel 3 parça siberpunk kozmetik seti!",
+            prod_coin_packs_title: "NEON COIN PAKETLERİ",
+            badge_most_popular: "EN POPÜLER",
+            badge_limited_time: "SINIRLI SÜRE",
+            badge_best_value: "EN İYİ FİYAT",
+            badge_special: "ÖZEL",
+            purchased_label: "SATIN ALINDI",
+            buy_with_price: "{price} İLE SATIN AL",
+            timer_expired: "SÜRE DOLDU",
+            time_remaining: "{hours}s {minutes}dk kaldı",
 
             // Settings
             paused: "DURAKLATILDI",
@@ -307,6 +437,71 @@ const Localization = {
             boss_coming: "VAGUE {wave} - BOSS EN APPROCHE !",
             choose_perk: "Choisissez une amélioration :",
             level_up: "NIVEAU SUPÉRIEUR !",
+            tab_premium: "PREMIUM",
+
+            // Engagement & Monetization
+            lucky_spin_btn: "ROUE CHANCE",
+            daily_rewards_btn: "RÉCOMPENSES",
+            quests_btn: "MISSIONS",
+            close_btn: "FERMER",
+
+            // Level Up Reroll
+            perk_reroll_btn: "RELANCER",
+            perk_reroll_ad_label: "VOIR PUB: RELANCER",
+            perk_reroll_vip_label: "RELANCER (VIP GRATUIT)",
+            perk_reroll_hint: "Regardez une pub pour 3 nouveaux atouts (actuels exclus)",
+            perk_reroll_hint_vip: "Avantage VIP: Relancez 3 atouts instantanément",
+            tag_ad: "PUB",
+            tag_vip: "VIP GRATUIT",
+            perk_decrypting: "DÉCRYPTAGE...",
+
+            // Lucky Spin
+            wheel_title: "ROUE DE LA CHANCE",
+            wheel_spin_free: "LANCER GRATUIT",
+            wheel_spin_ad: "VOIR PUB → TOURNER ({n} RESTANTS)",
+            wheel_free_used: "LANCER GRATUIT DU JOUR UTILISÉ",
+            wheel_ad_exhausted: "PLUS DE TOURS PUBLICITAIRES",
+            wheel_won_coins: "+{n} PIÈCES NEON !",
+
+            // Daily Rewards
+            daily_rewards_title: "RÉCOMPENSES QUOTIDIENNES",
+            daily_streak: "Série de connexions : {streak} Jours",
+            daily_day_badge: "JOUR {day}",
+            claim_reward: "RÉCUPÉRER",
+            double_reward_ad: "DOUBLER 2X (VOIR PUB)",
+            come_back_tomorrow: "REVIENS DEMAIN",
+            all_days_claimed: "TOUTES LES RÉCOMPENSES OBTENUES",
+
+            // Daily Quests
+            daily_quests_title: "MISSIONS QUOTIDIENNES",
+            quest_reach_level: "Atteindre le niveau {n}",
+            quest_kill_enemies: "Détruire {n} ennemis",
+            quest_survive: "Survivre {n} secondes",
+            quest_score: "Marquer {n} points",
+            quest_perks: "Choisir {n} atouts",
+            quest_completed: "TERMINÉ",
+            all_quests_completed: "TOUTES LES MISSIONS TERMINÉES !",
+            quest_bonus_ad: "BONUS MISSION : +{coins} PIÈCES (PUB)",
+            quest_bonus_claimed: "BONUS MISSION RÉCUPÉRÉ",
+            quests_loading: "Chargement des missions...",
+
+            // Premium Store
+            store_title: "BOUTIQUE PREMIUM",
+            prod_remove_ads_title: "PAS DE PUB (VIP PASS)",
+            prod_remove_ads_desc: "Supprime les pubs interstitielles. Relances illimitées gratuites !",
+            prod_starter_pack_title: "PACK DÉBUTANT",
+            prod_starter_pack_desc: "1000 Pièces + 1 Coffre Doré + Noyau Dragon Néon !",
+            prod_cosmetic_pack_title: "ENSEMBLE COSMÉTIQUE PREMIUM",
+            prod_cosmetic_pack_desc: "3 cosmétiques exclusifs : Noyau Dragon, Plasma Storm & Cyber City !",
+            prod_coin_packs_title: "PACKS DE PIÈCES NÉON",
+            badge_most_popular: "PLUS POPULAIRE",
+            badge_limited_time: "TEMPS LIMITÉ",
+            badge_best_value: "MEILLEURE OFFRE",
+            badge_special: "SPÉCIAL",
+            purchased_label: "ACHETÉ",
+            buy_with_price: "ACHETER POUR {price}",
+            timer_expired: "EXPIRÉ",
+            time_remaining: "{hours}h {minutes}m restantes",
 
             // Settings
             paused: "PAUSE",
@@ -415,6 +610,71 @@ const Localization = {
             boss_coming: "OLEADA {wave} - ¡JEFE ENTRANTE!",
             choose_perk: "Elige una mejora:",
             level_up: "¡SUBISTE DE NIVEL!",
+            tab_premium: "PREMIUM",
+
+            // Engagement & Monetization
+            lucky_spin_btn: "RULETA SUERTE",
+            daily_rewards_btn: "RECOMPENSAS",
+            quests_btn: "MISIONES",
+            close_btn: "CERRAR",
+
+            // Level Up Reroll
+            perk_reroll_btn: "RELANZAR",
+            perk_reroll_ad_label: "VER ANUNCIO: RELANZAR",
+            perk_reroll_vip_label: "RELANZAR (VIP GRATIS)",
+            perk_reroll_hint: "Mira un anuncio para 3 mejoras diferentes (actuales excluidas)",
+            perk_reroll_hint_vip: "Ventaja VIP: Relanza 3 mejoras al instante",
+            tag_ad: "ANUNCIO",
+            tag_vip: "VIP GRATIS",
+            perk_decrypting: "DESCIFRANDO ARCHIVO...",
+
+            // Lucky Spin
+            wheel_title: "RULETA DE LA SUERTE",
+            wheel_spin_free: "GIRO GRATIS",
+            wheel_spin_ad: "VER ANUNCIO → GIRAR ({n} RESTANTES)",
+            wheel_free_used: "GIRO GRATIS DIARIO USADO",
+            wheel_ad_exhausted: "ANUNCIOS AGOTADOS",
+            wheel_won_coins: "¡+{n} MONEDAS NEÓN!",
+
+            // Daily Rewards
+            daily_rewards_title: "RECOMPENSAS DIARIAS",
+            daily_streak: "Racha de Inicio: {streak} Días",
+            daily_day_badge: "DÍA {day}",
+            claim_reward: "RECLAMAR",
+            double_reward_ad: "DUPLICAR 2X (VER ANUNCIO)",
+            come_back_tomorrow: "VUELVE MAÑANA",
+            all_days_claimed: "TODAS LAS RECOMPENSAS RECLAMADAS",
+
+            // Daily Quests
+            daily_quests_title: "MISIONES DIARIAS",
+            quest_reach_level: "Alcanza el nivel {n}",
+            quest_kill_enemies: "Destruye {n} enemigos",
+            quest_survive: "Sobrevive {n} segundos",
+            quest_score: "Consigue {n} puntos",
+            quest_perks: "Elige {n} mejoras",
+            quest_completed: "COMPLETADO",
+            all_quests_completed: "¡TODAS LAS MISIONES COMPLETADAS!",
+            quest_bonus_ad: "BONO MISIÓN: +{coins} MONEDAS (ANUNCIO)",
+            quest_bonus_claimed: "BONO RECLAMADO",
+            quests_loading: "Cargando misiones...",
+
+            // Premium Store
+            store_title: "TIENDA PREMIUM",
+            prod_remove_ads_title: "SIN ANUNCIOS (PASE VIP)",
+            prod_remove_ads_desc: "Elimina anuncios intersticiales. ¡Relanzamientos ilimitados gratuitos!",
+            prod_starter_pack_title: "PAQUETE DE INICIO",
+            prod_starter_pack_desc: "1000 Monedas Neón + 1 Cofre Dorado + Núcleo Dragón Neón!",
+            prod_cosmetic_pack_title: "SET COSMÉTICO PREMIUM",
+            prod_cosmetic_pack_desc: "3 cosméticos exclusivos: Dragón Neón, Tormenta de Plasma y Cyber City!",
+            prod_coin_packs_title: "PAQUETES DE MONEDAS NEÓN",
+            badge_most_popular: "MÁS POPULAR",
+            badge_limited_time: "TIEMPO LIMITADO",
+            badge_best_value: "MEJOR VALOR",
+            badge_special: "ESPECIAL",
+            purchased_label: "COMPRADO",
+            buy_with_price: "COMPRAR POR {price}",
+            timer_expired: "EXPIRADO",
+            time_remaining: "{hours}h {minutes}m restantes",
 
             // Settings
             paused: "PAUSADO",
@@ -523,6 +783,71 @@ const Localization = {
             boss_coming: "WELLE {wave} - BOSS KOMMT!",
             choose_perk: "Wähle eine Verbesserung:",
             level_up: "LEVEL AUFGESTIEGEN!",
+            tab_premium: "PREMIUM",
+
+            // Engagement & Monetization
+            lucky_spin_btn: "GLÜCKSRAD",
+            daily_rewards_btn: "BELOHNUNGEN",
+            quests_btn: "MISSIONEN",
+            close_btn: "SCHLIESSEN",
+
+            // Level Up Reroll
+            perk_reroll_btn: "NEU WÜRFELN",
+            perk_reroll_ad_label: "WERBUNG: NEU WÜRFELN",
+            perk_reroll_vip_label: "NEU WÜRFELN (VIP FREI)",
+            perk_reroll_hint: "Werbung ansehen für 3 neue Perks (aktuelle ausgeschlossen)",
+            perk_reroll_hint_vip: "VIP-Vorteil: Sofort 3 neue Perks würfeln",
+            tag_ad: "WERBUNG",
+            tag_vip: "VIP FREI",
+            perk_decrypting: "ENTSCHLÜSSELUNG...",
+
+            // Lucky Spin
+            wheel_title: "GLÜCKSRAD",
+            wheel_spin_free: "GRATIS DREHEN",
+            wheel_spin_ad: "WERBUNG → DREHEN ({n} ÜBRIG)",
+            wheel_free_used: "TÄGLICHER FREIDREH VERBRAUCHT",
+            wheel_ad_exhausted: "KEINE WERBE-DREHS MEHR",
+            wheel_won_coins: "+{n} NEON MÜNZEN!",
+
+            // Daily Rewards
+            daily_rewards_title: "TÄGLICHE BELOHNUNGEN",
+            daily_streak: "Login-Serie: {streak} Tage",
+            daily_day_badge: "TAG {day}",
+            claim_reward: "EINSAMMELN",
+            double_reward_ad: "2X VERDOPPELN (WERBUNG)",
+            come_back_tomorrow: "KOMM MORGEN WIEDER",
+            all_days_claimed: "ALLE BELOHNUNGEN ERHALTEN",
+
+            // Daily Quests
+            daily_quests_title: "TÄGLICHE MISSIONEN",
+            quest_reach_level: "Erreiche Level {n}",
+            quest_kill_enemies: "Zerstöre {n} Feinde",
+            quest_survive: "Überlebe {n} Sekunden",
+            quest_score: "Erziele {n} Punkte",
+            quest_perks: "Wähle {n} Perks",
+            quest_completed: "ABGESCHLOSSEN",
+            all_quests_completed: "ALLE MISSIONEN ERFÜLLT!",
+            quest_bonus_ad: "MISSIONS-BONUS: +{coins} MÜNZEN (WERBUNG)",
+            quest_bonus_claimed: "BONUS EINGESAMMELT",
+            quests_loading: "Missionen laden...",
+
+            // Premium Store
+            store_title: "PREMIUM SHOP",
+            prod_remove_ads_title: "KEINE WERBUNG (VIP PASS)",
+            prod_remove_ads_desc: "Entfernt alle Interstitial-Werbungen. Unbegrenzte Perk-Würfe!",
+            prod_starter_pack_title: "STARTER-PAKET",
+            prod_starter_pack_desc: "1000 Neon-Münzen + 1 Goldkiste + Exklusiver Neon-Drachenkern!",
+            prod_cosmetic_pack_title: "PREMIUM KOSMETIK-SET",
+            prod_cosmetic_pack_desc: "3 exklusive Cyberpunk-Kosmetika: Drachenkern, Plasmasturm & Cyber City!",
+            prod_coin_packs_title: "NEON MÜNZPAKETE",
+            badge_most_popular: "SEHR BELIEBT",
+            badge_limited_time: "BEGRENZTE ZEIT",
+            badge_best_value: "BESTER WERT",
+            badge_special: "SPEZIELL",
+            purchased_label: "GEKAUFT",
+            buy_with_price: "KAUFEN FÜR {price}",
+            timer_expired: "ABGELAUFEN",
+            time_remaining: "Noch {hours}h {minutes}m",
 
             // Settings
             paused: "PAUSIERT",
@@ -631,6 +956,71 @@ const Localization = {
             boss_coming: "ONDATA {wave} - BOSS IN ARRIVO!",
             choose_perk: "Scegli un potenziamento:",
             level_up: "LIVELLO SUPERIORE!",
+            tab_premium: "PREMIUM",
+
+            // Engagement & Monetization
+            lucky_spin_btn: "RUOTA FORTUNA",
+            daily_rewards_btn: "RICOMPENSE",
+            quests_btn: "MISSIONI",
+            close_btn: "CHIUDI",
+
+            // Level Up Reroll
+            perk_reroll_btn: "RILANCIA",
+            perk_reroll_ad_label: "GUARDA PUBBL: RILANCIA",
+            perk_reroll_vip_label: "RILANCIA (VIP GRATIS)",
+            perk_reroll_hint: "Guarda uno spot per 3 nuovi perk (quelli attuali esclusi)",
+            perk_reroll_hint_vip: "Vantaggio VIP: Rilancia 3 nuovi perk all'istante",
+            tag_ad: "PUB",
+            tag_vip: "VIP GRATIS",
+            perk_decrypting: "DECRITTAZIONE...",
+
+            // Lucky Spin
+            wheel_title: "RUOTA DELLA FORTUNA",
+            wheel_spin_free: "GIRO GRATIS",
+            wheel_spin_ad: "PUBBL → GIRA ({n} RIMASTI)",
+            wheel_free_used: "GIRO GRATUITO DEL GIORNO USATO",
+            wheel_ad_exhausted: "GIRI PUBBLICITARI ESAURITI",
+            wheel_won_coins: "+{n} MONETE NEON!",
+
+            // Daily Rewards
+            daily_rewards_title: "RICOMPENSE GIORNALIERE",
+            daily_streak: "Serie di Accessi: {streak} Giorni",
+            daily_day_badge: "GIORNO {day}",
+            claim_reward: "RISCATTA",
+            double_reward_ad: "RADDOPPIA 2X (GUARDA PUBBL)",
+            come_back_tomorrow: "TORNA DOMANI",
+            all_days_claimed: "TUTTE LE RICOMPENSE RISCATTATE",
+
+            // Daily Quests
+            daily_quests_title: "MISSIONI GIORNALIERE",
+            quest_reach_level: "Raggiungi il livello {n}",
+            quest_kill_enemies: "Distruggi {n} nemici",
+            quest_survive: "Sopravvivi {n} secondi",
+            quest_score: "Ottieni {n} punti",
+            quest_perks: "Scegli {n} perk",
+            quest_completed: "COMPLETATO",
+            all_quests_completed: "TUTTE LE MISSIONI COMPLETATE!",
+            quest_bonus_ad: "BONUS MISSIONE: +{coins} MONETE (PUBBL)",
+            quest_bonus_claimed: "BONUS RISCATTATO",
+            quests_loading: "Caricamento missioni...",
+
+            // Premium Store
+            store_title: "NEGOZIO PREMIUM",
+            prod_remove_ads_title: "NO PUBBL (PASS VIP)",
+            prod_remove_ads_desc: "Rimuove annunci interstiziali. Rilanci illimitati gratuiti!",
+            prod_starter_pack_title: "PACCHETTO INIZIALE",
+            prod_starter_pack_desc: "1000 Monete Neon + 1 Cassa Dorata + Nucleo Drago Neon!",
+            prod_cosmetic_pack_title: "SET COSMETICO PREMIUM",
+            prod_cosmetic_pack_desc: "3 cosmetici esclusivi: Drago Neon, Tempesta al Plasma e Cyber City!",
+            prod_coin_packs_title: "PACCHETTI DI MONETE NEON",
+            badge_most_popular: "PIÙ POPOLARE",
+            badge_limited_time: "TEMPO LIMITATO",
+            badge_best_value: "MIGLIOR VALORE",
+            badge_special: "SPECIALE",
+            purchased_label: "ACQUISTATO",
+            buy_with_price: "ACQUISTA PER {price}",
+            timer_expired: "SCADUTO",
+            time_remaining: "Rimasti {hours}h {minutes}m",
 
             // Settings
             paused: "IN PAUSA",

@@ -179,10 +179,11 @@ class PremiumStoreManager {
     }
 
     static formatTimeLeft(ms) {
-        if (ms <= 0) return 'SÜRE DOLDU';
+        const t = (key, params) => typeof Localization !== 'undefined' ? Localization.t(key, params) : key;
+        if (ms <= 0) return t('timer_expired');
         const hours = Math.floor(ms / (1000 * 60 * 60));
         const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
-        return `${hours}s ${minutes}dk kaldı`;
+        return t('time_remaining', { hours, minutes });
     }
 
     // Simulate purchase (in production: use Capacitor IAP plugin)
@@ -267,6 +268,7 @@ class PremiumStoreManager {
 
         let html = '';
 
+        const t = (key, params) => typeof Localization !== 'undefined' ? Localization.t(key, params) : key;
         const getIcon = (key, size = 32) => typeof IconSystem !== 'undefined' ? IconSystem.get(key, { size }) : '';
         const checkIcon = typeof IconSystem !== 'undefined' ? IconSystem.get('check', { size: 16, color: '#22c55e' }) : '✓';
         const timerIcon = typeof IconSystem !== 'undefined' ? IconSystem.get('timer', { size: 16, color: '#ef4444' }) : '';
@@ -278,15 +280,15 @@ class PremiumStoreManager {
             if (timeLeft > 0) {
                 html += `
                     <div class="premium-product-card starter-pack-card">
-                        <div class="pp-badge pulse-badge">${starterPack.badge}</div>
+                        <div class="pp-badge pulse-badge">${t(starterPack.badgeKey || 'badge_limited_time')}</div>
                         <div class="pp-timer">${timerIcon} ${this.formatTimeLeft(timeLeft)}</div>
                         <div class="pp-icon">${getIcon(starterPack.iconKey, 48)}</div>
-                        <h3 class="pp-name">${starterPack.name}</h3>
+                        <h3 class="pp-name">${t('prod_starter_pack_title')}</h3>
                         <ul class="pp-benefits">
                             ${starterPack.benefits.map(b => `<li>${checkIcon} ${b}</li>`).join('')}
                         </ul>
                         <button class="main-btn pp-buy-btn" data-product="starter_pack">
-                            ${starterPack.price} İLE SATIN AL
+                            ${t('buy_with_price', { price: starterPack.price })}
                         </button>
                     </div>
                 `;
@@ -297,15 +299,15 @@ class PremiumStoreManager {
         const removeAds = this.PRODUCTS.remove_ads;
         html += `
             <div class="premium-product-card ${this.state.adsRemoved ? 'purchased' : 'featured'}">
-                <div class="pp-badge">${removeAds.badge}</div>
+                <div class="pp-badge">${t(removeAds.badgeKey || 'badge_most_popular')}</div>
                 <div class="pp-icon">${getIcon(removeAds.iconKey, 48)}</div>
-                <h3 class="pp-name">${removeAds.name}</h3>
+                <h3 class="pp-name">${t('prod_remove_ads_title')}</h3>
                 <ul class="pp-benefits">
                     ${removeAds.benefits.map(b => `<li>${checkIcon} ${b}</li>`).join('')}
                 </ul>
                 ${this.state.adsRemoved
-                    ? `<div class="pp-purchased">${checkIcon} SATIN ALINDI</div>`
-                    : `<button class="main-btn pp-buy-btn" data-product="remove_ads">${removeAds.price} İLE SATIN AL</button>`
+                    ? `<div class="pp-purchased">${checkIcon} ${t('purchased_label')}</div>`
+                    : `<button class="main-btn pp-buy-btn" data-product="remove_ads">${t('buy_with_price', { price: removeAds.price })}</button>`
                 }
             </div>
         `;
@@ -315,21 +317,21 @@ class PremiumStoreManager {
         const cosmeticBought = this.state.purchaseHistory.includes('premium_cosmetic_pack');
         html += `
             <div class="premium-product-card ${cosmeticBought ? 'purchased' : ''}">
-                <div class="pp-badge">${cosmeticPack.badge}</div>
+                <div class="pp-badge">${t(cosmeticPack.badgeKey || 'badge_special')}</div>
                 <div class="pp-icon">${getIcon(cosmeticPack.iconKey, 48)}</div>
-                <h3 class="pp-name">${cosmeticPack.name}</h3>
+                <h3 class="pp-name">${t('prod_cosmetic_pack_title')}</h3>
                 <ul class="pp-benefits">
                     ${cosmeticPack.benefits.map(b => `<li>${checkIcon} ${b}</li>`).join('')}
                 </ul>
                 ${cosmeticBought
-                    ? `<div class="pp-purchased">${checkIcon} SATIN ALINDI</div>`
-                    : `<button class="main-btn pp-buy-btn" data-product="premium_cosmetic_pack">${cosmeticPack.price} İLE SATIN AL</button>`
+                    ? `<div class="pp-purchased">${checkIcon} ${t('purchased_label')}</div>`
+                    : `<button class="main-btn pp-buy-btn" data-product="premium_cosmetic_pack">${t('buy_with_price', { price: cosmeticPack.price })}</button>`
                 }
             </div>
         `;
 
         // Coin Packs
-        html += `<h3 class="coin-packs-header">${getIcon('coin', 20)} NEON COIN PAKETLERİ</h3>`;
+        html += `<h3 class="coin-packs-header">${getIcon('coin', 20)} ${t('prod_coin_packs_title')}</h3>`;
         html += '<div class="coin-packs-grid">';
         ['coin_500', 'coin_1500', 'coin_5000'].forEach(id => {
             const p = this.PRODUCTS[id];
