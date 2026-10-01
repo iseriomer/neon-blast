@@ -157,18 +157,18 @@ class CosmeticsManager {
             id: 'bg_synthgrid',
             type: 'background',
             categoryName: 'ARKA PLAN',
-            name: 'Synthwave Izgara',
+            name: 'Synthwave Şafak',
             rarity: 'RARE',
-            description: 'Retro neon mor zemin ızgarası.',
+            description: 'Retro neon alacakaranlık ve mor günbatımı nebulası.',
             color: '#1a0033'
         },
         'bg_digitalrain': {
             id: 'bg_digitalrain',
             type: 'background',
             categoryName: 'ARKA PLAN',
-            name: 'Matrix Kod Akışı',
+            name: 'Matrix Siber Sis',
             rarity: 'EPIC',
-            description: 'Dikey siber kod yağmuru.',
+            description: 'Derin zümrüt ve biyo-camgöbeği siber sis nebulası.',
             color: '#021206'
         },
         'bg_hyperspace': {
@@ -177,7 +177,7 @@ class CosmeticsManager {
             categoryName: 'ARKA PLAN',
             name: 'Işık Hızı Tüneli',
             rarity: 'LEGENDARY',
-            description: 'Işık hızı warp tüneli.',
+            description: 'Derin kobalt mavisi ve safir kozmik akış bulutsusu.',
             color: '#00081a'
         }
     };

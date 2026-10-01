@@ -646,14 +646,37 @@ const ArmoryUI = {
             ? this.inspectedItem.id
             : CosmeticsManager.getEquipped('background');
 
-        // 1. Ambient Background tint
-        let bgTint = 'rgba(6, 4, 16, 0.4)';
-        if (previewBg === 'bg_synthgrid') bgTint = 'rgba(35, 5, 45, 0.45)';
-        else if (previewBg === 'bg_digitalrain') bgTint = 'rgba(3, 20, 8, 0.45)';
-        else if (previewBg === 'bg_hyperspace') bgTint = 'rgba(5, 8, 30, 0.5)';
+        // 1. Ambient Background with Smooth Blurred Nebula Atmosphere
+        const bgKey = (previewBg || '').replace('bg_', '');
+        const bgCfg = (window.BackgroundManager && window.BackgroundManager.configs[bgKey])
+            ? window.BackgroundManager.configs[bgKey]
+            : (window.BackgroundManager ? window.BackgroundManager.configs.nebula : null);
 
-        ctx.fillStyle = bgTint;
-        ctx.fillRect(0, 0, w, h);
+        if (bgCfg) {
+            const [br, bg, bb] = bgCfg.base;
+            ctx.fillStyle = `rgb(${br}, ${bg}, ${bb})`;
+            ctx.fillRect(0, 0, w, h);
+
+            if (bgCfg.clouds && bgCfg.clouds.length > 0) {
+                const hGrad = ctx.createRadialGradient(w * 0.7, h * 0.45, 10, w * 0.7, h * 0.45, w * 0.65);
+                hGrad.addColorStop(0, bgCfg.clouds[0].color);
+                hGrad.addColorStop(0.6, bgCfg.clouds[0].stop);
+                hGrad.addColorStop(1, 'transparent');
+                ctx.fillStyle = hGrad;
+                ctx.fillRect(0, 0, w, h);
+
+                if (bgCfg.clouds[1]) {
+                    const hGrad2 = ctx.createRadialGradient(w * 0.25, h * 0.6, 5, w * 0.25, h * 0.6, w * 0.45);
+                    hGrad2.addColorStop(0, bgCfg.clouds[1].color);
+                    hGrad2.addColorStop(1, 'transparent');
+                    ctx.fillStyle = hGrad2;
+                    ctx.fillRect(0, 0, w, h);
+                }
+            }
+        } else {
+            ctx.fillStyle = '#060410';
+            ctx.fillRect(0, 0, w, h);
+        }
 
         // 2. Holographic Landing Grid
         const cx = w * 0.28;
@@ -912,6 +935,89 @@ const ArmoryUI = {
                 break;
             }
 
+            case 'core_dragon': {
+                const pulse = 1 + Math.sin(time * 4) * 0.08;
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.moveTo(0, -r * 1.35 * pulse);
+                ctx.quadraticCurveTo(r * 0.8, -r * 0.7, r * 1.2, -r * 0.1);
+                ctx.quadraticCurveTo(r * 0.6, -r * 0.2, 0, 0);
+                ctx.quadraticCurveTo(-r * 0.6, -r * 0.2, -r * 1.2, -r * 0.1);
+                ctx.quadraticCurveTo(-r * 0.8, -r * 0.7, 0, -r * 1.35 * pulse);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.arc(0, 0, r * 0.75, 0, Math.PI * 2);
+                ctx.fillStyle = '#ff2200';
+                ctx.fill();
+
+                ctx.fillStyle = '#ffea00';
+                ctx.beginPath();
+                ctx.ellipse(0, 0, r * 0.35, r * 0.55 * pulse, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(0, 0, r * 0.2, 0, Math.PI * 2);
+                ctx.fill();
+                break;
+            }
+
+            case 'core_aurora': {
+                ctx.rotate(time * 0.6);
+                for (let i = 0; i < 3; i++) {
+                    const off = (Math.PI * 2 / 3) * i;
+                    const waveR = r * (0.85 + Math.sin(time * 3 + i) * 0.15);
+                    ctx.strokeStyle = (i === 0) ? '#00ff88' : (i === 1) ? '#00e5ff' : '#a855f7';
+                    ctx.lineWidth = 2.5;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, waveR, off, off + Math.PI * 0.9);
+                    ctx.stroke();
+                }
+
+                ctx.fillStyle = '#00ffcc';
+                ctx.beginPath();
+                ctx.arc(0, 0, r * 0.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(0, 0, r * 0.25, 0, Math.PI * 2);
+                ctx.fill();
+                break;
+            }
+
+            case 'core_void_king': {
+                ctx.rotate(time * 0.3);
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                const points = 5;
+                for (let i = 0; i < points; i++) {
+                    const a = (Math.PI * 2 / points) * i;
+                    const aMid = a + Math.PI / points;
+                    if (i === 0) ctx.moveTo(Math.cos(a) * r * 1.3, Math.sin(a) * r * 1.3);
+                    else ctx.lineTo(Math.cos(a) * r * 1.3, Math.sin(a) * r * 1.3);
+                    ctx.lineTo(Math.cos(aMid) * (r * 0.7), Math.sin(aMid) * (r * 0.7));
+                }
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.arc(0, 0, r * 0.6, 0, Math.PI * 2);
+                ctx.fillStyle = '#080114';
+                ctx.fill();
+                ctx.strokeStyle = '#c084fc';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(0, 0, r * 0.25, 0, Math.PI * 2);
+                ctx.fill();
+                break;
+            }
+
             default: { // core_default
                 ctx.shadowColor = color;
                 ctx.shadowBlur = 14;
@@ -921,9 +1027,15 @@ const ArmoryUI = {
                 ctx.arc(0, 0, r, 0, Math.PI * 2);
                 ctx.stroke();
 
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1.6;
+                ctx.beginPath();
+                ctx.arc(0, 0, r * 0.72, 0, Math.PI * 2);
+                ctx.stroke();
+
                 ctx.fillStyle = '#ffffff';
                 ctx.beginPath();
-                ctx.arc(0, 0, r * 0.45, 0, Math.PI * 2);
+                ctx.arc(0, 0, r * 0.38, 0, Math.PI * 2);
                 ctx.fill();
                 break;
             }
@@ -938,10 +1050,10 @@ const ArmoryUI = {
 
         switch (projId) {
             case 'proj_laser':
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(-16, -2, 32, 4);
                 ctx.fillStyle = color;
-                ctx.fillRect(-20, -3.5, 40, 7);
+                ctx.fillRect(-18, -3, 36, 6);
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(-12, -1.5, 26, 3);
                 break;
 
             case 'proj_plasma':
@@ -952,12 +1064,13 @@ const ArmoryUI = {
                 ctx.stroke();
                 ctx.fillStyle = '#ffffff';
                 ctx.beginPath();
-                ctx.arc(0, 0, 3, 0, Math.PI * 2);
+                ctx.arc(0, 0, 3.5, 0, Math.PI * 2);
                 ctx.fill();
                 break;
 
             case 'proj_shuriken':
                 ctx.rotate(time * 12);
+                ctx.fillStyle = color;
                 ctx.beginPath();
                 for (let s = 0; s < 4; s++) {
                     const a = s * (Math.PI / 2);
@@ -968,31 +1081,75 @@ const ArmoryUI = {
                 }
                 ctx.closePath();
                 ctx.fill();
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(0, 0, 3, 0, Math.PI * 2);
+                ctx.fill();
                 break;
 
             case 'proj_pixel':
-                ctx.fillRect(-6, -6, 12, 12);
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-                ctx.fillRect(-3, -3, 6, 6);
+                ctx.fillStyle = color;
+                ctx.fillRect(-7, -7, 14, 14);
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(-3.5, -3.5, 7, 7);
                 break;
 
             case 'proj_void':
+                ctx.fillStyle = color;
                 ctx.beginPath();
-                ctx.moveTo(12, 0);
-                ctx.lineTo(-8, -6);
+                ctx.moveTo(13, 0);
+                ctx.lineTo(-9, -6);
                 ctx.lineTo(-3, 0);
-                ctx.lineTo(-8, 6);
+                ctx.lineTo(-9, 6);
                 ctx.closePath();
+                ctx.fill();
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(0, 0, 2.5, 0, Math.PI * 2);
+                ctx.fill();
+                break;
+
+            case 'proj_storm':
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.moveTo(-14, 0);
+                ctx.lineTo(-5, -5);
+                ctx.lineTo(0, 4);
+                ctx.lineTo(14, 0);
+                ctx.stroke();
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1.2;
+                ctx.stroke();
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(6, 0, 3, 0, Math.PI * 2);
+                ctx.fill();
+                break;
+
+            case 'proj_phoenix':
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.moveTo(14, 0);
+                ctx.quadraticCurveTo(0, -8, -10, -5);
+                ctx.lineTo(-5, 0);
+                ctx.lineTo(-10, 5);
+                ctx.quadraticCurveTo(0, 8, 14, 0);
+                ctx.closePath();
+                ctx.fill();
+                ctx.fillStyle = '#fff7cc';
+                ctx.beginPath();
+                ctx.arc(0, 0, 3.5, 0, Math.PI * 2);
                 ctx.fill();
                 break;
 
             default: // proj_default
                 ctx.beginPath();
-                ctx.arc(0, 0, 6, 0, Math.PI * 2);
+                ctx.arc(0, 0, 6.5, 0, Math.PI * 2);
                 ctx.fill();
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                ctx.fillStyle = '#ffffff';
                 ctx.beginPath();
-                ctx.arc(0, 0, 2.5, 0, Math.PI * 2);
+                ctx.arc(0, 0, 3, 0, Math.PI * 2);
                 ctx.fill();
                 break;
         }
@@ -1099,9 +1256,9 @@ const ArmoryUI = {
         ctx.restore();
     },
 
-    // Background Scenic Window Preview
+    // Background Scenic Window Preview - Smooth Atmospheric Blurred Color-Gradient Nebula
     drawBackgroundThumbnail(ctx, bgId, w, h, time) {
-        const pad = 12;
+        const pad = 10;
         const bw = w - pad * 2;
         const bh = h - pad * 2;
 
@@ -1110,105 +1267,73 @@ const ArmoryUI = {
         ctx.roundRect(pad, pad, bw, bh, 8);
         ctx.clip();
 
-        if (bgId === 'bg_synthgrid') {
-            // Synthwave grid horizon
-            const grad = ctx.createLinearGradient(0, pad, 0, pad + bh);
-            grad.addColorStop(0, '#0f021e');
-            grad.addColorStop(0.5, '#2d0638');
-            grad.addColorStop(1, '#080112');
-            ctx.fillStyle = grad;
+        const bgKey = (bgId || '').replace('bg_', '');
+        const bgCfg = (window.BackgroundManager && window.BackgroundManager.configs[bgKey])
+            ? window.BackgroundManager.configs[bgKey]
+            : (window.BackgroundManager ? window.BackgroundManager.configs.nebula : null);
+
+        if (bgCfg) {
+            const [br, bg, bb] = bgCfg.base;
+            // Base dark tone
+            ctx.fillStyle = `rgb(${br}, ${bg}, ${bb})`;
             ctx.fillRect(pad, pad, bw, bh);
 
-            // Sun
-            ctx.fillStyle = '#ff0077';
-            ctx.shadowColor = '#ff0077';
-            ctx.shadowBlur = 12;
-            ctx.beginPath();
-            ctx.arc(w / 2, pad + bh * 0.45, 16, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.shadowBlur = 0;
+            // Cloud 1 - Drifting softly
+            const c1x = pad + bw * 0.35 + Math.sin(time * 0.8) * bw * 0.12;
+            const c1y = pad + bh * 0.40 + Math.cos(time * 0.6) * bh * 0.12;
+            const g1 = ctx.createRadialGradient(c1x, c1y, 2, c1x, c1y, bh * 0.75);
+            g1.addColorStop(0, bgCfg.clouds[0].color);
+            g1.addColorStop(0.65, bgCfg.clouds[0].stop);
+            g1.addColorStop(1, 'transparent');
+            ctx.fillStyle = g1;
+            ctx.fillRect(pad, pad, bw, bh);
 
-            // Perspective lines
-            ctx.strokeStyle = '#00f0ff';
-            ctx.lineWidth = 1;
-            const horizon = pad + bh * 0.45;
-            for (let x = pad; x <= pad + bw; x += 16) {
+            // Cloud 2 - Counter drifting
+            if (bgCfg.clouds[1]) {
+                const c2x = pad + bw * 0.70 + Math.cos(time * 0.7) * bw * 0.12;
+                const c2y = pad + bh * 0.62 + Math.sin(time * 0.9) * bh * 0.12;
+                const g2 = ctx.createRadialGradient(c2x, c2y, 2, c2x, c2y, bh * 0.8);
+                g2.addColorStop(0, bgCfg.clouds[1].color);
+                g2.addColorStop(0.65, bgCfg.clouds[1].stop);
+                g2.addColorStop(1, 'transparent');
+                ctx.fillStyle = g2;
+                ctx.fillRect(pad, pad, bw, bh);
+            }
+
+            // Cloud 3 - Center depth
+            if (bgCfg.clouds[2]) {
+                const c3x = pad + bw * 0.50;
+                const c3y = pad + bh * 0.48;
+                const g3 = ctx.createRadialGradient(c3x, c3y, 2, c3x, c3y, bh * 0.65);
+                g3.addColorStop(0, bgCfg.clouds[2].color);
+                g3.addColorStop(1, 'transparent');
+                ctx.fillStyle = g3;
+                ctx.fillRect(pad, pad, bw, bh);
+            }
+
+            // Ambient Cosmic Dust motes (faint, soft, out-of-focus)
+            ctx.fillStyle = bgCfg.dustColor || 'rgba(255, 255, 255, 0.2)';
+            for (let i = 0; i < 9; i++) {
+                const dx = pad + ((i * 37 + time * 14) % bw);
+                const dy = pad + ((i * 47) % bh);
+                const da = 0.15 + (i % 3) * 0.12;
+                ctx.globalAlpha = da;
                 ctx.beginPath();
-                ctx.moveTo(w / 2, horizon);
-                ctx.lineTo(x, pad + bh);
-                ctx.stroke();
-            }
-            for (let y = horizon + 6; y <= pad + bh; y += 7) {
-                ctx.beginPath();
-                ctx.moveTo(pad, y);
-                ctx.lineTo(pad + bw, y);
-                ctx.stroke();
-            }
-
-        } else if (bgId === 'bg_digitalrain') {
-            // Matrix digital code
-            ctx.fillStyle = '#020d04';
-            ctx.fillRect(pad, pad, bw, bh);
-
-            ctx.fillStyle = '#00ff66';
-            ctx.font = '10px monospace';
-            const cols = 9;
-            for (let i = 0; i < cols; i++) {
-                const x = pad + 10 + i * 21;
-                const offset = (Math.sin(i * 1.5 + time * 3) + 1) * 0.5;
-                const y = pad + offset * (bh - 10);
-                ctx.globalAlpha = 0.9;
-                ctx.fillText('0', x, y);
-                ctx.globalAlpha = 0.4;
-                ctx.fillText('1', x, y - 10);
-                ctx.fillText('0', x, y - 20);
-            }
-            ctx.globalAlpha = 1;
-
-        } else if (bgId === 'bg_hyperspace') {
-            // Warp tunnel
-            ctx.fillStyle = '#02020a';
-            ctx.fillRect(pad, pad, bw, bh);
-
-            const hcx = w / 2;
-            const hcy = h / 2;
-            ctx.strokeStyle = '#60a5fa';
-            ctx.lineWidth = 1.5;
-            for (let i = 0; i < 18; i++) {
-                const a = (Math.PI * 2 / 18) * i;
-                const d1 = 6 + (time * 15 + i * 4) % (bh * 0.45);
-                const d2 = d1 + 8;
-                ctx.beginPath();
-                ctx.moveTo(hcx + Math.cos(a) * d1, hcy + Math.sin(a) * d1);
-                ctx.lineTo(hcx + Math.cos(a) * d2, hcy + Math.sin(a) * d2);
-                ctx.stroke();
-            }
-
-        } else { // bg_nebula
-            const grad = ctx.createRadialGradient(w / 2, h / 2, 4, w / 2, h / 2, bw * 0.5);
-            grad.addColorStop(0, '#38004f');
-            grad.addColorStop(0.5, '#0c1a40');
-            grad.addColorStop(1, '#04020a');
-            ctx.fillStyle = grad;
-            ctx.fillRect(pad, pad, bw, bh);
-
-            // Stars
-            ctx.fillStyle = '#ffffff';
-            for (let s = 0; s < 20; s++) {
-                const sx = pad + (s * 37) % bw;
-                const sy = pad + (s * 53) % bh;
-                ctx.globalAlpha = 0.3 + (s % 5) * 0.15;
-                ctx.fillRect(sx, sy, 1.5, 1.5);
+                ctx.arc(dx, dy, 1.2, 0, Math.PI * 2);
+                ctx.fill();
             }
             ctx.globalAlpha = 1;
         }
 
         ctx.restore();
 
-        // Border frame
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(pad, pad, bw, bh);
+        // Border frame with subtle color tint
+        const frameColor = (bgCfg && bgCfg.dustColor) ? bgCfg.dustColor : 'rgba(255, 255, 255, 0.25)';
+        ctx.strokeStyle = frameColor;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.roundRect(pad, pad, bw, bh, 8);
+        ctx.stroke();
     },
 
     // Procedural High-Tech Cipher Pods

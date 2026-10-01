@@ -228,11 +228,114 @@ function drawPlayer(playerStats, lastShotTime) {
             break;
         }
 
+        case 'core_dragon': {
+            // Neon Dragon Crest: Horns, sweeping flame arcs, draconic eye
+            const pulse = 1 + Math.sin(t * 4) * 0.08;
+            CTX.fillStyle = color;
+            CTX.beginPath();
+            CTX.moveTo(0, -r * 1.35 * pulse);
+            CTX.quadraticCurveTo(r * 0.8, -r * 0.7, r * 1.2, -r * 0.1);
+            CTX.quadraticCurveTo(r * 0.6, -r * 0.2, 0, 0);
+            CTX.quadraticCurveTo(-r * 0.6, -r * 0.2, -r * 1.2, -r * 0.1);
+            CTX.quadraticCurveTo(-r * 0.8, -r * 0.7, 0, -r * 1.35 * pulse);
+            CTX.closePath();
+            CTX.fill();
+
+            // Dragon Heart Sphere
+            CTX.beginPath();
+            CTX.arc(0, 0, r * 0.75, 0, Math.PI * 2);
+            CTX.fillStyle = '#ff2200';
+            CTX.fill();
+
+            // Ember Eye / Core
+            CTX.fillStyle = '#ffea00';
+            CTX.beginPath();
+            CTX.ellipse(0, 0, r * 0.35, r * 0.55 * pulse, 0, 0, Math.PI * 2);
+            CTX.fill();
+
+            CTX.fillStyle = '#ffffff';
+            CTX.beginPath();
+            CTX.arc(0, 0, r * 0.2, 0, Math.PI * 2);
+            CTX.fill();
+            break;
+        }
+
+        case 'core_aurora': {
+            // Undulating Borealis Light Ribbons
+            CTX.rotate(t * 0.6);
+            for (let i = 0; i < 3; i++) {
+                const off = (Math.PI * 2 / 3) * i;
+                const waveR = r * (0.85 + Math.sin(t * 3 + i) * 0.15);
+                CTX.strokeStyle = (i === 0) ? '#00ff88' : (i === 1) ? '#00e5ff' : '#a855f7';
+                CTX.lineWidth = 2.5;
+                CTX.beginPath();
+                CTX.arc(0, 0, waveR, off, off + Math.PI * 0.9);
+                CTX.stroke();
+            }
+
+            // Luminescent Borealis Nucleus
+            CTX.fillStyle = '#00ffcc';
+            CTX.beginPath();
+            CTX.arc(0, 0, r * 0.5, 0, Math.PI * 2);
+            CTX.fill();
+
+            CTX.fillStyle = '#ffffff';
+            CTX.beginPath();
+            CTX.arc(0, 0, r * 0.25, 0, Math.PI * 2);
+            CTX.fill();
+            break;
+        }
+
+        case 'core_void_king': {
+            // Royal Dark Matter Crown with Amethyst Jewel
+            CTX.rotate(t * 0.3);
+            // 5-point Crown spikes
+            CTX.fillStyle = color;
+            CTX.beginPath();
+            const points = 5;
+            for (let i = 0; i < points; i++) {
+                const a = (Math.PI * 2 / points) * i;
+                const aMid = a + Math.PI / points;
+                if (i === 0) CTX.moveTo(Math.cos(a) * r * 1.3, Math.sin(a) * r * 1.3);
+                else CTX.lineTo(Math.cos(a) * r * 1.3, Math.sin(a) * r * 1.3);
+                CTX.lineTo(Math.cos(aMid) * (r * 0.7), Math.sin(aMid) * (r * 0.7));
+            }
+            CTX.closePath();
+            CTX.fill();
+
+            // Singularity Void Sphere
+            CTX.beginPath();
+            CTX.arc(0, 0, r * 0.6, 0, Math.PI * 2);
+            CTX.fillStyle = '#080114';
+            CTX.fill();
+            CTX.strokeStyle = '#c084fc';
+            CTX.lineWidth = 2;
+            CTX.stroke();
+
+            // Crown Jewel
+            CTX.fillStyle = '#ffffff';
+            CTX.beginPath();
+            CTX.arc(0, 0, r * 0.25, 0, Math.PI * 2);
+            CTX.fill();
+            break;
+        }
+
         default: {
-            // Classic Neon Sphere
+            // Classic High-Tech Neon Sphere with Conduit Ring
             CTX.beginPath();
             CTX.arc(0, 0, r, 0, Math.PI * 2, false);
             CTX.fillStyle = color;
+            CTX.fill();
+
+            CTX.strokeStyle = '#ffffff';
+            CTX.lineWidth = 1.8;
+            CTX.beginPath();
+            CTX.arc(0, 0, r * 0.72, 0, Math.PI * 2);
+            CTX.stroke();
+
+            CTX.fillStyle = '#ffffff';
+            CTX.beginPath();
+            CTX.arc(0, 0, r * 0.38, 0, Math.PI * 2);
             CTX.fill();
             break;
         }

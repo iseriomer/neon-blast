@@ -145,13 +145,13 @@ class PremiumStoreManager {
         CosmeticsManager.ITEMS['bg_cybercity'] = {
             id: 'bg_cybercity', type: 'background', categoryName: 'ARKA PLAN',
             name: 'Siber Şehir', rarity: 'PREMIUM', premium: true,
-            description: 'Neon ışıklı fütüristik şehir silüeti.',
+            description: 'Neo-Tokyo şehir ışıkları ve kehribar-mor bokeh nebulası.',
             color: '#1a0a2e'
         };
         CosmeticsManager.ITEMS['bg_void_realm'] = {
             id: 'bg_void_realm', type: 'background', categoryName: 'ARKA PLAN',
             name: 'Boşluk Diyarı', rarity: 'PREMIUM', premium: true,
-            description: 'Mor-siyah kozmik boşluk portalları.',
+            description: 'Ametist karanlık madde yarığı ve derin kozmik boşluk nebulası.',
             color: '#0d001a'
         };
 

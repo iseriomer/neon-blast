@@ -20,6 +20,7 @@ class Projectile {
         this.lostTargetTime = 0;
         this.damageMultiplier = 1;
         this.bossDamageMultiplier = 1;
+        this.skinId = 'proj_default';
     }
 
     reset(x, y, velocity, isSplit, playerStats) {
@@ -42,13 +43,154 @@ class Projectile {
         this.lostTargetTime = 0;
         this.damageMultiplier = playerStats.damageMultiplier || 1;
         this.bossDamageMultiplier = playerStats.bossDamageMultiplier || 1;
+        this.skinId = (window.CosmeticsManager && window.CosmeticsManager.getEquipped)
+            ? window.CosmeticsManager.getEquipped('projectile')
+            : 'proj_default';
     }
 
     draw() {
-        CTX.beginPath();
-        CTX.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
-        CTX.fillStyle = this.color;
-        CTX.fill();
+        const r = this.radius;
+        const skin = this.skinId || 'proj_default';
+        const color = (window.CosmeticsManager && window.CosmeticsManager.ITEMS && window.CosmeticsManager.ITEMS[skin])
+            ? window.CosmeticsManager.ITEMS[skin].color
+            : (this.color || '#00ffff');
+
+        CTX.save();
+        CTX.translate(this.x, this.y);
+
+        // Calculate direction of travel
+        const angle = Math.atan2(this.velocity.y, this.velocity.x);
+
+        switch (skin) {
+            case 'proj_laser': {
+                CTX.rotate(angle);
+                // Aerodynamic High-Tech Beam Dart
+                CTX.fillStyle = color;
+                CTX.fillRect(-r * 2.2, -r * 0.45, r * 4.4, r * 0.9);
+                // White-hot piercing core
+                CTX.fillStyle = '#ffffff';
+                CTX.fillRect(-r * 1.5, -r * 0.22, r * 3.4, r * 0.44);
+                break;
+            }
+            case 'proj_plasma': {
+                // Toroidal plasma ring with rotating energy bead
+                CTX.strokeStyle = color;
+                CTX.lineWidth = Math.max(2, r * 0.4);
+                CTX.beginPath();
+                CTX.arc(0, 0, r, 0, Math.PI * 2);
+                CTX.stroke();
+
+                CTX.fillStyle = '#ffffff';
+                CTX.beginPath();
+                CTX.arc(0, 0, r * 0.4, 0, Math.PI * 2);
+                CTX.fill();
+                break;
+            }
+            case 'proj_shuriken': {
+                // Spinning 4-point cyber star
+                const spin = (Date.now() * 0.016) % (Math.PI * 2);
+                CTX.rotate(spin);
+                CTX.fillStyle = color;
+                CTX.beginPath();
+                for (let s = 0; s < 4; s++) {
+                    const a = s * (Math.PI / 2);
+                    const aMid = a + Math.PI / 4;
+                    if (s === 0) CTX.moveTo(Math.cos(a) * r * 1.6, Math.sin(a) * r * 1.6);
+                    else CTX.lineTo(Math.cos(a) * r * 1.6, Math.sin(a) * r * 1.6);
+                    CTX.lineTo(Math.cos(aMid) * (r * 0.55), Math.sin(aMid) * (r * 0.55));
+                }
+                CTX.closePath();
+                CTX.fill();
+
+                CTX.fillStyle = '#ffffff';
+                CTX.beginPath();
+                CTX.arc(0, 0, r * 0.35, 0, Math.PI * 2);
+                CTX.fill();
+                break;
+            }
+            case 'proj_pixel': {
+                CTX.rotate(angle);
+                const s = r * 0.85;
+                CTX.fillStyle = color;
+                CTX.fillRect(-s * 1.5, -s * 0.7, s * 3, s * 1.4);
+                CTX.fillStyle = '#ffffff';
+                CTX.fillRect(-s * 0.8, -s * 0.35, s * 1.8, s * 0.7);
+                break;
+            }
+            case 'proj_void': {
+                CTX.rotate(angle);
+                // Aerodynamic Dark Matter Arrow
+                CTX.fillStyle = color;
+                CTX.beginPath();
+                CTX.moveTo(r * 1.9, 0);
+                CTX.lineTo(-r * 1.4, -r * 0.9);
+                CTX.lineTo(-r * 0.6, 0);
+                CTX.lineTo(-r * 1.4, r * 0.9);
+                CTX.closePath();
+                CTX.fill();
+
+                CTX.fillStyle = '#ffffff';
+                CTX.beginPath();
+                CTX.arc(0, 0, r * 0.35, 0, Math.PI * 2);
+                CTX.fill();
+                break;
+            }
+            case 'proj_storm': {
+                CTX.rotate(angle);
+                // Twin crackling electric plasma arcs
+                CTX.strokeStyle = color;
+                CTX.lineWidth = Math.max(2, r * 0.35);
+                CTX.beginPath();
+                CTX.moveTo(-r * 2.0, 0);
+                CTX.lineTo(-r * 0.7, -r * 0.8);
+                CTX.lineTo(0, r * 0.6);
+                CTX.lineTo(r * 2.0, 0);
+                CTX.stroke();
+
+                CTX.strokeStyle = '#ffffff';
+                CTX.lineWidth = Math.max(1, r * 0.2);
+                CTX.stroke();
+
+                CTX.fillStyle = '#ffffff';
+                CTX.beginPath();
+                CTX.arc(r * 0.8, 0, r * 0.4, 0, Math.PI * 2);
+                CTX.fill();
+                break;
+            }
+            case 'proj_phoenix': {
+                CTX.rotate(angle);
+                // Solar flare dart with fiery phoenix winglets
+                CTX.fillStyle = color;
+                CTX.beginPath();
+                CTX.moveTo(r * 2.0, 0);
+                CTX.quadraticCurveTo(0, -r * 1.2, -r * 1.5, -r * 0.8);
+                CTX.lineTo(-r * 0.8, 0);
+                CTX.lineTo(-r * 1.5, r * 0.8);
+                CTX.quadraticCurveTo(0, r * 1.2, r * 2.0, 0);
+                CTX.closePath();
+                CTX.fill();
+
+                CTX.fillStyle = '#fff7cc';
+                CTX.beginPath();
+                CTX.arc(0, 0, r * 0.45, 0, Math.PI * 2);
+                CTX.fill();
+                break;
+            }
+            default: { // proj_default
+                CTX.fillStyle = color;
+                CTX.beginPath();
+                CTX.arc(0, 0, r, 0, Math.PI * 2);
+                CTX.fill();
+
+                CTX.fillStyle = '#ffffff';
+                CTX.beginPath();
+                CTX.arc(0, 0, r * 0.45, 0, Math.PI * 2);
+                CTX.fill();
+                break;
+            }
+        }
+
+        CTX.restore();
     }
 
     update(enemies, playerStats, dt = 1) {
