@@ -145,16 +145,17 @@ const BackgroundManager = {
 
     initDust() {
         this.dustParticles = [];
-        const count = 18;
+        const count = 28;
         for (let i = 0; i < count; i++) {
             this.dustParticles.push({
                 x: Math.random(),
                 y: Math.random(),
-                radius: 1.2 + Math.random() * 1.6,
-                speedX: (Math.random() - 0.5) * 0.00008,
-                speedY: -0.00005 - Math.random() * 0.0001,
+                radius: 1.2 + Math.random() * 1.8,
+                speedX: (Math.random() - 0.5) * 0.0003,
+                speedY: -0.0004 - Math.random() * 0.0006, // Gracefully drifting upward (~18s across screen)
                 alphaPhase: Math.random() * Math.PI * 2,
-                baseAlpha: 0.10 + Math.random() * 0.15
+                swayPhase: Math.random() * Math.PI * 2,
+                baseAlpha: 0.12 + Math.random() * 0.16
             });
         }
     },
@@ -186,7 +187,8 @@ const BackgroundManager = {
         const config = this.configs[this.activeType] || this.configs.nebula;
         const [r, g, b] = config.base;
         const now = Date.now();
-        const t = now * 0.00025; // Gentle, majestic cosmic drift
+        // 0.0011 rad/ms: ~5.5s per complete harmonic swell (clearly perceptible and alive, yet calming and non-distracting)
+        const t = now * 0.0011;
 
         // 1. Motion Trail Decay Fill (semi-transparent base on primary canvas)
         CTX.fillStyle = `rgba(${r}, ${g}, ${b}, 0.18)`;
@@ -202,10 +204,10 @@ const BackgroundManager = {
 
         const cloudDefs = config.clouds;
 
-        // Cloud 1: Drifting smoothly in upper-left quadrant
-        const c1x = bw * 0.32 + Math.sin(t * 1.1) * bw * 0.14;
-        const c1y = bh * 0.38 + Math.cos(t * 0.9) * bh * 0.14;
-        const c1r = bh * 0.85;
+        // Cloud 1: Drifting & breathing in upper-left / central region
+        const c1x = bw * 0.35 + Math.sin(t * 0.85) * bw * 0.22;
+        const c1y = bh * 0.38 + Math.cos(t * 0.70) * bh * 0.18;
+        const c1r = bh * (0.85 + Math.sin(t * 1.1) * 0.22);
         const grad1 = bCtx.createRadialGradient(c1x, c1y, 0, c1x, c1y, c1r);
         grad1.addColorStop(0, cloudDefs[0].color);
         grad1.addColorStop(0.55, cloudDefs[0].stop);
@@ -213,10 +215,10 @@ const BackgroundManager = {
         bCtx.fillStyle = grad1;
         bCtx.fillRect(0, 0, bw, bh);
 
-        // Cloud 2: Counter-drifting in lower-right quadrant
-        const c2x = bw * 0.72 + Math.cos(t * 0.8) * bw * 0.15;
-        const c2y = bh * 0.65 + Math.sin(t * 1.0) * bh * 0.15;
-        const c2r = bh * 0.95;
+        // Cloud 2: Counter-drifting & expanding in lower-right region
+        const c2x = bw * 0.68 + Math.cos(t * 0.75) * bw * 0.22;
+        const c2y = bh * 0.62 + Math.sin(t * 0.85) * bh * 0.20;
+        const c2r = bh * (0.95 + Math.cos(t * 0.95) * 0.22);
         const grad2 = bCtx.createRadialGradient(c2x, c2y, 0, c2x, c2y, c2r);
         grad2.addColorStop(0, cloudDefs[1].color);
         grad2.addColorStop(0.55, cloudDefs[1].stop);
@@ -224,11 +226,11 @@ const BackgroundManager = {
         bCtx.fillStyle = grad2;
         bCtx.fillRect(0, 0, bw, bh);
 
-        // Cloud 3: Harmonic core breathing in center
+        // Cloud 3: Harmonic core nexus breathing in center
         if (cloudDefs[2]) {
-            const c3x = bw * 0.50 + Math.sin(t * 0.7) * bw * 0.12;
-            const c3y = bh * 0.48 + Math.cos(t * 1.2) * bh * 0.12;
-            const c3r = bh * 0.80;
+            const c3x = bw * 0.50 + Math.sin(t * 0.55) * bw * 0.16;
+            const c3y = bh * 0.50 + Math.cos(t * 0.65) * bh * 0.16;
+            const c3r = bh * (0.80 + Math.sin(t * 1.3) * 0.25);
             const grad3 = bCtx.createRadialGradient(c3x, c3y, 0, c3x, c3y, c3r);
             grad3.addColorStop(0, cloudDefs[2].color);
             grad3.addColorStop(0.50, cloudDefs[2].stop);
@@ -239,24 +241,24 @@ const BackgroundManager = {
 
         // 3. Blit blurred buffer onto main canvas using bilinear smoothing
         CTX.save();
-        CTX.globalAlpha = config.nebulaAlpha || 0.42;
+        CTX.globalAlpha = config.nebulaAlpha || 0.44;
         CTX.drawImage(this.bufferCanvas, 0, 0, CANVAS.width, CANVAS.height);
         CTX.restore();
 
-        // 4. Subtle Ambient Cosmic Dust Motes (Out of focus, zero distraction)
+        // 4. Ambient Cosmic Dust Motes (Floating gently with soft sway & twinkle)
         if (this.dustParticles.length > 0) {
             CTX.save();
             const w = CANVAS.width;
             const h = CANVAS.height;
-            const dustColor = config.dustColor || 'rgba(255, 255, 255, 0.15)';
+            const dustColor = config.dustColor || 'rgba(255, 255, 255, 0.18)';
 
             for (let i = 0; i < this.dustParticles.length; i++) {
                 const p = this.dustParticles[i];
-                p.x = (p.x + p.speedX * dt + 1) % 1;
+                p.x = (p.x + p.speedX * dt + Math.sin(t * 1.5 + p.swayPhase) * 0.00015 + 1) % 1;
                 p.y = (p.y + p.speedY * dt + 1) % 1;
 
-                const pulse = Math.sin(t * 3 + p.alphaPhase);
-                const alpha = Math.max(0.04, p.baseAlpha + pulse * 0.05);
+                const pulse = Math.sin(t * 2.5 + p.alphaPhase);
+                const alpha = Math.max(0.05, p.baseAlpha + pulse * 0.08);
 
                 CTX.fillStyle = dustColor;
                 CTX.globalAlpha = alpha;

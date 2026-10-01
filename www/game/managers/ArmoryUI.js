@@ -658,7 +658,10 @@ const ArmoryUI = {
             ctx.fillRect(0, 0, w, h);
 
             if (bgCfg.clouds && bgCfg.clouds.length > 0) {
-                const hGrad = ctx.createRadialGradient(w * 0.7, h * 0.45, 10, w * 0.7, h * 0.45, w * 0.65);
+                const c1x = w * 0.65 + Math.sin(time * 0.9) * w * 0.14;
+                const c1y = h * 0.45 + Math.cos(time * 0.75) * h * 0.12;
+                const c1r = w * (0.60 + Math.sin(time * 1.1) * 0.12);
+                const hGrad = ctx.createRadialGradient(c1x, c1y, 10, c1x, c1y, c1r);
                 hGrad.addColorStop(0, bgCfg.clouds[0].color);
                 hGrad.addColorStop(0.6, bgCfg.clouds[0].stop);
                 hGrad.addColorStop(1, 'transparent');
@@ -666,7 +669,10 @@ const ArmoryUI = {
                 ctx.fillRect(0, 0, w, h);
 
                 if (bgCfg.clouds[1]) {
-                    const hGrad2 = ctx.createRadialGradient(w * 0.25, h * 0.6, 5, w * 0.25, h * 0.6, w * 0.45);
+                    const c2x = w * 0.25 + Math.cos(time * 0.8) * w * 0.10;
+                    const c2y = h * 0.60 + Math.sin(time * 0.95) * h * 0.10;
+                    const c2r = w * (0.45 + Math.cos(time * 1.0) * 0.10);
+                    const hGrad2 = ctx.createRadialGradient(c2x, c2y, 5, c2x, c2y, c2r);
                     hGrad2.addColorStop(0, bgCfg.clouds[1].color);
                     hGrad2.addColorStop(1, 'transparent');
                     ctx.fillStyle = hGrad2;
@@ -1278,21 +1284,25 @@ const ArmoryUI = {
             ctx.fillStyle = `rgb(${br}, ${bg}, ${bb})`;
             ctx.fillRect(pad, pad, bw, bh);
 
-            // Cloud 1 - Drifting softly
-            const c1x = pad + bw * 0.35 + Math.sin(time * 0.8) * bw * 0.12;
-            const c1y = pad + bh * 0.40 + Math.cos(time * 0.6) * bh * 0.12;
-            const g1 = ctx.createRadialGradient(c1x, c1y, 2, c1x, c1y, bh * 0.75);
+            const t = time * 1.5;
+
+            // Cloud 1 - Drifting & breathing softly
+            const c1x = pad + bw * 0.35 + Math.sin(t * 0.85) * bw * 0.20;
+            const c1y = pad + bh * 0.40 + Math.cos(t * 0.70) * bh * 0.18;
+            const c1r = bh * (0.75 + Math.sin(t * 1.1) * 0.18);
+            const g1 = ctx.createRadialGradient(c1x, c1y, 2, c1x, c1y, c1r);
             g1.addColorStop(0, bgCfg.clouds[0].color);
             g1.addColorStop(0.65, bgCfg.clouds[0].stop);
             g1.addColorStop(1, 'transparent');
             ctx.fillStyle = g1;
             ctx.fillRect(pad, pad, bw, bh);
 
-            // Cloud 2 - Counter drifting
+            // Cloud 2 - Counter drifting & expanding
             if (bgCfg.clouds[1]) {
-                const c2x = pad + bw * 0.70 + Math.cos(time * 0.7) * bw * 0.12;
-                const c2y = pad + bh * 0.62 + Math.sin(time * 0.9) * bh * 0.12;
-                const g2 = ctx.createRadialGradient(c2x, c2y, 2, c2x, c2y, bh * 0.8);
+                const c2x = pad + bw * 0.68 + Math.cos(t * 0.75) * bw * 0.20;
+                const c2y = pad + bh * 0.62 + Math.sin(t * 0.85) * bh * 0.18;
+                const c2r = bh * (0.80 + Math.cos(t * 0.95) * 0.18);
+                const g2 = ctx.createRadialGradient(c2x, c2y, 2, c2x, c2y, c2r);
                 g2.addColorStop(0, bgCfg.clouds[1].color);
                 g2.addColorStop(0.65, bgCfg.clouds[1].stop);
                 g2.addColorStop(1, 'transparent');
@@ -1302,24 +1312,26 @@ const ArmoryUI = {
 
             // Cloud 3 - Center depth
             if (bgCfg.clouds[2]) {
-                const c3x = pad + bw * 0.50;
-                const c3y = pad + bh * 0.48;
-                const g3 = ctx.createRadialGradient(c3x, c3y, 2, c3x, c3y, bh * 0.65);
+                const c3x = pad + bw * 0.50 + Math.sin(t * 0.5) * bw * 0.12;
+                const c3y = pad + bh * 0.48 + Math.cos(t * 0.6) * bh * 0.12;
+                const c3r = bh * (0.65 + Math.sin(t * 1.3) * 0.18);
+                const g3 = ctx.createRadialGradient(c3x, c3y, 2, c3x, c3y, c3r);
                 g3.addColorStop(0, bgCfg.clouds[2].color);
+                g3.addColorStop(0.60, bgCfg.clouds[2].stop);
                 g3.addColorStop(1, 'transparent');
                 ctx.fillStyle = g3;
                 ctx.fillRect(pad, pad, bw, bh);
             }
 
-            // Ambient Cosmic Dust motes (faint, soft, out-of-focus)
+            // Ambient Cosmic Dust motes (faint, soft, out-of-focus, drifting upward)
             ctx.fillStyle = bgCfg.dustColor || 'rgba(255, 255, 255, 0.2)';
             for (let i = 0; i < 9; i++) {
-                const dx = pad + ((i * 37 + time * 14) % bw);
-                const dy = pad + ((i * 47) % bh);
-                const da = 0.15 + (i % 3) * 0.12;
-                ctx.globalAlpha = da;
+                const dx = pad + ((i * 37 + time * 18) % bw);
+                const dy = pad + ((i * 47 - time * 24 + bh * 10) % bh);
+                const da = 0.18 + Math.sin(time * 3 + i) * 0.12;
+                ctx.globalAlpha = Math.max(0.06, da);
                 ctx.beginPath();
-                ctx.arc(dx, dy, 1.2, 0, Math.PI * 2);
+                ctx.arc(dx, dy, 1.3, 0, Math.PI * 2);
                 ctx.fill();
             }
             ctx.globalAlpha = 1;
