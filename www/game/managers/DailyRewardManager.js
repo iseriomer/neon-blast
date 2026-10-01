@@ -7,13 +7,13 @@ class DailyRewardManager {
 
     // 7-Day Reward Cycle (repeats after day 7)
     static REWARDS = [
-        { day: 1, coins: 50,  label: '50 Coin',        icon: '💰', special: false },
-        { day: 2, coins: 100, label: '100 Coin',       icon: '💰', special: false },
-        { day: 3, coins: 150, label: '150 Coin',       icon: '💰', special: false },
-        { day: 4, coins: 200, label: '200 Coin',       icon: '🔥', special: false },
-        { day: 5, coins: 0,   label: 'GÜMÜŞ SANDIK',   icon: '🎁', special: 'pack_alpha' },
-        { day: 6, coins: 300, label: '300 Coin',       icon: '⚡', special: false },
-        { day: 7, coins: 0,   label: 'ALTIN SANDIK ★', icon: '👑', special: 'pack_quantum' }
+        { day: 1, coins: 50,  label: '50 Coin',        iconKey: 'coin',      special: false },
+        { day: 2, coins: 100, label: '100 Coin',       iconKey: 'coin',      special: false },
+        { day: 3, coins: 150, label: '150 Coin',       iconKey: 'coin_stack', special: false },
+        { day: 4, coins: 200, label: '200 Coin',       iconKey: 'fire',      special: false },
+        { day: 5, coins: 0,   label: 'GÜMÜŞ SANDIK',   iconKey: 'crate',     special: 'pack_alpha' },
+        { day: 6, coins: 300, label: '300 Coin',       iconKey: 'lightning', special: false },
+        { day: 7, coins: 0,   label: 'ALTIN SANDIK ★', iconKey: 'crown',     special: 'pack_quantum' }
     ];
 
     static state = {
@@ -85,6 +85,9 @@ class DailyRewardManager {
         const reward = this.REWARDS[dayIndex];
         const streakDay = this.state.currentStreak + 1;
 
+        const getIcon = (key, size = 20) => typeof IconSystem !== 'undefined' ? IconSystem.get(key, { size }) : '';
+        const checkIcon = typeof IconSystem !== 'undefined' ? IconSystem.get('check', { size: 16, color: '#22c55e' }) : '✓';
+
         // Build day indicators
         let daysHTML = '';
         for (let i = 0; i < 7; i++) {
@@ -92,31 +95,39 @@ class DailyRewardManager {
             const isCurrent = (i === dayIndex);
             const isPast = (i < dayIndex);
             const statusClass = isCurrent ? 'current' : (isPast ? 'claimed' : 'locked');
+            const daySvg = isPast ? checkIcon : getIcon(r.iconKey, 20);
 
             daysHTML += `
                 <div class="dr-day ${statusClass}">
                     <div class="dr-day-num">GÜN ${i + 1}</div>
-                    <div class="dr-day-icon">${isPast ? '✅' : r.icon}</div>
+                    <div class="dr-day-icon">${daySvg}</div>
                     <div class="dr-day-label">${r.label}</div>
                 </div>
             `;
         }
 
+        const streakIcon = getIcon('fire', 16);
+        const rewardHighlightSvg = getIcon(reward.iconKey, 34);
+        const boltSvg = getIcon('lightning', 18);
+
         modal.innerHTML = `
             <div class="dr-card">
                 <div class="dr-header">
-                    <div class="dr-streak-badge">${streakDay}. GÜN 🔥</div>
+                    <div class="dr-streak-badge">
+                        ${streakIcon}
+                        <span>${streakDay}. GÜN SERİSİ</span>
+                    </div>
                     <h2 class="dr-title">GÜNLÜK ÖDÜL</h2>
                 </div>
                 <div class="dr-days-grid">${daysHTML}</div>
                 <div class="dr-reward-highlight">
-                    <span class="dr-reward-icon">${reward.icon}</span>
+                    <span class="dr-reward-icon">${rewardHighlightSvg}</span>
                     <span class="dr-reward-text">${reward.label}</span>
                 </div>
                 <div class="dr-actions">
                     <button class="main-btn dr-claim-btn" id="dr-claim-btn">TOPLA</button>
                     <button class="main-btn dr-double-btn" id="dr-double-btn">
-                        ⚡ 2X ÖDÜL (REKLAM İZLE)
+                        ${boltSvg} <span>2X ÖDÜL (REKLAM İZLE)</span>
                     </button>
                 </div>
                 <button class="dr-close-btn" id="dr-close-btn">SONRA</button>

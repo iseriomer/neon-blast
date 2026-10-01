@@ -32,8 +32,13 @@ function updateShieldIndicator(shield) {
     shieldIndicatorEl.innerHTML = '';
     for (let i = 0; i < shield; i++) {
         const shieldIcon = document.createElement('div');
-        shieldIcon.innerText = '🛡️';
-        shieldIcon.style.filter = 'drop-shadow(0 0 5px cyan)';
+        shieldIcon.className = 'hud-shield-item';
+        if (typeof IconSystem !== 'undefined') {
+            shieldIcon.innerHTML = IconSystem.get('shield', { size: 22, color: '#00ffff' });
+        } else {
+            shieldIcon.innerText = '🛡️';
+        }
+        shieldIcon.style.filter = 'drop-shadow(0 0 6px rgba(0, 255, 255, 0.8))';
         shieldIndicatorEl.appendChild(shieldIcon);
     }
 }

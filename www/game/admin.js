@@ -3,16 +3,16 @@
 // 1. Panelin HTML Yapısı
 const ADMIN_HTML = `
     <div id="admin-panel" class="hidden">
-        <h3>🛠️ ADMIN PANEL</h3>
+        <h3>[SYSTEM ADMIN]</h3>
         <div class="admin-grid">
-            <button onclick="adminGodMode()" id="btn-godmode">🛡️ God Mode: OFF</button>
-            <button onclick="adminLevelUp()">⬆️ Level Up</button>
-            <button onclick="adminKillAll()">💀 Kill All</button>
-            <button onclick="adminAddScore()">💰 +5000 Score</button>
-            <button onclick="adminMaxFireRate()">🔫 Machine Gun</button>
-            <button onclick="adminSpawnSpawner()">Spawn Spawner</button>
-            <button onclick="adminSpawnBoss()">😈 Spawn Boss</button>
-            <button onclick="adminToggleCluster()">💣 Cluster Test (+5)</button>
+            <button onclick="adminGodMode()" id="btn-godmode">GOD MODE: OFF</button>
+            <button onclick="adminLevelUp()">LEVEL UP</button>
+            <button onclick="adminKillAll()">KILL ALL</button>
+            <button onclick="adminAddScore()">+5000 SCORE</button>
+            <button onclick="adminMaxFireRate()">MAX FIRE RATE</button>
+            <button onclick="adminSpawnSpawner()">SPAWN SPAWNER</button>
+            <button onclick="adminSpawnBoss()">SPAWN BOSS</button>
+            <button onclick="adminToggleCluster()">CLUSTER TEST</button>
         </div>
         <div class="admin-info">Panel: <b>"H"</b> Key</div>
     </div>
@@ -67,13 +67,13 @@ function adminGodMode() {
     const btn = document.getElementById('btn-godmode');
 
     if (gameState.godMode) {
-        btn.innerText = "🛡️ God Mode: ON";
+        btn.innerText = "GOD MODE: ON";
         btn.style.background = "#00ff00";
         btn.style.color = "black";
         gameState.playerStats.shield = 999;
         updateShieldIndicator(999);
     } else {
-        btn.innerText = "🛡️ God Mode: OFF";
+        btn.innerText = "GOD MODE: OFF";
         btn.style.background = "#003300";
         btn.style.color = "#00ff00";
         gameState.playerStats.shield = gameState.playerStats.maxShields;

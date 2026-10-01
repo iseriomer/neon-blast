@@ -1126,8 +1126,10 @@ function gameOver() {
         }
         if (doubleCoinBtn) {
             doubleCoinBtn.style.display = earnedCoins > 0 ? 'inline-flex' : 'none';
-            doubleCoinBtn.disabled = false;
-            doubleCoinBtn.innerHTML = `<span>⚡</span> <span data-i18n="double_coins">${Localization.t('double_coins_btn') || '2X COINS (WATCH AD)'}</span>`;
+            const lightningSvg = typeof IconSystem !== 'undefined'
+                ? IconSystem.get('lightning', { size: 18, color: '#fbbf24' })
+                : '<svg width="18" height="18" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" fill="#fbbf24"/></svg>';
+            doubleCoinBtn.innerHTML = `<span>${lightningSvg}</span> <span data-i18n="double_coins">${Localization.t('double_coins_btn') || '2X COINS (WATCH AD)'}</span>`;
         }
     }
 

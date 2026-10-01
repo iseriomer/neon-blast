@@ -6,14 +6,14 @@ class LuckySpinManager {
     static MAX_AD_SPINS = 3; // Extra spins via ads per day
 
     static WHEEL_ITEMS = [
-        { label: '50 Coin',       coins: 50,    weight: 25, color: '#475569', icon: '🪙' },
-        { label: '100 Coin',      coins: 100,   weight: 20, color: '#0891b2', icon: '💰' },
-        { label: '200 Coin',      coins: 200,   weight: 15, color: '#7c3aed', icon: '💎' },
-        { label: '500 Coin',      coins: 500,   weight: 5,  color: '#f59e0b', icon: '🔥' },
-        { label: '150 Coin',      coins: 150,   weight: 18, color: '#059669', icon: '⚡' },
-        { label: '75 Coin',       coins: 75,    weight: 22, color: '#6366f1', icon: '✨' },
-        { label: '300 Coin',      coins: 300,   weight: 8,  color: '#ec4899', icon: '🎯' },
-        { label: '1000 COİN!',    coins: 1000,  weight: 2,  color: '#eab308', icon: '👑' },
+        { label: '50',    coins: 50,    weight: 25, color: '#0f172a', accent: '#00f0ff', border: 'rgba(0,240,255,0.3)' },
+        { label: '100',   coins: 100,   weight: 20, color: '#111827', accent: '#38bdf8', border: 'rgba(56,189,248,0.3)' },
+        { label: '200',   coins: 200,   weight: 15, color: '#1e1b4b', accent: '#c084fc', border: 'rgba(192,132,252,0.3)' },
+        { label: '500',   coins: 500,   weight: 5,  color: '#311042', accent: '#f43f5e', border: 'rgba(244,63,94,0.4)' },
+        { label: '150',   coins: 150,   weight: 18, color: '#064e3b', accent: '#34d399', border: 'rgba(52,211,153,0.3)' },
+        { label: '75',    coins: 75,    weight: 22, color: '#1e293b', accent: '#818cf8', border: 'rgba(129,140,248,0.3)' },
+        { label: '300',   coins: 300,   weight: 8,  color: '#451a03', accent: '#fbbf24', border: 'rgba(251,191,36,0.3)' },
+        { label: '1000 ★', coins: 1000, weight: 2,  color: '#581c87', accent: '#facc15', border: 'rgba(250,204,21,0.6)' },
     ];
 
     static state = {
@@ -75,11 +75,18 @@ class LuckySpinManager {
         const canAd = this.canAdSpin();
         const remainingAd = this.MAX_AD_SPINS - (this.state.lastAdSpinDate === this.getTodayStr() ? this.state.adSpinsUsedToday : 0);
 
+        const wheelSvg = typeof IconSystem !== 'undefined'
+            ? IconSystem.get('wheel', { size: 24, color: '#00f0ff' })
+            : '';
+
         modal.innerHTML = `
             <div class="ls-card">
-                <h2 class="ls-title">🎰 ŞANS ÇARKI</h2>
+                <h2 class="ls-title">
+                    ${wheelSvg}
+                    <span>ŞANS ÇARKI</span>
+                </h2>
                 <div class="ls-wheel-container">
-                    <div class="ls-pointer">▼</div>
+                    <div class="ls-pointer"><svg width="24" height="24" viewBox="0 0 24 24" style="filter: drop-shadow(0 0 6px #f59e0b);"><polygon points="4,4 20,4 12,22" fill="#f59e0b" stroke="#ffffff" stroke-width="1.5" stroke-linejoin="round"/></svg></div>
                     <canvas id="ls-wheel-canvas" width="300" height="300"></canvas>
                 </div>
                 <div class="ls-result hidden" id="ls-result">
@@ -88,12 +95,12 @@ class LuckySpinManager {
                 </div>
                 <div class="ls-actions">
                     ${hasFree
-                        ? `<button class="main-btn ls-spin-btn" id="ls-free-spin">ÜCRETSİZ ÇEVİR 🎲</button>`
-                        : `<div class="ls-free-used">Günlük ücretsiz hak kullanıldı ✅</div>`
+                        ? `<button class="main-btn ls-spin-btn" id="ls-free-spin">ÜCRETSİZ ÇEVİR</button>`
+                        : `<div class="ls-free-used">GÜNLÜK ÜCRETSİZ HAK KULLANILDI</div>`
                     }
                     ${canAd
-                        ? `<button class="main-btn ls-ad-spin-btn" id="ls-ad-spin">REKLAM İZLE → ÇEVİR (${remainingAd} hak)</button>`
-                        : `<div class="ls-ad-used">Reklam hakları tükendi</div>`
+                        ? `<button class="main-btn ls-ad-spin-btn" id="ls-ad-spin">REKLAM İZLE → ÇEVİR (${remainingAd} HAK)</button>`
+                        : `<div class="ls-ad-used">REKLAM HAKLARI TÜKENDİ</div>`
                     }
                 </div>
                 <button class="ls-close-btn" id="ls-close-btn">KAPAT</button>
@@ -154,6 +161,13 @@ class LuckySpinManager {
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+        // Draw outer neon rim
+        ctx.beginPath();
+        ctx.arc(cx, cy, r + 4, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.4)';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
         // Draw slices
         for (let i = 0; i < items.length; i++) {
             const startAngle = rotation + (i * sliceAngle);
@@ -165,37 +179,65 @@ class LuckySpinManager {
             ctx.closePath();
             ctx.fillStyle = items[i].color;
             ctx.fill();
-            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
-            ctx.lineWidth = 2;
+
+            // Neon border between slices
+            ctx.strokeStyle = items[i].border || 'rgba(255,255,255,0.15)';
+            ctx.lineWidth = 1.5;
             ctx.stroke();
 
-            // Text
+            // Content inside slice
             ctx.save();
             ctx.translate(cx, cy);
             ctx.rotate(startAngle + sliceAngle / 2);
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 13px "Segoe UI", sans-serif';
+
+            // Draw a neat neon credit coin glyph on canvas
+            const iconDist = r * 0.52;
+            ctx.beginPath();
+            ctx.arc(iconDist, 0, 7.5, 0, Math.PI * 2);
+            ctx.fillStyle = items[i].accent;
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.font = 'bold 8.5px "Segoe UI", sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText(items[i].icon, r * 0.55, 5);
-            ctx.font = '10px "Segoe UI", sans-serif';
-            ctx.fillText(items[i].label, r * 0.78, 5);
+            ctx.textBaseline = 'middle';
+            ctx.fillText('N', iconDist, 0.5);
+
+            // Amount text
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 11px "Segoe UI", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.shadowColor = items[i].accent;
+            ctx.shadowBlur = 6;
+            ctx.fillText(items[i].label + ' COIN', r * 0.80, 0);
+            ctx.shadowBlur = 0;
+
             ctx.restore();
         }
 
-        // Center circle
+        // Center hub - futuristic cyber dial
         ctx.beginPath();
-        ctx.arc(cx, cy, 22, 0, Math.PI * 2);
-        ctx.fillStyle = '#0f172a';
+        ctx.arc(cx, cy, 26, 0, Math.PI * 2);
+        ctx.fillStyle = '#05050f';
         ctx.fill();
-        ctx.strokeStyle = '#00f0ff';
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.8)';
         ctx.lineWidth = 3;
         ctx.stroke();
 
+        // Inner glowing core
+        ctx.beginPath();
+        ctx.arc(cx, cy, 14, 0, Math.PI * 2);
         ctx.fillStyle = '#00f0ff';
-        ctx.font = 'bold 16px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('🎰', cx, cy);
+        ctx.shadowColor = '#00f0ff';
+        ctx.shadowBlur = 12;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // Center white point
+        ctx.beginPath();
+        ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
     }
 
     static executeSpin() {
@@ -206,9 +248,7 @@ class LuckySpinManager {
         const items = this.WHEEL_ITEMS;
         const sliceAngle = (Math.PI * 2) / items.length;
 
-        // Calculate final rotation: multiple full rotations + land on winIndex
-        // Pointer is at top (12 o'clock = -PI/2), so we need the winning slice to align there
-        const fullSpins = 5 + Math.floor(Math.random() * 3); // 5-7 full rotations
+        const fullSpins = 5 + Math.floor(Math.random() * 3);
         const targetAngle = -(winIndex * sliceAngle) - (sliceAngle / 2) - (Math.PI / 2);
         const finalRotation = (fullSpins * Math.PI * 2) + targetAngle;
 
@@ -242,7 +282,6 @@ class LuckySpinManager {
                 this.isSpinning = false;
                 const reward = items[winIndex];
 
-                // Give reward
                 if (typeof CosmeticsManager !== 'undefined') {
                     CosmeticsManager.addCoins(reward.coins);
                 }
@@ -255,12 +294,13 @@ class LuckySpinManager {
                 if (resultEl) {
                     const iconEl = document.getElementById('ls-result-icon');
                     const textEl = document.getElementById('ls-result-text');
-                    if (iconEl) iconEl.innerText = reward.icon;
+                    if (iconEl && typeof IconSystem !== 'undefined') {
+                        iconEl.innerHTML = IconSystem.get('coin', { size: 32 });
+                    }
                     if (textEl) textEl.innerText = `+${reward.coins} NEON COIN!`;
                     resultEl.classList.remove('hidden');
                 }
 
-                // Refresh buttons after delay
                 setTimeout(() => this.showWheel(), 2000);
             }
         };

@@ -379,23 +379,217 @@ button.main-btn:active {
 
 
 
+.perk-card-top {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    width: 100%;
+}
+
+.perk-icon-slot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 58px;
+    height: 58px;
+    border-radius: 12px;
+    background: radial-gradient(circle, rgba(0, 240, 255, 0.12) 0%, rgba(10, 10, 25, 0.8) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: inset 0 0 14px rgba(0, 0, 0, 0.8), 0 0 12px rgba(0, 240, 255, 0.15);
+    transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.perk-card:hover .perk-icon-slot {
+    transform: scale(1.12);
+    border-color: var(--perk-theme, #00f0ff);
+    box-shadow: 0 0 20px var(--perk-theme, #00f0ff), inset 0 0 8px rgba(255, 255, 255, 0.2);
+}
+
+.perk-card-icon-svg {
+    filter: drop-shadow(0 0 8px currentColor);
+    transition: transform 0.2s ease;
+}
+
 .perk-title {
-    font-size: 1.8rem;
+    font-size: 1.4rem;
     font-weight: bold;
     color: var(--perk-theme);
     filter: brightness(1.5);
-    margin-bottom: 15px;
+    margin-bottom: 8px;
     text-transform: uppercase;
-    border-bottom: 2px solid #555;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.15);
     padding-bottom: 5px;
     text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    width: 100%;
 }
 
 .perk-desc {
-    font-size: 1rem;
+    font-size: 0.95rem;
     color: #ccc;
     line-height: 1.4;
     font-family: monospace;
+}
+
+/* Perk Reroll Button (Rewarded Ad System) */
+.perk-reroll-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 24px;
+    padding: 12px 28px;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.22), rgba(0, 240, 255, 0.15));
+    border: 2px solid #a855f7;
+    border-radius: 10px;
+    color: #ffffff;
+    font-family: 'Rajdhani', monospace, sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.35), inset 0 0 12px rgba(168, 85, 247, 0.2);
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.perk-reroll-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transform: skewX(-25deg);
+    transition: left 0.6s ease;
+}
+
+.perk-reroll-btn:hover::before {
+    left: 150%;
+}
+
+.perk-reroll-btn:hover {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.45), rgba(0, 240, 255, 0.35));
+    border-color: #00f0ff;
+    box-shadow: 0 0 30px rgba(0, 240, 255, 0.6), inset 0 0 16px rgba(0, 240, 255, 0.3);
+    transform: translateY(-2px);
+    color: #ffffff;
+}
+
+.perk-reroll-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 0 12px rgba(0, 240, 255, 0.4);
+}
+
+.perk-reroll-btn.disabled,
+.perk-reroll-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+    filter: grayscale(0.8);
+}
+
+.reroll-icon-slot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    filter: drop-shadow(0 0 6px currentColor);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.perk-reroll-btn:hover .reroll-icon-slot {
+    transform: rotate(180deg);
+}
+
+.reroll-tag {
+    font-size: 0.68rem;
+    font-weight: 900;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: #a855f7;
+    color: #ffffff;
+    letter-spacing: 1px;
+    box-shadow: 0 0 8px rgba(168, 85, 247, 0.7);
+}
+
+.reroll-tag.free {
+    background: #00f0ff;
+    color: #050510;
+    box-shadow: 0 0 8px rgba(0, 240, 255, 0.7);
+}
+
+/* HUD Shields Vector Animation */
+.hud-shield-item {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 2px;
+    filter: drop-shadow(0 0 6px #00f0ff);
+    animation: shieldGlowPulse 2s infinite alternate ease-in-out;
+}
+
+@keyframes shieldGlowPulse {
+    0% { filter: drop-shadow(0 0 4px #00f0ff); transform: scale(1); }
+    100% { filter: drop-shadow(0 0 10px #00f0ff) drop-shadow(0 0 16px rgba(0, 240, 255, 0.4)); transform: scale(1.05); }
+}
+
+/* Quest & Reward Vector Icons */
+.quest-icon-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: rgba(0, 240, 255, 0.08);
+    border: 1px solid rgba(0, 240, 255, 0.25);
+    flex-shrink: 0;
+    box-shadow: inset 0 0 8px rgba(0, 240, 255, 0.1);
+}
+
+.quest-reward {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* General SVG Icon Integrations */
+.engage-icon-slot,
+.tab-icon-slot,
+.modal-title-icon-slot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    margin-right: 6px;
+    filter: drop-shadow(0 0 6px currentColor);
+}
+
+.dr-day-icon,
+.dr-reward-icon,
+.ls-result-icon,
+.pp-icon,
+.cp-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 6px 0;
+}
+
+.dr-reward-icon svg,
+.ls-result-icon svg,
+.pp-icon svg,
+.cp-icon svg {
+    filter: drop-shadow(0 0 10px rgba(0, 240, 255, 0.5));
 }
 
 .hidden {

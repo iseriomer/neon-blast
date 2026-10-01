@@ -17,68 +17,68 @@ class PremiumStoreManager {
     static PRODUCTS = {
         remove_ads: {
             id: 'remove_ads',
-            name: '⚡ REKLAM KALDIR',
+            name: 'REKLAMSIZ VIP',
             description: 'Tüm interstitial reklamları kaldır. Rewarded reklamlar opsiyonel kalır. Her oturum +100 bonus coin.',
             price: '$2.99',
             priceValue: 2.99,
             type: 'non_consumable',
-            icon: '🚫',
+            iconKey: 'ad_free',
             badge: 'EN POPÜLER',
-            benefits: ['Interstitial reklam YOK', 'Her oyun +100 bonus coin', 'VIP rozeti (Leaderboard)']
+            benefits: ['Interstitial reklam YOK', 'Her oyun +100 bonus coin', 'VIP rozeti (Leaderboard)', 'Ücretsiz sınırsız Reroll']
         },
         starter_pack: {
             id: 'starter_pack',
-            name: '🎁 BAŞLANGIÇ PAKETİ',
+            name: 'BAŞLANGIÇ PAKETİ',
             description: '1000 Neon Coin + 1 Altın Sandık + Özel "Neon Dragon" çekirdeği. SINIRLI SÜRE!',
             price: '$1.99',
             priceValue: 1.99,
             type: 'non_consumable',
-            icon: '🎁',
+            iconKey: 'crate',
             badge: 'SINIRLI SÜRE',
             benefits: ['1000 Neon Coin', '1 Altın Sandık', '"Neon Dragon" çekirdeği (ÖZEL)'],
             timeLimit: 72 * 60 * 60 * 1000 // 72 hours
         },
         coin_500: {
             id: 'coin_500',
-            name: '💰 500 Neon Coin',
+            name: '500 Neon Coin',
             description: '500 Neon Coin satın al.',
             price: '$0.99',
             priceValue: 0.99,
             type: 'consumable',
-            icon: '💰',
+            iconKey: 'coin',
             badge: '',
             coins: 500
         },
         coin_1500: {
             id: 'coin_1500',
-            name: '💎 1500 Neon Coin',
+            name: '1500 Neon Coin',
             description: '1500 Neon Coin. %20 bonus!',
             price: '$2.49',
             priceValue: 2.49,
             type: 'consumable',
-            icon: '💎',
+            iconKey: 'coin_stack',
             badge: '%20 BONUS',
             coins: 1500
         },
         coin_5000: {
             id: 'coin_5000',
-            name: '👑 5000 Neon Coin',
+            name: '5000 Neon Coin',
             description: '5000 Neon Coin. EN DEĞERLİ PAKETİ!',
             price: '$4.99',
             priceValue: 4.99,
             type: 'consumable',
-            icon: '👑',
+            iconKey: 'crown',
             badge: 'EN DEĞERLİ',
             coins: 5000
         },
         premium_cosmetic_pack: {
             id: 'premium_cosmetic_pack',
-            name: '🌟 PREMIUM KOZMETİK SETİ',
+            name: 'PREMIUM KOZMETİK SETİ',
             description: 'Özel 3 premium kozmetik: Neon Dragon Core, Plasma Storm Mermi, Cyber City Arka Plan.',
             price: '$3.99',
             priceValue: 3.99,
             type: 'non_consumable',
-            icon: '🌟',
+            iconKey: 'gem',
             badge: 'ÖZEL',
             benefits: ['Neon Dragon çekirdeği', 'Plasma Storm mermisi', 'Cyber City arka planı'],
             cosmetics: ['core_dragon', 'proj_storm', 'bg_cybercity']
@@ -267,6 +267,10 @@ class PremiumStoreManager {
 
         let html = '';
 
+        const getIcon = (key, size = 32) => typeof IconSystem !== 'undefined' ? IconSystem.get(key, { size }) : '';
+        const checkIcon = typeof IconSystem !== 'undefined' ? IconSystem.get('check', { size: 16, color: '#22c55e' }) : '✓';
+        const timerIcon = typeof IconSystem !== 'undefined' ? IconSystem.get('timer', { size: 16, color: '#ef4444' }) : '';
+
         // Starter Pack (with countdown if available)
         const starterPack = this.PRODUCTS.starter_pack;
         if (!this.state.starterPackBought) {
@@ -275,11 +279,11 @@ class PremiumStoreManager {
                 html += `
                     <div class="premium-product-card starter-pack-card">
                         <div class="pp-badge pulse-badge">${starterPack.badge}</div>
-                        <div class="pp-timer">⏱️ ${this.formatTimeLeft(timeLeft)}</div>
-                        <div class="pp-icon">${starterPack.icon}</div>
+                        <div class="pp-timer">${timerIcon} ${this.formatTimeLeft(timeLeft)}</div>
+                        <div class="pp-icon">${getIcon(starterPack.iconKey, 48)}</div>
                         <h3 class="pp-name">${starterPack.name}</h3>
                         <ul class="pp-benefits">
-                            ${starterPack.benefits.map(b => `<li>✓ ${b}</li>`).join('')}
+                            ${starterPack.benefits.map(b => `<li>${checkIcon} ${b}</li>`).join('')}
                         </ul>
                         <button class="main-btn pp-buy-btn" data-product="starter_pack">
                             ${starterPack.price} İLE SATIN AL
@@ -294,13 +298,13 @@ class PremiumStoreManager {
         html += `
             <div class="premium-product-card ${this.state.adsRemoved ? 'purchased' : 'featured'}">
                 <div class="pp-badge">${removeAds.badge}</div>
-                <div class="pp-icon">${removeAds.icon}</div>
+                <div class="pp-icon">${getIcon(removeAds.iconKey, 48)}</div>
                 <h3 class="pp-name">${removeAds.name}</h3>
                 <ul class="pp-benefits">
-                    ${removeAds.benefits.map(b => `<li>✓ ${b}</li>`).join('')}
+                    ${removeAds.benefits.map(b => `<li>${checkIcon} ${b}</li>`).join('')}
                 </ul>
                 ${this.state.adsRemoved
-                    ? '<div class="pp-purchased">✅ SATIN ALINDI</div>'
+                    ? `<div class="pp-purchased">${checkIcon} SATIN ALINDI</div>`
                     : `<button class="main-btn pp-buy-btn" data-product="remove_ads">${removeAds.price} İLE SATIN AL</button>`
                 }
             </div>
@@ -312,26 +316,26 @@ class PremiumStoreManager {
         html += `
             <div class="premium-product-card ${cosmeticBought ? 'purchased' : ''}">
                 <div class="pp-badge">${cosmeticPack.badge}</div>
-                <div class="pp-icon">${cosmeticPack.icon}</div>
+                <div class="pp-icon">${getIcon(cosmeticPack.iconKey, 48)}</div>
                 <h3 class="pp-name">${cosmeticPack.name}</h3>
                 <ul class="pp-benefits">
-                    ${cosmeticPack.benefits.map(b => `<li>✓ ${b}</li>`).join('')}
+                    ${cosmeticPack.benefits.map(b => `<li>${checkIcon} ${b}</li>`).join('')}
                 </ul>
                 ${cosmeticBought
-                    ? '<div class="pp-purchased">✅ SATIN ALINDI</div>'
+                    ? `<div class="pp-purchased">${checkIcon} SATIN ALINDI</div>`
                     : `<button class="main-btn pp-buy-btn" data-product="premium_cosmetic_pack">${cosmeticPack.price} İLE SATIN AL</button>`
                 }
             </div>
         `;
 
         // Coin Packs
-        html += '<h3 class="coin-packs-header">💰 NEON COIN PAKETLERİ</h3>';
+        html += `<h3 class="coin-packs-header">${getIcon('coin', 20)} NEON COIN PAKETLERİ</h3>`;
         html += '<div class="coin-packs-grid">';
         ['coin_500', 'coin_1500', 'coin_5000'].forEach(id => {
             const p = this.PRODUCTS[id];
             html += `
                 <div class="coin-pack-card">
-                    <div class="cp-icon">${p.icon}</div>
+                    <div class="cp-icon">${getIcon(p.iconKey, 34)}</div>
                     <div class="cp-amount">${p.coins}</div>
                     <div class="cp-label">NEON COIN</div>
                     ${p.badge ? `<div class="cp-badge">${p.badge}</div>` : ''}

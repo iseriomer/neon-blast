@@ -6,13 +6,13 @@ class QuestManager {
 
     // Quest templates pool
     static QUEST_TEMPLATES = [
-        { id: 'play_games',    title: '🎮 {n} Oyun Oyna',         type: 'games_played',    targets: [3, 5, 7],    reward: [80, 120, 150] },
-        { id: 'reach_level',   title: '🏆 Level {n}\'e Ulaş',     type: 'max_level',       targets: [10, 15, 20, 25], reward: [100, 150, 200, 250] },
-        { id: 'kill_enemies',  title: '💀 {n} Düşman Öldür',      type: 'enemies_killed',  targets: [100, 200, 500],  reward: [80, 130, 200] },
-        { id: 'kill_boss',     title: '👹 {n} Boss Öldür',        type: 'bosses_killed',   targets: [1, 2, 3],    reward: [150, 250, 350] },
-        { id: 'earn_coins',    title: '💰 {n} Coin Kazan',        type: 'coins_earned',    targets: [200, 400, 600],  reward: [80, 120, 180] },
-        { id: 'use_perks',     title: '⚡ {n} Perk Seç',          type: 'perks_selected',  targets: [5, 10, 15],  reward: [60, 100, 150] },
-        { id: 'survive_min',   title: '⏱️ {n} Dakika Hayatta Kal', type: 'survive_seconds', targets: [120, 300, 600], reward: [100, 180, 280] },
+        { id: 'play_games',    title: '{n} Oyun Oyna',         iconKey: 'gamepad',   type: 'games_played',    targets: [3, 5, 7],    reward: [80, 120, 150] },
+        { id: 'reach_level',   title: 'Level {n}\'e Ulaş',     iconKey: 'trophy',    type: 'max_level',       targets: [10, 15, 20, 25], reward: [100, 150, 200, 250] },
+        { id: 'kill_enemies',  title: '{n} Düşman Yok Et',      iconKey: 'skull',     type: 'enemies_killed',  targets: [100, 200, 500],  reward: [80, 130, 200] },
+        { id: 'kill_boss',     title: '{n} Boss Yok Et',        iconKey: 'boss',      type: 'bosses_killed',   targets: [1, 2, 3],    reward: [150, 250, 350] },
+        { id: 'earn_coins',    title: '{n} Coin Kazan',        iconKey: 'coin',      type: 'coins_earned',    targets: [200, 400, 600],  reward: [80, 120, 180] },
+        { id: 'use_perks',     title: '{n} Perk Seç',          iconKey: 'lightning', type: 'perks_selected',  targets: [5, 10, 15],  reward: [60, 100, 150] },
+        { id: 'survive_min',   title: '{n} Saniye Hayatta Kal', iconKey: 'timer',     type: 'survive_seconds', targets: [120, 300, 600], reward: [100, 180, 280] },
     ];
 
     static state = {
@@ -74,6 +74,7 @@ class QuestManager {
             return {
                 templateId: template.id,
                 type: template.type,
+                iconKey: template.iconKey,
                 title: template.title.replace('{n}', template.targets[diffIdx]),
                 targetValue: template.targets[diffIdx],
                 reward: template.reward[diffIdx],
@@ -156,12 +157,21 @@ class QuestManager {
         }
 
         let html = '';
+        const getIcon = (key, size = 20) => typeof IconSystem !== 'undefined' ? IconSystem.get(key, { size }) : '';
+
         this.state.quests.forEach((quest, i) => {
             const pct = Math.min(100, Math.floor((quest.progress / quest.targetValue) * 100));
             const statusClass = quest.completed ? 'quest-done' : '';
+            const questIconSvg = getIcon(quest.iconKey || 'quests', 22);
+            const rewardIconSvg = quest.completed
+                ? getIcon('check', 18)
+                : `<span class="quest-coin-badge">${getIcon('coin', 16)} <strong>+${quest.reward}</strong></span>`;
 
             html += `
                 <div class="quest-row ${statusClass}">
+                    <div class="quest-icon-wrap">
+                        ${questIconSvg}
+                    </div>
                     <div class="quest-info">
                         <span class="quest-title">${quest.title}</span>
                         <div class="quest-progress-bar">
@@ -170,7 +180,7 @@ class QuestManager {
                         <span class="quest-progress-text">${Math.min(quest.progress, quest.targetValue)} / ${quest.targetValue}</span>
                     </div>
                     <div class="quest-reward">
-                        ${quest.completed ? '✅' : `+${quest.reward} 🪙`}
+                        ${rewardIconSvg}
                     </div>
                 </div>
             `;
@@ -180,7 +190,7 @@ class QuestManager {
         if (this.state.allCompleted && !this.state.bonusClaimed) {
             html += `
                 <div class="quest-bonus-row">
-                    <span>🎯 TÜM GÖREVLER TAMAMLANDI!</span>
+                    <span class="bonus-tag">${getIcon('star', 18)} TÜM GÖREVLER TAMAMLANDI!</span>
                     <button class="main-btn quest-bonus-btn" id="quest-bonus-claim">
                         BONUS SANDIK AL (REKLAM)
                     </button>
@@ -189,7 +199,7 @@ class QuestManager {
         } else if (this.state.bonusClaimed) {
             html += `
                 <div class="quest-bonus-row claimed">
-                    <span>🎯 BONUS ALINDI ✅</span>
+                    <span>${getIcon('check', 18)} BONUS ALINDI</span>
                 </div>
             `;
         }

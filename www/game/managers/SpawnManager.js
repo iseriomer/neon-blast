@@ -112,8 +112,16 @@ class SpawnManager {
         playSound('levelup');
         showLevelUpAnimation();
 
-        // 1. FILTER AVAILABLE PERKS
-        let availablePerks = ALL_PERKS.filter(p => {
+        setTimeout(() => {
+            levelUpScreen.classList.remove('hidden');
+            SpawnManager.rollPerks([]);
+        }, 500);
+    }
+
+    static currentOfferedPerks = [];
+
+    static getAvailablePerks() {
+        return ALL_PERKS.filter(p => {
             if (p.singleUse && gameState.takenPerks.includes(p.id)) return false;
             // Max Shield Check
             if (p.id === 'energy_shield' && gameState.playerStats.shield >= gameState.playerStats.maxShields) return false;
@@ -144,107 +152,157 @@ class SpawnManager {
 
             return true;
         });
+    }
 
-        // 2. SELECT 3 UNIQUE PERKS (Final Selection)
-        // Shuffle available perks
-        const shuffled = availablePerks.sort(() => 0.5 - Math.random());
-        // Pick top 3 (or fewer if not enough perks)
+    static rollPerks(excludedPerkIds = []) {
+        SpawnManager.clearAllIntervals();
+        perkListEl.innerHTML = '';
+
+        const availablePerks = SpawnManager.getAvailablePerks();
+
+        // Exclude perks that were just shown in previous roll
+        let candidates = availablePerks.filter(p => !excludedPerkIds.includes(p.id));
+        if (candidates.length < 3) {
+            const others = availablePerks.filter(p => !candidates.some(c => c.id === p.id));
+            candidates = candidates.concat(others);
+        }
+
+        const shuffled = candidates.sort(() => 0.5 - Math.random());
         const selectedPerks = shuffled.slice(0, 3);
+        SpawnManager.currentOfferedPerks = selectedPerks;
 
-        // 3. SHOW UI WITH PLACEHOLDERS
-        setTimeout(() => {
-            perkListEl.innerHTML = '';
-            levelUpScreen.classList.remove('hidden');
-
-            // Create card elements
-            const cardElements = [];
-
-            // We'll create 3 cards (or less)
-            for (let i = 0; i < selectedPerks.length; i++) {
-                const div = document.createElement('div');
-                div.className = 'perk-card perk-shuffling';
-                div.style.setProperty('--perk-theme', '#555');
-
-                div.style.animation = `cardEntry 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 0.08}s backwards`;
-
-                div.innerHTML = `
+        // Create card elements
+        const cardElements = [];
+        for (let i = 0; i < selectedPerks.length; i++) {
+            const div = document.createElement('div');
+            div.className = 'perk-card perk-shuffling';
+            div.style.setProperty('--perk-theme', '#555');
+            div.style.animation = `cardEntry 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 0.08}s backwards`;
+            div.innerHTML = `
+                <div class="perk-card-top">
+                    <div class="perk-icon-slot">
+                        <span class="perk-decrypt-scan"></span>
+                    </div>
                     <div class="perk-title" style="font-family: monospace;">INIT...</div>
-                    <div class="perk-desc">DECRYPTING...</div>
-                `;
-                div.style.pointerEvents = 'none';
-                perkListEl.appendChild(div);
-                cardElements.push(div);
-            }
+                </div>
+                <div class="perk-desc">DECRYPTING ARCHIVE...</div>
+            `;
+            div.style.pointerEvents = 'none';
+            perkListEl.appendChild(div);
+            cardElements.push(div);
+        }
 
-            // 4. SLOT MACHINE ANIMATION
-            const intervals = [];
-            const randomChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#@!%&";
+        // Slot machine decrypt animation
+        const intervals = [];
+        const randomChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#@!%&";
 
-            cardElements.forEach((card, index) => {
-                let tickCount = 0;
-                const interval = setInterval(() => {
-                    tickCount++;
-                    if (tickCount % 3 === 0) playSound('ui_tick');
+        cardElements.forEach((card, index) => {
+            let tickCount = 0;
+            const interval = setInterval(() => {
+                tickCount++;
+                if (tickCount % 3 === 0) playSound('ui_tick');
 
-                    const randomPerk = availablePerks[Math.floor(Math.random() * availablePerks.length)];
+                const randomPerk = availablePerks[Math.floor(Math.random() * availablePerks.length)];
+                if (randomPerk) {
+                    const randomColor = `hsl(${Math.random() * 360}, 70%, 50%)`;
+                    card.style.setProperty('--perk-theme', randomColor);
 
-                    if (randomPerk) {
-                        const randomColor = `hsl(${Math.random() * 360}, 70%, 50%)`;
-                        card.style.setProperty('--perk-theme', randomColor);
+                    let scrambledTitle = "";
+                    for (let k = 0; k < 10; k++) scrambledTitle += randomChars.charAt(Math.floor(Math.random() * randomChars.length));
 
-                        let scrambledTitle = "";
-                        for (let k = 0; k < 10; k++) scrambledTitle += randomChars.charAt(Math.floor(Math.random() * randomChars.length));
+                    const titleEl = card.querySelector('.perk-title');
+                    if (titleEl) titleEl.innerText = scrambledTitle;
+                }
+            }, 40);
+            intervals.push(interval);
+            SpawnManager.activeIntervals.push(interval);
+        });
 
-                        card.querySelector('.perk-title').innerText = scrambledTitle;
-                    }
-                }, 40);
-                intervals.push(interval);
-                SpawnManager.activeIntervals.push(interval);
-            });
+        // Stop cards one by one
+        selectedPerks.forEach((finalPerk, index) => {
+            setTimeout(() => {
+                clearInterval(intervals[index]);
+                const intervalIndex = SpawnManager.activeIntervals.indexOf(intervals[index]);
+                if (intervalIndex > -1) {
+                    SpawnManager.activeIntervals.splice(intervalIndex, 1);
+                }
 
-            // 5. STOP CARDS ONE BY ONE
-            selectedPerks.forEach((finalPerk, index) => {
-                setTimeout(() => {
-                    clearInterval(intervals[index]);
-                    const intervalIndex = SpawnManager.activeIntervals.indexOf(intervals[index]);
-                    if (intervalIndex > -1) {
-                        SpawnManager.activeIntervals.splice(intervalIndex, 1);
-                    }
+                const card = cardElements[index];
+                if (!card) return;
 
-                    const card = cardElements[index];
+                let displayDesc = Localization.t(finalPerk.desc);
+                if (finalPerk.id === 'orbitals') {
+                    displayDesc = Localization.t('perk_orbitals_desc_dynamic', { value: gameState.playerStats.orbitals });
+                } else if (finalPerk.id === 'split_shot') {
+                    displayDesc = Localization.t('perk_split_shot_desc_dynamic', { value: gameState.playerStats.splitShotCount });
+                }
 
-                    // Set Final Content
-                    let displayDesc = Localization.t(finalPerk.desc);
-                    if (finalPerk.id === 'orbitals') {
-                        displayDesc = Localization.t('perk_orbitals_desc_dynamic', { value: gameState.playerStats.orbitals });
-                    } else if (finalPerk.id === 'split_shot') {
-                        displayDesc = Localization.t('perk_split_shot_desc_dynamic', { value: gameState.playerStats.splitShotCount });
-                    }
+                if (finalPerk.theme) {
+                    card.style.setProperty('--perk-theme', finalPerk.theme);
+                }
 
-                    if (finalPerk.theme) {
-                        card.style.setProperty('--perk-theme', finalPerk.theme);
-                    }
+                let iconSvg = '';
+                if (typeof IconSystem !== 'undefined') {
+                    iconSvg = IconSystem.getPerkIcon(finalPerk.id, finalPerk.theme || '#00ffff', 28);
+                }
 
-                    card.innerHTML = `
+                card.innerHTML = `
+                    <div class="perk-card-top">
+                        <div class="perk-icon-slot">${iconSvg}</div>
                         <div class="perk-title">${Localization.t(finalPerk.title)}</div>
-                        <div class="perk-desc">${displayDesc}</div>
-                    `;
+                    </div>
+                    <div class="perk-desc">${displayDesc}</div>
+                `;
 
-                    // Remove shuffle effect and add lock-in effect
-                    card.classList.remove('perk-shuffling');
-                    card.classList.add('locked-in');
+                card.classList.remove('perk-shuffling');
+                card.classList.add('locked-in');
+                playSound('ui_lock');
 
-                    // Play Lock Sound
-                    playSound('ui_lock');
+                card.style.pointerEvents = 'auto';
+                card.onclick = () => SpawnManager.selectPerk(finalPerk);
 
-                    // Enable interaction
-                    card.style.pointerEvents = 'auto';
-                    card.onclick = () => SpawnManager.selectPerk(finalPerk);
+            }, 600 + (index * 250));
+        });
 
-                }, 800 + (index * 300));
-            });
+        // Setup Reroll button
+        const rerollBtn = document.getElementById('perk-reroll-btn');
+        const rerollText = document.getElementById('perk-reroll-text');
+        const rerollTag = rerollBtn ? rerollBtn.querySelector('.reroll-tag') : null;
+        if (rerollBtn) {
+            const isVip = (typeof PremiumStoreManager !== 'undefined' && !PremiumStoreManager.shouldShowInterstitial());
+            if (rerollText) {
+                rerollText.innerText = 'YENİDEN DAĞIT';
+            }
+            if (rerollTag) {
+                if (isVip) {
+                    rerollTag.innerText = 'VIP';
+                    rerollTag.classList.add('free');
+                } else {
+                    rerollTag.innerText = 'REKLAM';
+                    rerollTag.classList.remove('free');
+                }
+            }
+            rerollBtn.disabled = false;
+            rerollBtn.onclick = () => {
+                rerollBtn.disabled = true;
+                const currentIds = SpawnManager.currentOfferedPerks.map(p => p.id);
+                const executeReroll = () => {
+                    SpawnManager.rollPerks(currentIds);
+                };
 
-        }, 500);
+                if (isVip) {
+                    executeReroll();
+                } else if (typeof AdManager !== 'undefined') {
+                    AdManager.showRewardedAd({
+                        rewardType: 'PERK_REROLL',
+                        onSuccess: () => executeReroll(),
+                        onDismiss: () => { rerollBtn.disabled = false; }
+                    });
+                } else {
+                    executeReroll();
+                }
+            };
+        }
     }
 
     static selectPerk(perk) {
