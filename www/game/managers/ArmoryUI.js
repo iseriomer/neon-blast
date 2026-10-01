@@ -236,6 +236,10 @@ const ArmoryUI = {
         this.switchTab(this.currentTab);
     },
 
+    updateLanguage() {
+        this.renderCurrentView();
+    },
+
     updateHangarHUD() {
         const titleEl = document.getElementById('hangar-title');
         const badgeEl = document.getElementById('hangar-badge');
@@ -248,19 +252,19 @@ const ArmoryUI = {
         const isEquipped = (equippedId === this.inspectedItem.id);
 
         if (titleEl) {
-            titleEl.innerText = isUnlocked ? this.inspectedItem.name : '???';
+            titleEl.innerText = isUnlocked ? CosmeticsManager.getItemName(this.inspectedItem) : '???';
             titleEl.style.color = isUnlocked ? (this.inspectedItem.color || '#00f0ff') : '#94a3b8';
         }
 
         if (badgeEl) {
             if (isEquipped) {
-                badgeEl.innerText = 'KUŞANILDI';
+                badgeEl.innerText = (typeof Localization !== 'undefined' ? Localization.t('badge_equipped') : 'KUŞANILDI');
                 badgeEl.className = 'hangar-preview-badge';
             } else if (isUnlocked) {
-                badgeEl.innerText = 'ÖNİZLEME';
+                badgeEl.innerText = (typeof Localization !== 'undefined' ? Localization.t('badge_preview') : 'ÖNİZLEME');
                 badgeEl.className = 'hangar-preview-badge previewing';
             } else {
-                badgeEl.innerText = 'KİLİTLİ';
+                badgeEl.innerText = (typeof Localization !== 'undefined' ? Localization.t('badge_locked') : 'KİLİTLİ');
                 badgeEl.className = 'hangar-preview-badge';
                 badgeEl.style.borderColor = '#ef4444';
                 badgeEl.style.color = '#f87171';
@@ -269,6 +273,7 @@ const ArmoryUI = {
 
         if (quickBtn) {
             if (isUnlocked && !isEquipped) {
+                quickBtn.innerText = (typeof Localization !== 'undefined' ? Localization.t('btn_equip') : 'KUŞAN');
                 quickBtn.classList.remove('hidden');
             } else {
                 quickBtn.classList.add('hidden');
@@ -294,13 +299,17 @@ const ArmoryUI = {
             card.className = `armory-item-card rarity-${item.rarity.toLowerCase()} ${isUnlocked ? 'unlocked' : 'locked'} ${isEquipped ? 'is-equipped-active' : ''} ${isInspecting ? 'is-inspecting' : ''}`;
             card.setAttribute('data-id', item.id);
 
-            const displayName = isUnlocked ? item.name : '???';
-            const displayDesc = isUnlocked ? item.description : 'Sandık açarak kilidini açabilirsin.';
+            const displayName = isUnlocked ? CosmeticsManager.getItemName(item) : '???';
+            const displayDesc = isUnlocked ? CosmeticsManager.getItemDesc(item) : (typeof Localization !== 'undefined' ? Localization.t('locked_desc') : 'Sandık açarak kilidini açabilirsin.');
+            const activeText = typeof Localization !== 'undefined' ? Localization.t('badge_active') : 'AKTİF';
+            const equippedText = typeof Localization !== 'undefined' ? Localization.t('btn_equipped') : 'SEÇİLİ';
+            const equipText = typeof Localization !== 'undefined' ? Localization.t('btn_equip') : 'KUŞAN';
+            const lockedText = typeof Localization !== 'undefined' ? Localization.t('badge_locked') : 'KİLİTLİ';
 
             card.innerHTML = `
                 <div class="card-top-row">
                     <span class="card-rarity-tag ${item.rarity.toLowerCase()}">${item.rarity}</span>
-                    ${isEquipped ? `<span class="equipped-pill">AKTİF</span>` : ''}
+                    ${isEquipped ? `<span class="equipped-pill">${activeText}</span>` : ''}
                 </div>
                 <div class="card-icon-area">
                     <canvas class="card-item-canvas" data-id="${item.id}" width="220" height="120"></canvas>
@@ -312,10 +321,10 @@ const ArmoryUI = {
                 <div class="card-action">
                     ${isUnlocked ? (
                         isEquipped 
-                            ? `<button class="card-btn active-equipped-btn" disabled>SEÇİLİ</button>`
-                            : `<button class="card-btn equip-action-btn" data-cat="${category}" data-id="${item.id}">KUŞAN</button>`
+                            ? `<button class="card-btn active-equipped-btn" disabled>${equippedText}</button>`
+                            : `<button class="card-btn equip-action-btn" data-cat="${category}" data-id="${item.id}">${equipText}</button>`
                     ) : (
-                        `<button class="card-btn go-to-chest-btn" data-shop="true">KİLİTLİ</button>`
+                        `<button class="card-btn go-to-chest-btn" data-shop="true">${lockedText}</button>`
                     )}
                 </div>
             `;
@@ -382,22 +391,27 @@ const ArmoryUI = {
             const packCard = document.createElement('div');
             packCard.className = `cipher-pack-card pack-${pack.id} ${canAfford ? 'can-afford' : 'cannot-afford'}`;
 
+            const packName = CosmeticsManager.getPackName(pack);
+            const packGuarantee = CosmeticsManager.getPackGuarantee(pack);
+            const openText = typeof Localization !== 'undefined' ? Localization.t('btn_open') : 'AÇ';
+            const needCoinsText = typeof Localization !== 'undefined' ? Localization.t('ad_coins_badge') : '+150 COIN (REKLAM)';
+
             packCard.innerHTML = `
                 <div class="pack-badge">${pack.badge}</div>
                 <div class="pack-visual">
                     <canvas class="pack-pod-canvas" data-pack-id="${pack.id}" width="140" height="130"></canvas>
                 </div>
-                <h3 class="pack-name">${pack.name}</h3>
-                <div class="pack-guarantee">${pack.guarantee}</div>
+                <h3 class="pack-name">${packName}</h3>
+                <div class="pack-guarantee">${packGuarantee}</div>
                 <div class="pack-cost-row">
                     ${getNeonCoinSVG(20)}
                     <span class="cost-val">${pack.cost}</span>
                 </div>
                 <div class="pack-btn-stack">
                     ${canAfford ? (
-                        `<button class="main-btn pack-decrypt-btn" data-pack-id="${pack.id}">AÇ</button>`
+                        `<button class="main-btn pack-decrypt-btn" data-pack-id="${pack.id}">${openText}</button>`
                     ) : (
-                        `<button class="main-btn pack-need-coins-btn" data-pack-id="${pack.id}">+150 COIN (REKLAM)</button>`
+                        `<button class="main-btn pack-need-coins-btn" data-pack-id="${pack.id}">${needCoinsText}</button>`
                     )}
                 </div>
             `;
@@ -510,13 +524,13 @@ const ArmoryUI = {
                         <canvas id="reveal-canvas" width="180" height="140"></canvas>
                     </div>
 
-                    <h2 class="reveal-item-title">${item.name}</h2>
-                    <p class="reveal-item-desc">${result.duplicate ? `Tüm havuz açıldı — iade: +${result.refund} Coin` : item.description}</p>
+                    <h2 class="reveal-item-title">${CosmeticsManager.getItemName(item)}</h2>
+                    <p class="reveal-item-desc">${result.duplicate ? `+${result.refund} Coin` : CosmeticsManager.getItemDesc(item)}</p>
 
                     <div class="reveal-actions-stack">
-                        <button class="main-btn reveal-equip-now-btn" id="reveal-equip-btn">KUŞAN</button>
-                        <button class="main-btn reveal-ad-again-btn" id="reveal-ad-again-btn">BİR DAHA AÇ (REKLAM)</button>
-                        <button class="reveal-close-text-btn" id="reveal-close-btn">KAPAT</button>
+                        <button class="main-btn reveal-equip-now-btn" id="reveal-equip-btn">${typeof Localization !== 'undefined' ? Localization.t('btn_equip') : 'KUŞAN'}</button>
+                        <button class="main-btn reveal-ad-again-btn" id="reveal-ad-again-btn">${typeof Localization !== 'undefined' ? (Localization.t('open_again_ad') || 'BİR DAHA AÇ (REKLAM)') : 'BİR DAHA AÇ (REKLAM)'}</button>
+                        <button class="reveal-close-text-btn" id="reveal-close-btn">${typeof Localization !== 'undefined' ? Localization.t('close_btn') : 'KAPAT'}</button>
                     </div>
                 </div>
             `;
@@ -534,7 +548,9 @@ const ArmoryUI = {
                 equipBtn.addEventListener('click', () => {
                     if (!result.duplicate) {
                         CosmeticsManager.equip(item.type, item.id);
-                        this.showToast(`${item.name} kuşanıldı`, true);
+                        const itemName = CosmeticsManager.getItemName(item);
+                        const toastMsg = typeof Localization !== 'undefined' ? Localization.t('item_equipped_toast', { name: itemName }) : `${itemName} kuşanıldı`;
+                        this.showToast(toastMsg, true);
                     }
                     modal.classList.add('hidden');
                     this.isOpeningPack = false;

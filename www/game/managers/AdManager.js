@@ -63,37 +63,59 @@ const AdManager = {
 
     // Show a Rewarded Ad (Revive, Double Coins, Free Pack, Daily Reward, Quest Bonus, Lucky Spin, Perk Reroll)
     showRewardedAd(param1, param2) {
-        if (this.isAdPlaying) return;
+        if (this.isAdPlaying) {
+            console.warn('⚡ Ad already playing, ignoring redundant request');
+            return;
+        }
 
         const onReward = typeof param1 === 'function' ? param1 : (param1 && param1.onSuccess);
         const onCancel = typeof param2 === 'function' ? param2 : (param1 && param1.onDismiss);
+
+        this.isAdPlaying = true;
+
+        // Failsafe watchdog timer: ensure isAdPlaying is never stuck forever
+        const watchdog = setTimeout(() => {
+            if (this.isAdPlaying) {
+                console.warn('⚡ AdManager watchdog timeout triggered, releasing lock');
+                this.isAdPlaying = false;
+            }
+        }, 10000);
+
+        const safeReward = (reward) => {
+            clearTimeout(watchdog);
+            this.isAdPlaying = false;
+            if (onReward) onReward(reward);
+        };
+
+        const safeCancel = () => {
+            clearTimeout(watchdog);
+            this.isAdPlaying = false;
+            if (onCancel) onCancel();
+        };
 
         // Check for Native Capacitor AdMob plugin if running on real Android device
         if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
             const AdMob = window.Capacitor.Plugins.AdMob;
             try {
-                this.isAdPlaying = true;
-                AdMob.showRewardVideoAd()
+                AdMob.prepareRewardVideoAd({ adId: this.getRewardedAdId() })
+                    .then(() => AdMob.showRewardVideoAd())
                     .then((reward) => {
-                        this.isAdPlaying = false;
+                        safeReward(reward);
                         // Reload next rewarded ad in background
                         AdMob.prepareRewardVideoAd({ adId: this.getRewardedAdId() }).catch(() => {});
-                        if (onReward) onReward(reward);
                     })
                     .catch((err) => {
-                        console.warn('Native rewarded ad unavailable, falling back to simulated ad:', err);
-                        this.isAdPlaying = false;
-                        this._showSimulatedAd(onReward, onCancel);
+                        console.warn('Native rewarded ad unavailable (or no fill yet), falling back to instant simulation:', err);
+                        this._showSimulatedAd(safeReward, safeCancel);
                     });
                 return;
             } catch (e) {
                 console.warn('AdMob exception, falling back to simulation:', e);
-                this.isAdPlaying = false;
             }
         }
 
         // Standard / Web / Dev Simulation Overlay
-        this._showSimulatedAd(onReward, onCancel);
+        this._showSimulatedAd(safeReward, safeCancel);
     },
 
     // Show an Interstitial Ad (every 3rd game over, if user is not VIP)
@@ -103,37 +125,46 @@ const AdManager = {
             return;
         }
 
+        this.isAdPlaying = true;
+
+        const watchdog = setTimeout(() => {
+            if (this.isAdPlaying) {
+                this.isAdPlaying = false;
+            }
+        }, 8000);
+
+        const safeComplete = () => {
+            clearTimeout(watchdog);
+            this.isAdPlaying = false;
+            if (onComplete) onComplete();
+        };
+
         // Check for Native Capacitor AdMob
         if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
             const AdMob = window.Capacitor.Plugins.AdMob;
             try {
-                this.isAdPlaying = true;
-                AdMob.showInterstitial()
+                AdMob.prepareInterstitial({ adId: this.getInterstitialAdId() })
+                    .then(() => AdMob.showInterstitial())
                     .then(() => {
-                        this.isAdPlaying = false;
+                        safeComplete();
                         // Reload next interstitial in background
                         AdMob.prepareInterstitial({ adId: this.getInterstitialAdId() }).catch(() => {});
-                        if (onComplete) onComplete();
                     })
                     .catch((err) => {
                         console.warn('Native interstitial unavailable, falling back to simulation:', err);
-                        this.isAdPlaying = false;
-                        this._showSimulatedInterstitial(onComplete);
+                        this._showSimulatedInterstitial(safeComplete);
                     });
                 return;
             } catch (e) {
                 console.warn('Interstitial exception:', e);
-                this.isAdPlaying = false;
             }
         }
 
         // Web simulation: brief atmospheric banner then continue
-        this._showSimulatedInterstitial(onComplete);
+        this._showSimulatedInterstitial(safeComplete);
     },
 
     _showSimulatedInterstitial(onComplete) {
-        this.isAdPlaying = true;
-
         let overlay = document.getElementById('neon-interstitial-overlay');
         if (!overlay) {
             overlay = document.createElement('div');
@@ -142,30 +173,44 @@ const AdManager = {
             document.body.appendChild(overlay);
         }
 
+        // Fail-safe inline styles to guarantee visibility over any modal or canvas
+        Object.assign(overlay.style, {
+            position: 'fixed',
+            top: '0',
+            left: '0',
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(5, 5, 12, 0.95)',
+            zIndex: '99999999',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backdropFilter: 'blur(10px)',
+            webkitBackdropFilter: 'blur(10px)'
+        });
+
         overlay.innerHTML = `
             <div class="neon-ad-box interstitial-box">
-                <div class="ad-tag">REKLAM</div>
+                <div class="ad-tag">SPONSOR</div>
                 <div class="ad-terminal-scan">
                     <div class="scan-line"></div>
                 </div>
-                <h3 class="ad-title">SPONSOR MESAJI</h3>
-                <p class="ad-desc">Reklamsız deneyim için Premium'a geçin!</p>
+                <h3 class="ad-title">NEON BLAST VIP</h3>
+                <p class="ad-desc">Uninterrupted gameplay & exclusive perks await in the Armory!</p>
                 <div class="ad-timer-bar">
                     <div id="interstitial-progress" class="ad-progress-fill"></div>
                 </div>
-                <button id="interstitial-close-btn" class="ad-skip-btn" style="display:none;">KAPAT ✕</button>
+                <button id="interstitial-close-btn" class="ad-skip-btn" style="display:none;">CONTINUE ✕</button>
             </div>
         `;
 
-        overlay.style.display = 'flex';
-
         const progressFill = document.getElementById('interstitial-progress');
-        if (progressFill) progressFill.style.transition = 'width 3s linear';
+        if (progressFill) progressFill.style.transition = 'width 2.2s linear';
         setTimeout(() => {
             if (progressFill) progressFill.style.width = '100%';
         }, 30);
 
-        // Show close button after 3 seconds
+        // Show close button after 2.2 seconds
         setTimeout(() => {
             const closeBtn = document.getElementById('interstitial-close-btn');
             if (closeBtn) {
@@ -174,8 +219,11 @@ const AdManager = {
                     this._closeInterstitial(overlay);
                     if (onComplete) onComplete();
                 };
+            } else {
+                this._closeInterstitial(overlay);
+                if (onComplete) onComplete();
             }
-        }, 3000);
+        }, 2200);
     },
 
     _closeInterstitial(overlay) {
@@ -184,8 +232,6 @@ const AdManager = {
     },
 
     _showSimulatedAd(onReward, onCancel) {
-        this.isAdPlaying = true;
-
         let overlay = document.getElementById('neon-ad-overlay');
         if (!overlay) {
             overlay = document.createElement('div');
@@ -194,23 +240,44 @@ const AdManager = {
             document.body.appendChild(overlay);
         }
 
+        // Fail-safe inline styles to guarantee visibility over any modal or canvas
+        Object.assign(overlay.style, {
+            position: 'fixed',
+            top: '0',
+            left: '0',
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(5, 5, 12, 0.95)',
+            zIndex: '99999999',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backdropFilter: 'blur(10px)',
+            webkitBackdropFilter: 'blur(10px)'
+        });
+
+        const isTr = (typeof Localization !== 'undefined' && Localization.currentLang === 'tr');
+        const tagText = isTr ? 'REKLAM YAYINI' : 'SPONSORED BROADCAST';
+        const titleText = isTr ? 'SYNTHWAVE NEURAL LINK' : 'SYNTHWAVE NEURAL LINK';
+        const descText = isTr ? 'ÖDÜL VERİSİ ŞİFRELENİYOR...' : 'ESTABLISHING QUANTUM SATELLITE HANDSHAKE...';
+        const rewardText = isTr ? 'ÖDÜL KAZANILIYOR: ' : 'REWARD GRANTED IN: ';
+        const collectText = isTr ? 'ÖDÜLÜ AL ✓' : 'COLLECT REWARD ✓';
+
         overlay.innerHTML = `
             <div class="neon-ad-box">
-                <div class="ad-tag">SPONSORED BROADCAST</div>
+                <div class="ad-tag">${tagText}</div>
                 <div class="ad-terminal-scan">
                     <div class="scan-line"></div>
                 </div>
-                <h3 class="ad-title">SYNTHWAVE NEURAL LINK</h3>
-                <p class="ad-desc">ESTABLISHING QUANTUM SATELLITE HANDSHAKE...</p>
+                <h3 class="ad-title">${titleText}</h3>
+                <p class="ad-desc">${descText}</p>
                 <div class="ad-timer-bar">
                     <div id="ad-progress-fill" class="ad-progress-fill"></div>
                 </div>
-                <div class="ad-reward-notice">REWARD GRANTED IN: <span id="ad-countdown">2</span>s</div>
-                <button id="ad-skip-btn" class="ad-skip-btn" style="display: none;">SKIP AD</button>
+                <div class="ad-reward-notice">${rewardText}<span id="ad-countdown">2</span>s</div>
+                <button id="ad-skip-btn" class="ad-skip-btn" style="display: none;">${collectText}</button>
             </div>
         `;
-
-        overlay.style.display = 'flex';
 
         let duration = 2; // 2 seconds high-tempo simulation
         const progressFill = document.getElementById('ad-progress-fill');
@@ -230,15 +297,18 @@ const AdManager = {
                 clearInterval(timer);
                 if (skipBtn) {
                     skipBtn.style.display = 'inline-block';
-                    skipBtn.innerText = 'COLLECT REWARD ✓';
                     skipBtn.onclick = () => {
                         this._closeAd(overlay);
                         if (onReward) onReward();
                     };
-                } else {
-                    this._closeAd(overlay);
-                    if (onReward) onReward();
                 }
+                // Auto-claim after brief delay if user doesn't tap
+                setTimeout(() => {
+                    if (this.isAdPlaying) {
+                        this._closeAd(overlay);
+                        if (onReward) onReward();
+                    }
+                }, 1000);
             }
         }, 1000);
     },

@@ -4050,9 +4050,132 @@ button.main-btn:active {
     color: #000 !important;
 }
 
+/* === Full AdMob Simulated Overlay & Fallback === */
+.neon-ad-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background: rgba(5, 5, 12, 0.95) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    z-index: 99999999 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 16px !important;
+    box-sizing: border-box !important;
+}
+
+.neon-ad-box {
+    background: #0f172a !important;
+    border: 2px solid #00f0ff !important;
+    box-shadow: 0 0 35px rgba(0, 240, 255, 0.5), inset 0 0 20px rgba(0, 240, 255, 0.12) !important;
+    border-radius: 12px !important;
+    padding: 28px 24px 24px 24px !important;
+    max-width: 380px !important;
+    width: 100% !important;
+    text-align: center !important;
+    position: relative !important;
+    color: #fff !important;
+    font-family: monospace, sans-serif !important;
+}
+
+.ad-tag {
+    position: absolute !important;
+    top: -12px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    background: #00f0ff !important;
+    color: #000 !important;
+    font-size: 11px !important;
+    font-weight: 900 !important;
+    padding: 3px 12px !important;
+    border-radius: 4px !important;
+    letter-spacing: 1px !important;
+}
+
+.ad-terminal-scan {
+    height: 3px !important;
+    background: rgba(0, 240, 255, 0.2) !important;
+    margin: 12px 0 !important;
+    overflow: hidden !important;
+    position: relative !important;
+}
+
+.ad-terminal-scan .scan-line {
+    width: 40% !important;
+    height: 100% !important;
+    background: #00f0ff !important;
+    box-shadow: 0 0 10px #00f0ff !important;
+    animation: adScanAnim 1.2s infinite ease-in-out !important;
+}
+
+@keyframes adScanAnim {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(300%); }
+}
+
+.ad-title {
+    font-size: 18px !important;
+    font-weight: 900 !important;
+    color: #00f0ff !important;
+    margin: 10px 0 6px !important;
+    letter-spacing: 0.5px !important;
+}
+
+.ad-desc {
+    font-size: 12px !important;
+    color: #94a3b8 !important;
+    margin-bottom: 16px !important;
+    line-height: 1.4 !important;
+}
+
+.ad-timer-bar {
+    width: 100% !important;
+    height: 8px !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-radius: 4px !important;
+    overflow: hidden !important;
+    margin: 12px 0 !important;
+}
+
+.ad-progress-fill {
+    width: 0%;
+    height: 100% !important;
+    background: linear-gradient(90deg, #00f0ff, #10b981) !important;
+    box-shadow: 0 0 10px #10b981 !important;
+}
+
+.ad-reward-notice {
+    font-size: 13px !important;
+    color: #f59e0b !important;
+    font-weight: 700 !important;
+    margin: 10px 0 !important;
+}
+
+.ad-skip-btn {
+    margin-top: 12px !important;
+    padding: 10px 20px !important;
+    background: #10b981 !important;
+    color: #000 !important;
+    border: none !important;
+    border-radius: 6px !important;
+    font-weight: 900 !important;
+    font-size: 14px !important;
+    cursor: pointer !important;
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.6) !important;
+    transition: transform 0.15s !important;
+}
+
+.ad-skip-btn:active {
+    transform: scale(0.96) !important;
+}
+
 /* === Interstitial Ad Overlay === */
 .interstitial-overlay {
-    z-index: 100;
+    z-index: 99999999 !important;
 }
 
 .interstitial-box {

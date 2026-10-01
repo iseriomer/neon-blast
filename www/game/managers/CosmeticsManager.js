@@ -222,6 +222,46 @@ class CosmeticsManager {
         this.updateUI();
     }
 
+    static getItemName(item) {
+        if (!item) return '';
+        const key = `cosmetic_${item.id}_name`;
+        if (typeof Localization !== 'undefined' && Localization.translations && Localization.translations[Localization.currentLang]) {
+            const val = Localization.translations[Localization.currentLang][key] || Localization.translations.en?.[key];
+            if (val) return val;
+        }
+        return item.name;
+    }
+
+    static getItemDesc(item) {
+        if (!item) return '';
+        const key = `cosmetic_${item.id}_desc`;
+        if (typeof Localization !== 'undefined' && Localization.translations && Localization.translations[Localization.currentLang]) {
+            const val = Localization.translations[Localization.currentLang][key] || Localization.translations.en?.[key];
+            if (val) return val;
+        }
+        return item.description;
+    }
+
+    static getPackName(pack) {
+        if (!pack) return '';
+        const key = `pack_${pack.id}_name`;
+        if (typeof Localization !== 'undefined' && Localization.translations && Localization.translations[Localization.currentLang]) {
+            const val = Localization.translations[Localization.currentLang][key] || Localization.translations.en?.[key];
+            if (val) return val;
+        }
+        return pack.name;
+    }
+
+    static getPackGuarantee(pack) {
+        if (!pack) return '';
+        const key = `pack_${pack.id}_guarantee`;
+        if (typeof Localization !== 'undefined' && Localization.translations && Localization.translations[Localization.currentLang]) {
+            const val = Localization.translations[Localization.currentLang][key] || Localization.translations.en?.[key];
+            if (val) return val;
+        }
+        return pack.guarantee;
+    }
+
     // Pure Level-Based Coin Formula (Balanced for monetization)
     static calculateCoinsForLevel(level) {
         if (!level || level < 1) return 0;
