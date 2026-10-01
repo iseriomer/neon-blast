@@ -26,6 +26,23 @@ const Localization = {
             choose_perk: "Choose a perk:",
             level_up: "LEVEL UP!",
 
+            // Armory & Revive
+            armory_btn: "ARMORY",
+            armory_title: "ARMORY",
+            coins_earned: "NEON COINS",
+            double_coins: "2X COINS (WATCH AD)",
+            double_coins_btn: "2X COINS (WATCH AD)",
+            coins_doubled: "COINS DOUBLED",
+            emergency_revive: "SECOND CHANCE",
+            second_chance: "SECOND CHANCE",
+            revive_desc: "EMP Shockwave & Full Shields",
+            revive_btn: "REVIVE (WATCH AD)",
+            revive_skip: "GIVE UP",
+            tab_cores: "CORES",
+            tab_projectiles: "PROJECTILES",
+            tab_backgrounds: "BACKGROUNDS",
+            tab_packs: "CRATES",
+
             // Settings
             paused: "PAUSED",
             show_fps: "Show FPS",
@@ -100,6 +117,22 @@ const Localization = {
             perk_electric_aura_rate_desc: "Electric Aura ticks 20% faster.",
             perk_electric_aura_area_title: "Static Field",
             perk_electric_aura_area_desc: "Increases Electric Aura range by 25%.",
+            perk_pulse_core_title: "Pulse Reactor",
+            perk_pulse_core_desc: "Every 8 shots releases a radial burst around the core.",
+            perk_pulse_accelerator_title: "Pulse Accelerator",
+            perk_pulse_accelerator_desc: "Pulse Reactor activates one shot sooner (minimum 4).",
+            perk_pulse_payload_title: "Nova Payload",
+            perk_pulse_payload_desc: "Pulse bursts gain +2 larger projectiles.",
+            perk_kinetic_core_title: "Kinetic Core",
+            perk_kinetic_core_desc: "+28% projectile damage, but fire rate is 8% slower.",
+            perk_titan_protocol_title: "Titan Protocol",
+            perk_titan_protocol_desc: "Deal 35% more damage to bosses and minibosses.",
+            perk_cryo_fracture_title: "Cryo Fracture",
+            perk_cryo_fracture_desc: "Frozen targets take 40% more projectile damage.",
+            perk_demolition_matrix_title: "Demolition Matrix",
+            perk_demolition_matrix_desc: "Explosions become 18% larger and deal 40% more damage.",
+            perk_critical_cascade_title: "Critical Cascade",
+            perk_critical_cascade_desc: "+8% critical chance and +75% critical damage.",
 
             // Leaderboard
             lb_enter_name: "Please enter a name!",
@@ -133,6 +166,23 @@ const Localization = {
             boss_coming: "DALGA {wave} - BOSS GELİYOR!",
             choose_perk: "Bir güçlendirme seç:",
             level_up: "SEVİYE ATLADIN!",
+
+            // Armory & Revive
+            armory_btn: "CEPHANELİK",
+            armory_title: "CEPHANELİK",
+            coins_earned: "NEON COIN",
+            double_coins: "2X COIN (REKLAM İZLE)",
+            double_coins_btn: "2X COIN (REKLAM İZLE)",
+            coins_doubled: "COIN İKİYE KATLANDI",
+            emergency_revive: "İKİNCİ ŞANS",
+            second_chance: "İKİNCİ ŞANS",
+            revive_desc: "EMP Dalgası & Tam Kalkan",
+            revive_btn: "DİRİL (REKLAM İZLE)",
+            revive_skip: "VAZGEÇ",
+            tab_cores: "ÇEKİRDEK",
+            tab_projectiles: "MERMİLER",
+            tab_backgrounds: "ARKA PLAN",
+            tab_packs: "SANDIKLAR",
 
             // Settings
             paused: "DURAKLATILDI",
@@ -208,6 +258,22 @@ const Localization = {
             perk_electric_aura_rate_desc: "Elektrik Aurası %20 daha hızlı hasar verir.",
             perk_electric_aura_area_title: "Statik Alan",
             perk_electric_aura_area_desc: "Elektrik Aurası menzilini %25 artırır.",
+            perk_pulse_core_title: "Darbe Reaktörü",
+            perk_pulse_core_desc: "Her 8 atışta çekirdeğin çevresine dairesel bir salvo yayar.",
+            perk_pulse_accelerator_title: "Darbe Hızlandırıcı",
+            perk_pulse_accelerator_desc: "Darbe Reaktörü bir atış daha erken çalışır (en az 4).",
+            perk_pulse_payload_title: "Nova Yükü",
+            perk_pulse_payload_desc: "Darbe salvoları +2 daha büyük mermi kazanır.",
+            perk_kinetic_core_title: "Kinetik Çekirdek",
+            perk_kinetic_core_desc: "%28 mermi hasarı; ancak atış hızı %8 yavaşlar.",
+            perk_titan_protocol_title: "Titan Protokolü",
+            perk_titan_protocol_desc: "Boss ve minibosslara %35 daha fazla hasar ver.",
+            perk_cryo_fracture_title: "Kriyo Kırılma",
+            perk_cryo_fracture_desc: "Donmuş hedefler mermilerden %40 daha fazla hasar alır.",
+            perk_demolition_matrix_title: "Yıkım Matrisi",
+            perk_demolition_matrix_desc: "Patlamalar %18 büyür ve %40 daha fazla hasar verir.",
+            perk_critical_cascade_title: "Kritik Kaskat",
+            perk_critical_cascade_desc: "+%8 kritik şansı ve +%75 kritik hasarı.",
 
             // Leaderboard
             lb_enter_name: "Lütfen bir isim gir!",
@@ -682,7 +748,7 @@ const Localization = {
     },
 
     t(key, params = {}) {
-        let text = this.translations[this.currentLang][key] || key;
+        let text = this.translations[this.currentLang][key] || this.translations.en[key] || key;
 
         // Simple parameter replacement {param}
         for (const [param, value] of Object.entries(params)) {

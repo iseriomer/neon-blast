@@ -18,6 +18,8 @@ class Projectile {
         this.targetEnemy = null;
         this.homingState = 'SEARCHING';
         this.lostTargetTime = 0;
+        this.damageMultiplier = 1;
+        this.bossDamageMultiplier = 1;
     }
 
     reset(x, y, velocity, isSplit, playerStats) {
@@ -38,6 +40,8 @@ class Projectile {
         this.targetEnemy = null;
         this.homingState = 'SEARCHING';
         this.lostTargetTime = 0;
+        this.damageMultiplier = playerStats.damageMultiplier || 1;
+        this.bossDamageMultiplier = playerStats.bossDamageMultiplier || 1;
     }
 
     draw() {

@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2048 Feature Graphic Designer Pro</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #1a1a2e;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #ff6b6b, #feca57, #48dbfb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+        }
+
+        .controls {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .tab-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .tab-btn.active {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 5px 20px rgba(255, 255, 255, 0.2);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .control-section {
+            margin-bottom: 25px;
+        }
+
+        .control-section h3 {
+            color: white;
+            margin-bottom: 15px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .slider-control {
+            margin-bottom: 20px;
+        }
+
+        .slider-control label {
+            color: white;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .slider-control input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider-control input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: white;
+            cursor: pointer;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .slider-control input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: white;
+            cursor: pointer;
+            border-radius: 50%;
+            border: none;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .value-display {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 15px;
+            transition: all 0.3s;
+            color: white;
+        }
+
+        .action-btn.download {
+            background: linear-gradient(135deg, #1dd1a1, #10ac84);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .action-btn.reset {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn.active {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 5px 20px rgba(255, 255, 255, 0.2);
+        }
+
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .preset-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .preset-card:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .preset-card h4 {
+            color: white;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .preset-card p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+        }
+
+        .color-btn {
+            height: 50px;
+            border-radius: 10px;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .color-btn:hover {
+            transform: scale(1.05);
+            border-color: white;
+        }
+
+        .color-btn.active {
+            border-color: white;
+            box-shadow: 0 5px 20px rgba(255, 255, 255, 0.4);
+        }
+
+        .feature-graphic {
+            width: 100%;
+            aspect-ratio: 1024 / 500;
+            position: relative;
+            overflow: hidden;
+            border-radius: 20px;
+            box-shadow: 0 30px 90px rgba(0, 0, 0, 0.6);
+            transition: all 0.5s ease;
+        }
+
+        .background {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transition: background 0.5s ease;
+        }
+
+        .pattern-overlay {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0.1;
+            transition: opacity 0.5s ease;
+        }
+
+        .effect-layer {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .particle {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: float 15s infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+                opacity: 0.3;
+            }
+
+            25% {
+                transform: translate(20px, -30px) scale(1.2);
+                opacity: 0.6;
+            }
+
+            50% {
+                transform: translate(-15px, -60px) scale(0.8);
+                opacity: 0.4;
+            }
+
+            75% {
+                transform: translate(25px, -40px) scale(1.1);
+                opacity: 0.5;
+            }
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+
+            50% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+        }
+
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes gradientShift {
+
+            0%,
+            100% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+
+        .geometric-shapes {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .shape {
+            position: absolute;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            animation: rotate 30s linear infinite;
+        }
+
+        .glow-effect {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            filter: blur(60px);
+            animation: pulse 8s ease-in-out infinite;
+        }
+
+        .content {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logo-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.4));
+            transition: all 0.3s ease;
+        }
+
+        .logo {
+            max-width: 400px;
+            width: 100%;
+            height: auto;
+            transition: all 0.3s ease;
+        }
+
+        .screenshot-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .screenshot {
+            position: absolute;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(5px);
+            transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .screenshot img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .text-decoration {
+            position: absolute;
+            z-index: 11;
+            filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.4));
+            transition: all 0.5s ease;
+        }
+
+        .text1 {
+            top: 7%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .text1 img {
+            height: 45px;
+            width: auto;
+        }
+
+        .text2 {
+            bottom: 7%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .text2 img {
+            height: 40px;
+            width: auto;
+        }
+
+        /* Choreography Styles */
+        .choreo-classic .ss1 {
+            width: 180px;
+            top: 15%;
+            left: 8%;
+            transform: rotate(-5deg);
+        }
+
+        .choreo-classic .ss2 {
+            width: 160px;
+            top: 55%;
+            left: 5%;
+            transform: rotate(4deg);
+        }
+
+        .choreo-classic .ss3 {
+            width: 180px;
+            top: 18%;
+            right: 8%;
+            transform: rotate(5deg);
+        }
+
+        .choreo-classic .ss4 {
+            width: 160px;
+            top: 58%;
+            right: 6%;
+            transform: rotate(-4deg);
+        }
+
+        .choreo-floating .ss1 {
+            width: 170px;
+            top: 10%;
+            left: 12%;
+            transform: rotate(-8deg);
+        }
+
+        .choreo-floating .ss2 {
+            width: 150px;
+            top: 50%;
+            left: 8%;
+            transform: rotate(5deg);
+        }
+
+        .choreo-floating .ss3 {
+            width: 170px;
+            top: 12%;
+            right: 12%;
+            transform: rotate(8deg);
+        }
+
+        .choreo-floating .ss4 {
+            width: 150px;
+            top: 52%;
+            right: 10%;
+            transform: rotate(-6deg);
+        }
+
+        .choreo-circular .ss1 {
+            width: 160px;
+            top: 8%;
+            left: 25%;
+            transform: rotate(-15deg);
+        }
+
+        .choreo-circular .ss2 {
+            width: 160px;
+            top: 35%;
+            left: 5%;
+            transform: rotate(-5deg);
+        }
+
+        .choreo-circular .ss3 {
+            width: 160px;
+            top: 8%;
+            right: 25%;
+            transform: rotate(15deg);
+        }
+
+        .choreo-circular .ss4 {
+            width: 160px;
+            top: 35%;
+            right: 5%;
+            transform: rotate(5deg);
+        }
+
+        .choreo-diagonal .ss1 {
+            width: 170px;
+            top: 5%;
+            left: 5%;
+            transform: rotate(-10deg);
+        }
+
+        .choreo-diagonal .ss2 {
+            width: 150px;
+            top: 35%;
+            left: 15%;
+            transform: rotate(-5deg);
+        }
+
+        .choreo-diagonal .ss3 {
+            width: 170px;
+            top: 25%;
+            right: 15%;
+            transform: rotate(5deg);
+        }
+
+        .choreo-diagonal .ss4 {
+            width: 150px;
+            top: 55%;
+            right: 5%;
+            transform: rotate(10deg);
+        }
+
+        .choreo-pyramid .ss1 {
+            width: 190px;
+            top: 8%;
+            left: 50%;
+            transform: translateX(-50%) rotate(0deg);
+        }
+
+        .choreo-pyramid .ss2 {
+            width: 160px;
+            top: 45%;
+            left: 20%;
+            transform: rotate(-8deg);
+        }
+
+        .choreo-pyramid .ss3 {
+            width: 160px;
+            top: 45%;
+            right: 20%;
+            transform: rotate(8deg);
+        }
+
+        .choreo-pyramid .ss4 {
+            width: 140px;
+            top: 70%;
+            left: 50%;
+            transform: translateX(-50%) rotate(0deg);
+        }
+
+        .choreo-wave .ss1 {
+            width: 170px;
+            top: 15%;
+            left: 10%;
+            transform: rotate(-12deg);
+        }
+
+        .choreo-wave .ss2 {
+            width: 170px;
+            top: 45%;
+            left: 15%;
+            transform: rotate(3deg);
+        }
+
+        .choreo-wave .ss3 {
+            width: 170px;
+            top: 25%;
+            right: 15%;
+            transform: rotate(-3deg);
+        }
+
+        .choreo-wave .ss4 {
+            width: 170px;
+            top: 55%;
+            right: 10%;
+            transform: rotate(12deg);
+        }
+
+        .choreo-starburst .ss1 {
+            width: 160px;
+            top: 5%;
+            left: 50%;
+            transform: translateX(-50%) rotate(-20deg);
+        }
+
+        .choreo-starburst .ss2 {
+            width: 160px;
+            top: 50%;
+            left: 3%;
+            transform: rotate(10deg);
+        }
+
+        .choreo-starburst .ss3 {
+            width: 160px;
+            top: 50%;
+            right: 3%;
+            transform: rotate(-10deg);
+        }
+
+        .choreo-starburst .ss4 {
+            width: 160px;
+            bottom: 5%;
+            left: 50%;
+            transform: translateX(-50%) rotate(20deg);
+        }
+
+        .choreo-scattered .ss1 {
+            width: 165px;
+            top: 12%;
+            left: 15%;
+            transform: rotate(-25deg);
+        }
+
+        .choreo-scattered .ss2 {
+            width: 145px;
+            top: 52%;
+            left: 8%;
+            transform: rotate(18deg);
+        }
+
+        .choreo-scattered .ss3 {
+            width: 165px;
+            top: 18%;
+            right: 12%;
+            transform: rotate(22deg);
+        }
+
+        .choreo-scattered .ss4 {
+            width: 145px;
+            top: 58%;
+            right: 10%;
+            transform: rotate(-15deg);
+        }
+
+        .choreo-cascade .ss1 {
+            width: 180px;
+            top: 5%;
+            right: 45%;
+            transform: rotate(-8deg);
+        }
+
+        .choreo-cascade .ss2 {
+            width: 170px;
+            top: 20%;
+            right: 25%;
+            transform: rotate(5deg);
+        }
+
+        .choreo-cascade .ss3 {
+            width: 160px;
+            top: 40%;
+            right: 15%;
+            transform: rotate(-3deg);
+        }
+
+        .choreo-cascade .ss4 {
+            width: 150px;
+            top: 60%;
+            right: 5%;
+            transform: rotate(8deg);
+        }
+
+        .choreo-symmetry .ss1 {
+            width: 170px;
+            top: 15%;
+            left: 12%;
+            transform: rotate(-10deg);
+        }
+
+        .choreo-symmetry .ss2 {
+            width: 170px;
+            top: 15%;
+            right: 12%;
+            transform: rotate(10deg);
+        }
+
+        .choreo-symmetry .ss3 {
+            width: 160px;
+            bottom: 15%;
+            left: 12%;
+            transform: rotate(10deg);
+        }
+
+        .choreo-symmetry .ss4 {
+            width: 160px;
+            bottom: 15%;
+            right: 12%;
+            transform: rotate(-10deg);
+        }
+
+        .choreo-overlap .ss1 {
+            width: 180px;
+            top: 12%;
+            left: 18%;
+            transform: rotate(-12deg);
+            z-index: 4;
+        }
+
+        .choreo-overlap .ss2 {
+            width: 180px;
+            top: 18%;
+            left: 28%;
+            transform: rotate(-5deg);
+            z-index: 3;
+        }
+
+        .choreo-overlap .ss3 {
+            width: 180px;
+            top: 15%;
+            right: 28%;
+            transform: rotate(5deg);
+            z-index: 2;
+        }
+
+        .choreo-overlap .ss4 {
+            width: 180px;
+            top: 20%;
+            right: 18%;
+            transform: rotate(12deg);
+            z-index: 1;
+        }
+
+        .choreo-dynamic .ss1 {
+            width: 175px;
+            top: 8%;
+            left: 8%;
+            transform: rotate(-20deg) scale(1.05);
+        }
+
+        .choreo-dynamic .ss2 {
+            width: 165px;
+            top: 42%;
+            left: 4%;
+            transform: rotate(12deg) scale(0.95);
+        }
+
+        .choreo-dynamic .ss3 {
+            width: 175px;
+            top: 12%;
+            right: 8%;
+            transform: rotate(18deg) scale(1.05);
+        }
+
+        .choreo-dynamic .ss4 {
+            width: 165px;
+            top: 48%;
+            right: 5%;
+            transform: rotate(-15deg) scale(0.95);
+        }
+
+        .choreo-minimal .ss1 {
+            width: 190px;
+            top: 18%;
+            left: 8%;
+            transform: rotate(-3deg);
+        }
+
+        .choreo-minimal .ss2 {
+            width: 190px;
+            top: 18%;
+            right: 8%;
+            transform: rotate(3deg);
+        }
+
+        .choreo-minimal .ss3 {
+            width: 0;
+            opacity: 0;
+        }
+
+        .choreo-minimal .ss4 {
+            width: 0;
+            opacity: 0;
+        }
+
+        .choreo-corners .ss1 {
+            width: 160px;
+            top: 5%;
+            left: 5%;
+            transform: rotate(-15deg);
+        }
+
+        .choreo-corners .ss2 {
+            width: 160px;
+            top: 5%;
+            right: 5%;
+            transform: rotate(15deg);
+        }
+
+        .choreo-corners .ss3 {
+            width: 160px;
+            bottom: 5%;
+            left: 5%;
+            transform: rotate(15deg);
+        }
+
+        .choreo-corners .ss4 {
+            width: 160px;
+            bottom: 5%;
+            right: 5%;
+            transform: rotate(-15deg);
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                padding: 20px;
+            }
+
+            .button-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .color-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .logo {
+                max-width: 280px;
+            }
+
+            .screenshot {
+                width: 120px !important;
+            }
+
+            .text1 img {
+                height: 32px;
+            }
+
+            .text2 img {
+                height: 28px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 2048 Feature Graphic Designer Pro</h1>
+            <p>Professional tool for creating stunning Google Play feature graphics • 1024x500 px</p>
+        </div>
+
+        <div class="controls">
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="layout">📐 Layout</button>
+                <button class="tab-btn" data-tab="colors">🎨 Colors</button>
+                <button class="tab-btn" data-tab="sizes">📏 Sizes</button>
+                <button class="tab-btn" data-tab="styles">✨ Styles</button>
+                <button class="tab-btn" data-tab="presets">⚡ Presets</button>
+            </div>
+
+            <div class="tab-content active" data-content="layout">
+                <div class="control-section">
+                    <h3>🎯 Choreography Layouts</h3>
+                    <div class="button-grid">
+                        <button class="btn active" data-choreo="classic">🎯 Classic</button>
+                        <button class="btn" data-choreo="floating">✨ Floating</button>
+                        <button class="btn" data-choreo="circular">⭕ Circular</button>
+                        <button class="btn" data-choreo="diagonal">↗️ Diagonal</button>
+                        <button class="btn" data-choreo="pyramid">🔺 Pyramid</button>
+                        <button class="btn" data-choreo="wave">🌊 Wave</button>
+                        <button class="btn" data-choreo="starburst">⭐ Starburst</button>
+                        <button class="btn" data-choreo="scattered">🎲 Scattered</button>
+                        <button class="btn" data-choreo="cascade">💧 Cascade</button>
+                        <button class="btn" data-choreo="symmetry">🔄 Symmetry</button>
+                        <button class="btn" data-choreo="overlap">📚 Overlap</button>
+                        <button class="btn" data-choreo="dynamic">⚡ Dynamic</button>
+                        <button class="btn" data-choreo="minimal">➖ Minimal</button>
+                        <button class="btn" data-choreo="corners">📍 Corners</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" data-content="colors">
+                <div class="control-section">
+                    <h3>🎨 Color Palette</h3>
+                    <div class="color-grid" id="colorGrid"></div>
+                </div>
+
+                <div class="control-section">
+                    <h3>✨ Background Effects</h3>
+                    <div class="button-grid">
+                        <button class="btn active" data-effect="none">❌ None</button>
+                        <button class="btn" data-effect="particles">⚪ Particles</button>
+                        <button class="btn" data-effect="glow">💫 Glow</button>
+                        <button class="btn" data-effect="geometric">🔷 Geometric</button>
+                        <button class="btn" data-effect="animated">🌈 Animated</button>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>🔆 Pattern Overlay</h3>
+                    <div class="slider-control">
+                        <label>
+                            <span>Intensity</span>
+                            <span class="value-display" id="patternValue">10%</span>
+                        </label>
+                        <input type="range" id="patternOpacity" min="0" max="50" value="10">
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" data-content="sizes">
+                <div class="control-section">
+                    <h3>📏 Element Sizes</h3>
+
+                    <div class="slider-control">
+                        <label>
+                            <span>🖼️ Logo Size</span>
+                            <span class="value-display" id="logoSizeValue">400px</span>
+                        </label>
+                        <input type="range" id="logoSize" min="200" max="600" value="400">
+                    </div>
+
+                    <div class="slider-control">
+                        <label>
+                            <span>📱 Screenshot Scale</span>
+                            <span class="value-display" id="screenshotSizeValue">100%</span>
+                        </label>
+                        <input type="range" id="screenshotSize" min="60" max="140" value="100">
+                    </div>
+
+                    <div class="slider-control">
+                        <label>
+                            <span>📝 Top Text Size</span>
+                            <span class="value-display" id="text1SizeValue">45px</span>
+                        </label>
+                        <input type="range" id="text1Size" min="25" max="70" value="45">
+                    </div>
+
+                    <div class="slider-control">
+                        <label>
+                            <span>📝 Bottom Text Size</span>
+                            <span class="value-display" id="text2SizeValue">40px</span>
+                        </label>
+                        <input type="range" id="text2Size" min="25" max="300" value="40">
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>📍 Logo Position</h3>
+
+                    <div class="slider-control">
+                        <label>
+                            <span>↔️ Horizontal</span>
+                            <span class="value-display" id="logoXValue">50%</span>
+                        </label>
+                        <input type="range" id="logoX" min="0" max="100" value="50">
+                    </div>
+
+                    <div class="slider-control">
+                        <label>
+                            <span>↕️ Vertical</span>
+                            <span class="value-display" id="logoYValue">50%</span>
+                        </label>
+                        <input type="range" id="logoY" min="0" max="100" value="50">
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" data-content="styles">
+                <div class="control-section">
+                    <h3>🎭 Visual Styles</h3>
+
+                    <div class="slider-control">
+                        <label>
+                            <span>🌑 Shadow Intensity</span>
+                            <span class="value-display" id="shadowValue">40px</span>
+                        </label>
+                        <input type="range" id="shadowIntensity" min="0" max="80" value="40">
+                    </div>
+
+                    <div class="slider-control">
+                        <label>
+                            <span>🔳 Border Width</span>
+                            <span class="value-display" id="borderValue">3px</span>
+                        </label>
+                        <input type="range" id="borderWidth" min="0" max="10" value="3">
+                    </div>
+
+                    <div class="slider-control">
+                        <label>
+                            <span>💎 Opacity</span>
+                            <span class="value-display" id="opacityValue">100%</span>
+                        </label>
+                        <input type="range" id="screenshotOpacity" min="50" max="100" value="100">
+                    </div>
+
+                    <div class="slider-control">
+                        <label>
+                            <span>🔄 Rotation Intensity</span>
+                            <span class="value-display" id="rotationValue">1.0x</span>
+                        </label>
+                        <input type="range" id="rotationMultiplier" min="0" max="200" value="100">
+                    </div>
+
+                    <div class="slider-control">
+                        <label>
+                            <span>⚪ Border Radius</span>
+                            <span class="value-display" id="roundnessValue">16px</span>
+                        </label>
+                        <input type="range" id="borderRadius" min="0" max="40" value="16">
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" data-content="presets">
+                <div class="control-section">
+                    <h3>⚡ Quick Preset Styles</h3>
+                    <div class="preset-grid" id="presetGrid"></div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="action-btn download" onclick="downloadImage()">📥 Download jpeg (1024x500)</button>
+                <button class="action-btn reset" onclick="resetAll()">🔄 Reset All</button>
+            </div>
+        </div>
+
+        <div class="feature-graphic" id="graphic">
+            <div class="background" id="background"></div>
+            <div class="pattern-overlay" id="patternOverlay"></div>
+            <div class="effect-layer" id="effectLayer"></div>
+
+            <div class="content">
+                <div class="screenshot-container choreo-classic" id="screenshotContainer">
+                    <div class="screenshot ss1"><img src="ss (1).jpeg" alt="Screenshot 1"></div>
+                    <div class="screenshot ss2"><img src="ss (2).jpeg" alt="Screenshot 2"></div>
+                    <div class="screenshot ss3"><img src="ss (3).png" alt="Screenshot 3"></div>
+                    <div class="screenshot ss4"><img src="ss (4).jpeg" alt="Screenshot 4"></div>
+                </div>
+
+                <!-- <div class="text-decoration text1" id="text1">
+                    <img src="text1.jpeg" alt="Text 1">
+                </div> -->
+
+                <div class="logo-container" id="logoContainer">
+                    <img src="logo.png" alt="2048 Logo" class="logo" id="logoImg">
+                </div>
+
+                <!-- <div class="text-decoration text2" id="text2">
+                    <img src="text2.jpeg" alt="Text 2">
+                </div> -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const colorThemes = {
+            classic: [
+                { name: 'Warm Sunset', gradient: 'linear-gradient(135deg, #ff9a56, #ff6b6b, #ee5a6f, #c44569)' },
+                { name: 'Soft Cream', gradient: 'linear-gradient(135deg, #ffeaa7, #fdcb6e, #e17055, #d63031)' },
+                { name: 'Peach Dream', gradient: 'linear-gradient(135deg, #feca57, #ff9ff3, #ee5a6f)' },
+                { name: 'Golden Hour', gradient: 'linear-gradient(135deg, #f9ca24, #f0932b, #eb4d4b)' },
+                { name: 'Fire Glow', gradient: 'linear-gradient(135deg, #ff6348, #ff4757, #e74c3c)' }
+            ],
+            floating: [
+                { name: 'Sky Blue', gradient: 'linear-gradient(135deg, #a8e6cf, #74b9ff, #0984e3)' },
+                { name: 'Ocean Breeze', gradient: 'linear-gradient(135deg, #81ecec, #74b9ff, #6c5ce7)' },
+                { name: 'Mint Fresh', gradient: 'linear-gradient(135deg, #7bed9f, #70a1ff, #5f27cd)' },
+                { name: 'Cool Waves', gradient: 'linear-gradient(135deg, #48dbfb, #0abde3, #00d2d3)' },
+                { name: 'Teal Dream', gradient: 'linear-gradient(135deg, #38ada9, #079992, #006266)' }
+            ],
+            circular: [
+                { name: 'Rainbow Joy', gradient: 'linear-gradient(135deg, #ff6b6b, #feca57, #48dbfb, #1dd1a1, #ee5a6f, #ff9ff3)' },
+                { name: 'Neon Lights', gradient: 'linear-gradient(135deg, #ff6348, #feca57, #1dd1a1, #5f27cd, #ff6348)' },
+                { name: 'Pastel Mix', gradient: 'linear-gradient(135deg, #ffd1dc, #ffb3d9, #c8b8ff, #a8e6cf)' },
+                { name: 'Vibrant', gradient: 'linear-gradient(135deg, #ff6b81, #feca57, #48dbfb, #ff6b81)' },
+                { name: 'Spectrum', gradient: 'linear-gradient(135deg, #ee5a6f, #feca57, #1dd1a1, #48dbfb, #6c5ce7, #fd79a8)' },
+                { name: 'Neon Cyber', gradient: 'linear-gradient(135deg, #00f2ff, #00c3ff, #ff00ff, #bc13fe)' },
+                { name: 'Neon Toxic', gradient: 'linear-gradient(135deg, #39ff14, #ccff00, #ff0099)' },
+                { name: 'Neon Plasma', gradient: 'linear-gradient(135deg, #fff01f, #ff00ff, #00ffff)' },
+                { name: 'Neon Future', gradient: 'linear-gradient(135deg, #f80759, #bc13fe, #39ff14, #00f2ff)' },
+                { name: 'Neon Black', gradient: 'linear-gradient(135deg, #000000, #000000, #000000, #000000)' }
+            ],
+            diagonal: [
+                { name: 'Fire', gradient: 'linear-gradient(45deg, #ff6b6b, #ff9068, #feca57, #ff6b6b)' },
+                { name: 'Purple Flow', gradient: 'linear-gradient(45deg, #a29bfe, #6c5ce7, #fd79a8, #a29bfe)' },
+                { name: 'Green Energy', gradient: 'linear-gradient(45deg, #7bed9f, #1dd1a1, #10ac84)' },
+                { name: 'Orange Rush', gradient: 'linear-gradient(45deg, #fa983a, #ff6348, #eb2f06)' },
+                { name: 'Blue Slide', gradient: 'linear-gradient(45deg, #48dbfb, #0abde3, #5f27cd)' }
+            ],
+            pyramid: [
+                { name: 'Gold', gradient: 'linear-gradient(180deg, #ffeaa7, #fdcb6e, #f0932b, #e17055)' },
+                { name: 'Royal Purple', gradient: 'linear-gradient(180deg, #a29bfe, #6c5ce7, #5f27cd, #2d3436)' },
+                { name: 'Emerald', gradient: 'linear-gradient(180deg, #81ecec, #1dd1a1, #10ac84, #0a3d62)' },
+                { name: 'Sunset', gradient: 'linear-gradient(180deg, #feca57, #ee5a6f, #c44569, #5f27cd)' },
+                { name: 'Blue Tower', gradient: 'linear-gradient(180deg, #74b9ff, #0984e3, #2d3561, #1a1a2e)' }
+            ],
+            wave: [
+                { name: 'Ocean', gradient: 'linear-gradient(135deg, #48dbfb, #0abde3, #00d2d3, #0abde3, #48dbfb)' },
+                { name: 'Sunset', gradient: 'linear-gradient(135deg, #ff9a56, #ff6b6b, #feca57, #ff6b6b, #ee5a6f)' },
+                { name: 'Purple Tide', gradient: 'linear-gradient(135deg, #a29bfe, #6c5ce7, #fd79a8, #6c5ce7, #a29bfe)' },
+                { name: 'Green', gradient: 'linear-gradient(135deg, #7bed9f, #1dd1a1, #48dbfb, #1dd1a1)' },
+                { name: 'Rainbow', gradient: 'linear-gradient(135deg, #ff6b81, #feca57, #48dbfb, #1dd1a1, #ff6b81)' }
+            ],
+            starburst: [
+                { name: 'Star Glow', gradient: 'radial-gradient(circle, #feca57, #ff6b6b, #c44569, #2d3436)' },
+                { name: 'Blue Nova', gradient: 'radial-gradient(circle, #48dbfb, #0abde3, #5f27cd, #2d3436)' },
+                { name: 'Pink Burst', gradient: 'radial-gradient(circle, #ff9ff3, #fd79a8, #e84393, #6c5ce7)' },
+                { name: 'Golden', gradient: 'radial-gradient(circle, #ffeaa7, #fdcb6e, #f0932b, #e17055)' },
+                { name: 'Rainbow', gradient: 'radial-gradient(circle, #feca57, #ff6b81, #48dbfb, #5f27cd, #2d3436)' }
+            ],
+            scattered: [
+                { name: 'Confetti', gradient: 'linear-gradient(135deg, #ff6b81, #feca57, #48dbfb, #1dd1a1, #ff9ff3, #ff6b81)' },
+                { name: 'Party', gradient: 'linear-gradient(135deg, #fd79a8, #fdcb6e, #a29bfe, #81ecec, #fd79a8)' },
+                { name: 'Candy', gradient: 'linear-gradient(135deg, #ff6348, #feca57, #1dd1a1, #ee5a6f)' },
+                { name: 'Wild', gradient: 'linear-gradient(135deg, #fa983a, #5f27cd, #48dbfb, #eb2f06, #1dd1a1)' },
+                { name: 'Explosion', gradient: 'linear-gradient(135deg, #ff6b6b, #feca57, #1dd1a1, #48dbfb, #6c5ce7, #fd79a8)' }
+            ],
+            cascade: [
+                { name: 'Water Fall', gradient: 'linear-gradient(135deg, #48dbfb, #0abde3, #00d2d3, #38ada9)' },
+                { name: 'Lava', gradient: 'linear-gradient(135deg, #feca57, #ff9068, #ff6348, #eb2f06)' },
+                { name: 'Purple Rain', gradient: 'linear-gradient(135deg, #a29bfe, #6c5ce7, #5f27cd, #341f97)' },
+                { name: 'Golden', gradient: 'linear-gradient(135deg, #ffeaa7, #fdcb6e, #f0932b, #e17055)' },
+                { name: 'Green', gradient: 'linear-gradient(135deg, #7bed9f, #1dd1a1, #10ac84, #079992)' }
+            ],
+            symmetry: [
+                { name: 'Mirror Sunset', gradient: 'linear-gradient(135deg, #ff9a56, #ff6b6b, #ff9a56)' },
+                { name: 'Mirror Ocean', gradient: 'linear-gradient(135deg, #48dbfb, #0abde3, #48dbfb)' },
+                { name: 'Mirror Purple', gradient: 'linear-gradient(135deg, #a29bfe, #6c5ce7, #a29bfe)' },
+                { name: 'Mirror Green', gradient: 'linear-gradient(135deg, #7bed9f, #1dd1a1, #7bed9f)' },
+                { name: 'Mirror Pink', gradient: 'linear-gradient(135deg, #ff9ff3, #fd79a8, #ff9ff3)' }
+            ],
+            overlap: [
+                { name: 'Layer Sunset', gradient: 'linear-gradient(135deg, #ff9a56, #ff6b6b, #ee5a6f, #c44569)' },
+                { name: 'Layer Ocean', gradient: 'linear-gradient(135deg, #81ecec, #74b9ff, #0984e3, #2d3561)' },
+                { name: 'Layer Forest', gradient: 'linear-gradient(135deg, #7bed9f, #1dd1a1, #10ac84, #079992)' },
+                { name: 'Layer Fire', gradient: 'linear-gradient(135deg, #feca57, #ff9068, #ff6348, #eb2f06)' },
+                { name: 'Layer Purple', gradient: 'linear-gradient(135deg, #a29bfe, #6c5ce7, #5f27cd, #341f97)' }
+            ],
+            dynamic: [
+                { name: 'Energy', gradient: 'linear-gradient(135deg, #ff6348, #feca57, #1dd1a1, #48dbfb, #5f27cd)' },
+                { name: 'Chaos', gradient: 'linear-gradient(135deg, #ff9ff3, #f8b500, #0abde3, #ff6348, #7bed9f, #6c5ce7)' },
+                { name: 'Wild Ride', gradient: 'linear-gradient(135deg, #ee5a6f, #48dbfb, #feca57, #1dd1a1, #ff9ff3)' },
+                { name: 'Electric', gradient: 'linear-gradient(135deg, #feca57, #48dbfb, #ff6348, #6c5ce7)' },
+                { name: 'Power', gradient: 'linear-gradient(135deg, #eb2f06, #fa983a, #1dd1a1, #0abde3, #5f27cd)' }
+            ],
+            minimal: [
+                { name: 'Clean White', gradient: 'linear-gradient(135deg, #f5f6fa, #dfe6e9, #b2bec3)' },
+                { name: 'Dark Mode', gradient: 'linear-gradient(135deg, #2d3436, #1a1a2e, #0f0f1e)' },
+                { name: 'Soft Blue', gradient: 'linear-gradient(135deg, #74b9ff, #0984e3, #2d3561)' },
+                { name: 'Elegant Purple', gradient: 'linear-gradient(135deg, #a29bfe, #6c5ce7, #341f97)' },
+                { name: 'Modern Green', gradient: 'linear-gradient(135deg, #7bed9f, #1dd1a1, #079992)' }
+            ],
+            corners: [
+                { name: 'Corner Fire', gradient: 'linear-gradient(135deg, #ff6348, #feca57, #ff6348)' },
+                { name: 'Corner Ocean', gradient: 'linear-gradient(135deg, #48dbfb, #0abde3, #48dbfb)' },
+                { name: 'Corner Purple', gradient: 'linear-gradient(135deg, #a29bfe, #6c5ce7, #a29bfe)' },
+                { name: 'Corner Green', gradient: 'linear-gradient(135deg, #7bed9f, #1dd1a1, #7bed9f)' },
+                { name: 'Corner Pink', gradient: 'linear-gradient(135deg, #ff9ff3, #fd79a8, #ff9ff3)' }
+            ]
+        };
+
+        const presets = [
+            { name: '🔥 Hot Fire', choreo: 'dynamic', color: 0, effect: 'glow', desc: 'Energetic and bold design' },
+            { name: '🌊 Cool Ocean', choreo: 'wave', color: 0, effect: 'particles', desc: 'Calm and flowing vibes' },
+            { name: '✨ Modern Minimal', choreo: 'minimal', color: 0, effect: 'none', desc: 'Clean and elegant look' },
+            { name: '🎨 Artistic Mix', choreo: 'scattered', color: 0, effect: 'geometric', desc: 'Creative chaos style' },
+            { name: '🎯 Professional', choreo: 'classic', color: 1, effect: 'none', desc: 'Classic and reliable' },
+            { name: '💫 Magical', choreo: 'starburst', color: 4, effect: 'glow', desc: 'Mystical atmosphere' },
+            { name: '🌈 Rainbow Joy', choreo: 'circular', color: 0, effect: 'animated', desc: 'Full of color and life' },
+            { name: '⚡ Electric', choreo: 'diagonal', color: 4, effect: 'particles', desc: 'High energy feel' },
+            { name: '🎭 Dramatic', choreo: 'overlap', color: 0, effect: 'glow', desc: 'Deep and layered' },
+            { name: '🌟 Elegant', choreo: 'symmetry', color: 0, effect: 'none', desc: 'Balanced perfection' },
+            { name: '🚀 Future Tech', choreo: 'cascade', color: 0, effect: 'geometric', desc: 'Futuristic design' },
+            { name: '🎪 Party Time', choreo: 'scattered', color: 1, effect: 'animated', desc: 'Fun and festive' }
+        ];
+
+        let currentChoreo = 'classic';
+        let currentColorIndex = 0;
+        let currentEffect = 'none';
+
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+                document.querySelector(`[data-content="${this.dataset.tab}"]`).classList.add('active');
+            });
+        });
+
+        // Color buttons
+        function updateColorButtons() {
+            const colorGrid = document.getElementById('colorGrid');
+            colorGrid.innerHTML = '';
+
+            colorThemes[currentChoreo].forEach((theme, index) => {
+                const btn = document.createElement('div');
+                btn.className = 'color-btn' + (index === currentColorIndex ? ' active' : '');
+                btn.style.background = theme.gradient;
+                btn.title = theme.name;
+                btn.onclick = () => selectColor(index);
+                colorGrid.appendChild(btn);
+            });
+        }
+
+        function selectColor(index) {
+            currentColorIndex = index;
+            const theme = colorThemes[currentChoreo][index];
+            document.getElementById('background').style.background = theme.gradient;
+
+            document.querySelectorAll('.color-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', i === index);
+            });
+        }
+
+        // Choreography
+        document.querySelectorAll('[data-choreo]').forEach(btn => {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('[data-choreo]').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                currentChoreo = this.dataset.choreo;
+                currentColorIndex = 0;
+
+                const container = document.getElementById('screenshotContainer');
+                container.className = `screenshot-container choreo-${currentChoreo}`;
+
+                updateColorButtons();
+                selectColor(0);
+            });
+        });
+
+        // Effects
+        document.querySelectorAll('[data-effect]').forEach(btn => {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('[data-effect]').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                currentEffect = this.dataset.effect;
+                applyEffect(currentEffect);
+            });
+        });
+
+        function applyEffect(effect) {
+            const effectLayer = document.getElementById('effectLayer');
+            effectLayer.innerHTML = '';
+
+            switch (effect) {
+                case 'particles':
+                    const particlesDiv = document.createElement('div');
+                    particlesDiv.className = 'particles';
+                    for (let i = 0; i < 30; i++) {
+                        const particle = document.createElement('div');
+                        particle.className = 'particle';
+                        particle.style.width = Math.random() * 10 + 5 + 'px';
+                        particle.style.height = particle.style.width;
+                        particle.style.left = Math.random() * 100 + '%';
+                        particle.style.top = Math.random() * 100 + '%';
+                        particle.style.animationDelay = Math.random() * 15 + 's';
+                        particlesDiv.appendChild(particle);
+                    }
+                    effectLayer.appendChild(particlesDiv);
+                    break;
+
+                case 'glow':
+                    for (let i = 0; i < 3; i++) {
+                        const glow = document.createElement('div');
+                        glow.className = 'glow-effect';
+                        glow.style.left = Math.random() * 80 + '%';
+                        glow.style.top = Math.random() * 80 + '%';
+                        glow.style.background = ['rgba(255, 107, 107, 0.4)', 'rgba(72, 219, 251, 0.4)', 'rgba(254, 202, 87, 0.4)'][i];
+                        glow.style.animationDelay = i * 2 + 's';
+                        effectLayer.appendChild(glow);
+                    }
+                    break;
+
+                case 'geometric':
+                    const shapesDiv = document.createElement('div');
+                    shapesDiv.className = 'geometric-shapes';
+                    for (let i = 0; i < 5; i++) {
+                        const shape = document.createElement('div');
+                        shape.className = 'shape';
+                        shape.style.width = Math.random() * 150 + 100 + 'px';
+                        shape.style.height = shape.style.width;
+                        shape.style.left = Math.random() * 90 + '%';
+                        shape.style.top = Math.random() * 90 + '%';
+                        shape.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                        shape.style.animationDuration = (Math.random() * 20 + 20) + 's';
+                        shapesDiv.appendChild(shape);
+                    }
+                    effectLayer.appendChild(shapesDiv);
+                    break;
+
+                case 'animated':
+                    effectLayer.style.background = 'linear-gradient(45deg, rgba(255, 107, 107, 0.3), rgba(254, 202, 87, 0.3), rgba(72, 219, 251, 0.3), rgba(29, 209, 161, 0.3))';
+                    effectLayer.style.backgroundSize = '400% 400%';
+                    effectLayer.style.animation = 'gradientShift 15s ease infinite';
+                    break;
+
+                default:
+                    effectLayer.style.background = 'none';
+                    effectLayer.style.animation = 'none';
+            }
+        }
+
+        // Sliders
+        const sliders = {
+            logoSize: { element: 'logoImg', property: 'maxWidth', unit: 'px', display: 'logoSizeValue' },
+            screenshotSize: { element: 'screenshot', property: 'transform', unit: '%', display: 'screenshotSizeValue', isScale: true },
+            text1Size: { element: 'text1', property: 'height', unit: 'px', display: 'text1SizeValue', target: 'img' },
+            text2Size: { element: 'text2', property: 'height', unit: 'px', display: 'text2SizeValue', target: 'img' },
+            logoX: { element: 'logoContainer', property: 'left', unit: '%', display: 'logoXValue' },
+            logoY: { element: 'logoContainer', property: 'top', unit: '%', display: 'logoYValue' },
+            shadowIntensity: { element: 'screenshot', property: 'boxShadow', unit: 'px', display: 'shadowValue', isShadow: true },
+            borderWidth: { element: 'screenshot', property: 'borderWidth', unit: 'px', display: 'borderValue' },
+            screenshotOpacity: { element: 'screenshot', property: 'opacity', unit: '%', display: 'opacityValue', isOpacity: true },
+            rotationMultiplier: { element: 'screenshotContainer', property: 'transform', unit: 'x', display: 'rotationValue', isRotation: true },
+            borderRadius: { element: 'screenshot', property: 'borderRadius', unit: 'px', display: 'roundnessValue' },
+            patternOpacity: { element: 'patternOverlay', property: 'opacity', unit: '%', display: 'patternValue', isPattern: true }
+        };
+
+        Object.keys(sliders).forEach(sliderId => {
+            const slider = document.getElementById(sliderId);
+            const config = sliders[sliderId];
+
+            slider.addEventListener('input', function () {
+                const value = this.value;
+                const display = document.getElementById(config.display);
+
+                if (config.isScale) {
+                    display.textContent = value + config.unit;
+                    document.querySelectorAll('.screenshot').forEach(el => {
+                        el.style.transform = el.style.transform.replace(/scale\([^)]*\)/g, '') + ` scale(${value / 100})`;
+                    });
+                } else if (config.isShadow) {
+                    display.textContent = value + config.unit;
+                    document.querySelectorAll('.screenshot').forEach(el => {
+                        el.style.boxShadow = `0 ${value / 2}px ${value}px rgba(0, 0, 0, 0.4)`;
+                    });
+                } else if (config.isOpacity) {
+                    display.textContent = value + config.unit;
+                    document.querySelectorAll('.screenshot').forEach(el => {
+                        el.style.opacity = value / 100;
+                    });
+                } else if (config.isRotation) {
+                    display.textContent = (value / 100).toFixed(1) + config.unit;
+                    // This multiplier affects the base rotation values in CSS
+                    document.documentElement.style.setProperty('--rotation-multiplier', value / 100);
+                } else if (config.isPattern) {
+                    display.textContent = value + config.unit;
+                    document.getElementById(config.element).style.opacity = value / 100;
+                } else {
+                    display.textContent = value + config.unit;
+                    if (config.target === 'img') {
+                        document.querySelector(`#${config.element} img`).style[config.property] = value + config.unit;
+                    } else {
+                        if (config.element === 'screenshot') {
+                            document.querySelectorAll('.screenshot').forEach(el => {
+                                el.style[config.property] = value + config.unit;
+                            });
+                        } else {
+                            document.getElementById(config.element).style[config.property] = value + config.unit;
+                        }
+                    }
+                }
+            });
+        });
+
+        // Presets
+        function createPresetCards() {
+            const presetGrid = document.getElementById('presetGrid');
+            presetGrid.innerHTML = '';
+
+            presets.forEach(preset => {
+                const card = document.createElement('div');
+                card.className = 'preset-card';
+                card.innerHTML = `
+                    <h4>${preset.name}</h4>
+                    <p>${preset.desc}</p>
+                `;
+                card.onclick = () => applyPreset(preset);
+                presetGrid.appendChild(card);
+            });
+        }
+
+        function applyPreset(preset) {
+            // Apply choreography
+            const choreoBtn = document.querySelector(`[data-choreo="${preset.choreo}"]`);
+            if (choreoBtn) choreoBtn.click();
+
+            // Apply color
+            setTimeout(() => selectColor(preset.color), 100);
+
+            // Apply effect
+            const effectBtn = document.querySelector(`[data-effect="${preset.effect}"]`);
+            if (effectBtn) effectBtn.click();
+        }
+
+        // Download
+        async function downloadImage() {
+            const graphic = document.getElementById('graphic');
+
+            try {
+                const canvas = await html2canvas(graphic, {
+                    width: 1024,
+                    height: 500,
+                    scale: 2,
+                    backgroundColor: null,
+                    logging: false,
+                    allowTaint: true,
+                    useCORS: true
+                });
+
+                canvas.toBlob(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `2048-feature-graphic-${Date.now()}.jpeg`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                });
+            } catch (error) {
+                alert('Error creating image. Please try again.');
+                console.error(error);
+            }
+        }
+
+        // Reset
+        function resetAll() {
+            // Reset sliders
+            document.getElementById('logoSize').value = 400;
+            document.getElementById('screenshotSize').value = 100;
+            document.getElementById('text1Size').value = 45;
+            document.getElementById('text2Size').value = 40;
+            document.getElementById('logoX').value = 50;
+            document.getElementById('logoY').value = 50;
+            document.getElementById('shadowIntensity').value = 40;
+            document.getElementById('borderWidth').value = 3;
+            document.getElementById('screenshotOpacity').value = 100;
+            document.getElementById('rotationMultiplier').value = 100;
+            document.getElementById('borderRadius').value = 16;
+            document.getElementById('patternOpacity').value = 10;
+
+            // Trigger input events
+            Object.keys(sliders).forEach(sliderId => {
+                document.getElementById(sliderId).dispatchEvent(new Event('input'));
+            });
+
+            // Reset to classic
+            document.querySelector('[data-choreo="classic"]').click();
+
+            // Reset effect
+            document.querySelector('[data-effect="none"]').click();
+        }
+
+        // Pattern overlay
+        const patternSvg = `data:image/svg+xml,${encodeURIComponent(`
+            <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+                <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                    <path d="M 20 0 L 0 0 0 20" fill="none" stroke="white" stroke-width="0.5"/>
+                </pattern>
+                <rect width="100" height="100" fill="url(#grid)"/>
+            </svg>
+        `)}`;
+
+        document.getElementById('patternOverlay').style.backgroundImage = `url("${patternSvg}")`;
+
+        // Initialize
+        updateColorButtons();
+        selectColor(0);
+        createPresetCards();
+    </script>
+</body>
+
+</html>

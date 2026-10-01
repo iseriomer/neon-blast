@@ -94,7 +94,7 @@ class CollisionManager {
             const distPlayer = Math.hypot(player.x - enemy.x, player.y - enemy.y);
 
             if (distPlayer - enemy.radius - player.radius < 1) {
-                if (gameState.godMode) {
+                if (gameState.godMode || (gameState.invulnerableTimer && gameState.invulnerableTimer > 0)) {
                     enemyPool.release(enemy);
                     spawnParticles(enemy.x, enemy.y, 10, 5, enemy.color);
                     continue;
@@ -227,6 +227,36 @@ class CollisionManager {
     // BOSS COLLISION - Uses registry for all bosses
     // ═══════════════════════════════════════════════════════════════════
     static checkBossCollisions(projectile) {
+        // Priority 1: Check active boss from BossManager (covers Minibosses & active bosses directly)
+        if (typeof BossManager !== 'undefined' && BossManager.activeBoss && BossManager.activeBoss.active) {
+            const boss = BossManager.activeBoss;
+            const color = boss.getPhaseColor ? boss.getPhaseColor() : (boss.color || '#ffffff');
+
+            if (boss.isSplit && this.checkBoss4SplitCores && this.checkBoss4SplitCores(projectile, boss)) {
+                return true;
+            }
+
+            if (this.checkSingleBossHit(projectile, boss, color)) {
+                return true;
+            }
+
+            if (boss.hasEntities && typeof omegaPool !== 'undefined') {
+                if (this.checkOmegaEntities(projectile)) return true;
+            }
+            if (boss.splitCores && this.checkBoss4SplitCores && this.checkBoss4SplitCores(projectile, boss)) {
+                return true;
+            }
+            if (boss.clockMinions && this.checkClockMinions && this.checkClockMinions(projectile, boss)) {
+                return true;
+            }
+            if (boss.galaxyArms && this.checkGalaxyArms && this.checkGalaxyArms(projectile, boss)) {
+                return true;
+            }
+            if (boss.neuralNodes && this.checkNeuralNodes && this.checkNeuralNodes(projectile, boss)) {
+                return true;
+            }
+        }
+
         // First check legacy global bosses (backward compatibility)
         const legacyBosses = [
             { ref: 'boss', color: '#8a2be2' },
@@ -299,8 +329,8 @@ class CollisionManager {
     // HELPER: Calculate projectile damage
     // ═══════════════════════════════════════════════════════════════════
     static calculateProjectileDamage(projectile) {
-        let damage = 1;
-        if (projectile.isSplit) damage = 0.5;
+        let damage = projectile.damageMultiplier || 1;
+        if (projectile.isSplit) damage *= 0.5;
         if (gameState.playerStats.sniper) damage *= 2;
         return damage;
     }
@@ -315,9 +345,10 @@ class CollisionManager {
         const minDist = boss.radius + projectile.radius;
 
         if (distSq < minDist * minDist) {
-            const damage = this.calculateProjectileDamage(projectile);
+            let damage = this.calculateProjectileDamage(projectile) * (projectile.bossDamageMultiplier || 1);
             boss.takeDamage(damage);
-            spawnParticles(projectile.x, projectile.y, 5, 3, particleColor);
+            const particleCount = (typeof MOBILE_MODE !== 'undefined' && MOBILE_MODE) ? 2 : 5;
+            spawnParticles(projectile.x, projectile.y, particleCount, 3, particleColor);
             playSound('hit');
             projectilePool.release(projectile);
             return true;
@@ -495,8 +526,12 @@ class CollisionManager {
                 projectile.penetration--;
 
                 // Calculate damage
-                let damage = 1;
+                let damage = projectile.damageMultiplier || 1;
                 let isCritical = Math.random() < gameState.playerStats.critChance;
+
+                if (gameState.playerStats.cryoFracture && enemy.freezeTimer > 0) {
+                    damage *= 1.4;
+                }
 
                 if (isCritical) {
                     damage *= gameState.playerStats.critMultiplier;
@@ -617,6 +652,10 @@ class CollisionManager {
         // ENHANCED: Kill Streak Tracking
         gameState.killStreak++;
         gameState.killStreakTimer = 2000; // 2 seconds to continue streak
+        gameState.totalEnemiesKilled = (gameState.totalEnemiesKilled || 0) + 1;
+        if (typeof QuestManager !== 'undefined') {
+            QuestManager.trackEvent('enemies_killed', 1);
+        }
 
         // ENHANCED: Type-Specific Death VFX
         this.createDeathEffect(enemy);
@@ -640,7 +679,12 @@ class CollisionManager {
 
         // Patlama mantığı
         if (gameState.playerStats.explosiveRadius > 0) {
-            this.createExplosion(enemy.x, enemy.y, gameState.playerStats.explosiveRadius, 7);
+            this.createExplosion(
+                enemy.x,
+                enemy.y,
+                gameState.playerStats.explosiveRadius,
+                7 * (gameState.playerStats.explosiveDamageMultiplier || 1)
+            );
         }
 
         enemyPool.release(enemy);

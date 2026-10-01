@@ -61,7 +61,10 @@ const gameState = {
     orbitalRotation: 0,
     screenShake: null, // { intensity, duration, timer }
     killStreak: 0,
-    killStreakTimer: 0
+    killStreakTimer: 0,
+    sessionGameCount: 0,       // Track games played this session for interstitial frequency
+    totalEnemiesKilled: 0,     // Track for quests
+    totalBossesKilled: 0       // Track for quests
 };
 
 // Input State handled by InputManager
@@ -271,10 +274,14 @@ function animate(timestamp) {
 
         CTX.restore();
 
-        // 3. Oyun Sonu (2000ms sonra)
+        // 3. Oyun Sonu / Revive (2000ms sonra)
         if (gameState.deathTimer > 2000) {
             gameState.isDying = false;
             player.shattered = false; // Reset
+            if (!gameState.hasRevivedThisRun) {
+                triggerReviveOffer();
+                return;
+            }
             gameOver();
             return;
         }
@@ -319,9 +326,19 @@ function animate(timestamp) {
         }
     }
 
+    // UPDATE: Invulnerability Timer (e.g. after Revive)
+    if (gameState.invulnerableTimer && gameState.invulnerableTimer > 0) {
+        gameState.invulnerableTimer -= deltaTime;
+        if (gameState.invulnerableTimer < 0) gameState.invulnerableTimer = 0;
+    }
+
     profiler.start('clear-screen');
-    CTX.fillStyle = 'rgba(5, 5, 5, 0.1)';
-    CTX.fillRect(0, 0, CANVAS.width, CANVAS.height);
+    if (window.BackgroundManager) {
+        BackgroundManager.updateAndDraw(1);
+    } else {
+        CTX.fillStyle = 'rgba(5, 5, 5, 0.1)';
+        CTX.fillRect(0, 0, CANVAS.width, CANVAS.height);
+    }
     profiler.end('clear-screen');
 
     // APPLY: Screen Shake Transform
@@ -353,13 +370,16 @@ function animate(timestamp) {
 
         const laserCount = gameState.playerStats.laserBeam;
         const baseAngle = gameState.laserRotation; // Use accumulated rotation
+        const laserRange = Math.max(CANVAS.width, CANVAS.height) * 1.45;
+        const activeEnemies = enemyPool.getActive();
 
         for (let i = 0; i < laserCount; i++) {
             const angleOffset = (Math.PI * 2 / laserCount) * i;
             const angle = baseAngle + angleOffset;
-
-            const laserEndX = player.x + Math.cos(angle) * 2000;
-            const laserEndY = player.y + Math.sin(angle) * 2000;
+            const unitX = Math.cos(angle);
+            const unitY = Math.sin(angle);
+            const laserEndX = player.x + unitX * laserRange;
+            const laserEndY = player.y + unitY * laserRange;
 
             CTX.beginPath();
             CTX.moveTo(player.x, player.y);
@@ -369,65 +389,36 @@ function animate(timestamp) {
             CTX.stroke();
             CTX.lineWidth = 1;
 
-            enemyPool.getActive().forEach(enemy => {
-                // Direction vector of the laser
-                const laserDx = laserEndX - player.x;
-                const laserDy = laserEndY - player.y;
-
-                // Vector from player to enemy
+            // Unit-vector projection avoids two hypot/sqrt operations per target.
+            for (let enemyIndex = activeEnemies.length - 1; enemyIndex >= 0; enemyIndex--) {
+                const enemy = activeEnemies[enemyIndex];
                 const enemyDx = enemy.x - player.x;
                 const enemyDy = enemy.y - player.y;
-
-                // 1. Dot Product Check: Is the enemy in front of the laser?
-                // (dot > 0 means the angle is less than 90 degrees)
-                const dotProduct = laserDx * enemyDx + laserDy * enemyDy;
-
-                if (dotProduct > 0) {
-                    const distToLine = Math.abs(
-                        (laserEndY - player.y) * enemy.x -
-                        (laserEndX - player.x) * enemy.y +
-                        laserEndX * player.y - laserEndY * player.x
-                    ) / Math.hypot(laserEndY - player.y, laserEndX - player.x);
-
-                    const distToPlayer = Math.hypot(enemyDx, enemyDy);
-
-                    if (distToLine < enemy.radius + 10 && distToPlayer < 2000) {
-                        // Execute check
+                const forward = unitX * enemyDx + unitY * enemyDy;
+                if (forward > 0 && forward < laserRange) {
+                    const perpendicular = Math.abs(unitX * enemyDy - unitY * enemyDx);
+                    if (perpendicular < enemy.radius + 10) {
                         let damage = gameState.playerStats.laserDamage;
                         if (gameState.playerStats.execute && enemy.hp / enemy.maxHp < 0.2) {
                             damage = 999;
                             spawnParticles(enemy.x, enemy.y, 10, 3, 'red', 2);
                         }
                         enemy.hp -= damage;
-
-                        if (enemy.hp <= 0) {
-                            handleEnemyDeath(enemy);
-                        }
+                        if (enemy.hp <= 0) handleEnemyDeath(enemy);
                     }
                 }
-            });
+            }
 
             // BOSS DAMAGE - LASER
             if (gameState.bossActive && BossManager.activeBoss && BossManager.activeBoss.active) {
                 const boss = BossManager.activeBoss;
-                const laserDx = laserEndX - player.x;
-                const laserDy = laserEndY - player.y;
                 const bossDx = boss.x - player.x;
                 const bossDy = boss.y - player.y;
-
-                const dotProduct = laserDx * bossDx + laserDy * bossDy;
-                if (dotProduct > 0) {
-                    const distToLine = Math.abs(
-                        (laserEndY - player.y) * boss.x -
-                        (laserEndX - player.x) * boss.y +
-                        laserEndX * player.y - laserEndY * player.x
-                    ) / Math.hypot(laserEndY - player.y, laserEndX - player.x);
-
-                    const distToPlayer = Math.hypot(bossDx, bossDy);
-
-                    if (distToLine < boss.radius + 10 && distToPlayer < 2000) {
-                        boss.takeDamage(gameState.playerStats.laserDamage);
-                        // Boss death handled in BossManager or Boss Update
+                const forward = unitX * bossDx + unitY * bossDy;
+                if (forward > 0 && forward < laserRange) {
+                    const perpendicular = Math.abs(unitX * bossDy - unitY * bossDx);
+                    if (perpendicular < boss.radius + 10) {
+                        boss.takeDamage(gameState.playerStats.laserDamage * (gameState.playerStats.bossDamageMultiplier || 1));
                     }
                 }
             }
@@ -492,7 +483,7 @@ function animate(timestamp) {
                 const boss = BossManager.activeBoss;
                 const dist = Math.hypot(ox - boss.x, oy - boss.y);
                 if (dist < boss.radius + orbitalRadius) {
-                    boss.takeDamage(gameState.playerStats.orbitalDamage);
+                    boss.takeDamage(gameState.playerStats.orbitalDamage * (gameState.playerStats.bossDamageMultiplier || 1));
                 }
             }
         }
@@ -610,7 +601,7 @@ function updateAndDrawElectricAura(dt) {
             const distSq = dx * dx + dy * dy;
             // Boss radius might be larger, so check against combined radii squared or simple containment
             if (Math.hypot(dx, dy) < radius + boss.radius) { // Simple circle-circle
-                boss.takeDamage(stats.auraDamage);
+                boss.takeDamage(stats.auraDamage * (stats.bossDamageMultiplier || 1));
                 hitSomething = true;
                 if (stats.lightningQueue.length < 52) {
                     stats.lightningQueue.push({
@@ -752,8 +743,107 @@ function drawElectricArc(ctx, x1, y1, x2, y2, alpha) {
 }
 
 // Initialize Game
+// Initialize Game
 function initGame() {
     hideBar();
+
+    // A run can end during a miniboss. Clear transient encounter references so
+    // a restarted/continued run never keeps an invisible registered boss.
+    if (typeof BossManager !== 'undefined' && BossManager.activeBoss) {
+        BossManager.activeBoss.active = false;
+        BossManager.activeBoss = null;
+    }
+    if (typeof CollisionManager !== 'undefined') CollisionManager.clearBossRegistry();
+
+    // CHECK FOR SAVE DATA
+    const saveData = SaveManager.loadGame();
+    if (saveData) {
+        // --- LOAD GAME STATE ---
+        gameState.score = saveData.score;
+        gameState.level = saveData.level;
+        gameState.nextLevelThreshold = saveData.nextLevelThreshold;
+        gameState.previousLevelThreshold = saveData.previousLevelThreshold;
+        gameState.currentLevelStep = saveData.currentLevelStep;
+        gameState.difficultyMultiplier = saveData.difficultyMultiplier;
+        gameState.playerStats = { ...DEFAULT_PLAYER_STATS, ...saveData.playerStats };
+        gameState.takenPerks = saveData.takenPerks || [];
+
+        // Restore Globals
+        gameState.activeHealerCount = 0;
+        gameState.activeSpawnerCount = 0;
+        gameState.laserRotation = 0;
+        gameState.orbitalRotation = 0;
+        gameState.singularityTimer = 0;
+
+        if (typeof lightnings !== 'undefined') lightnings.length = 0;
+        if (typeof blackHole !== 'undefined') blackHole = null;
+
+        projectilePool.releaseAll();
+        enemyPool.releaseAll();
+        particlePool.releaseAll();
+
+        // Boss Reset (Keep inactive for now, let SpawnManager handle respawn if needed or just wait for next trigger)
+        gameState.bossActive = false;
+        if (typeof BossManager !== 'undefined') BossManager.activeBoss = null;
+        if (typeof miniSentinel !== 'undefined') miniSentinel.active = false;
+        if (typeof miniWarden !== 'undefined') miniWarden.active = false;
+        if (typeof miniHarvester !== 'undefined') miniHarvester.active = false;
+        if (typeof boss !== 'undefined') { boss.active = false; boss.hp = 0; }
+        if (typeof boss2 !== 'undefined') boss2.active = false;
+        if (typeof boss3 !== 'undefined') { boss3.active = false; boss3.platforms = []; boss3.walls = []; boss3.vortexes = []; }
+        if (typeof bossShapePool !== 'undefined') bossShapePool.releaseAll();
+        if (typeof boss4 !== 'undefined') { boss4.active = false; boss4.isSplit = false; boss4.splitCores = []; boss4.drones = []; }
+        if (typeof boss5 !== 'undefined') { boss5.active = false; if (boss5.clockMinions) boss5.clockMinions = []; boss5.minions = []; }
+        document.getElementById('boss-hud').style.display = 'none';
+
+        const xpContainer = document.getElementById('xp-container');
+        if (xpContainer) xpContainer.style.display = '';
+
+        // Reset other states
+        gameState.timeWarpActive = false;
+        gameState.timeWarpTimer = 0;
+        gameState.hitstopTimer = 0;
+        gameState.isDying = false;
+        gameState.deathTimer = 0;
+        player.shattered = false;
+        if (typeof enemySpatialGrid !== 'undefined') enemySpatialGrid.clear();
+
+        // Restore Player
+        player.radius = 20 * GAME_SCALE;
+
+        // UPDATE UI
+        updateLevelIndicator(gameState.level);
+        updateProgressBar(gameState.score, gameState.nextLevelThreshold, gameState.previousLevelThreshold);
+        updateShieldIndicator(gameState.playerStats.shield);
+        updateXPBarColor(gameState.playerStats.color);
+
+        // START PAUSED
+        gameState.gameActive = true;
+        gameState.isPaused = true; // Use togglePause logic manually to ensure UI shows up
+
+        startScreen.classList.add('hidden');
+        gameOverScreen.classList.add('hidden');
+        levelUpScreen.classList.add('hidden');
+
+        // Setup Player for "Resume"
+        player.visible = true;
+        player.x = CANVAS.width / 2;
+        player.y = CANVAS.height / 2;
+
+        gameState.isStarting = false; // Skip intro
+        lastTime = 0;
+
+        // Show Pause Menu
+        document.getElementById('pause-menu').classList.remove('hidden');
+        document.getElementById('ui-layer').style.filter = 'blur(5px)';
+        if (typeof animateButton === 'function') animateButton(document.getElementById('resume-btn'));
+
+        SpawnManager.spawnEnemies(); // Start spawning logic (it will check isPaused and wait)
+        requestAnimationFrame(animate);
+        return;
+    }
+
+    // --- NEW GAME (Original Logic) ---
     gameState.score = 0;
     gameState.level = 1;
     gameState.nextLevelThreshold = 600;
@@ -816,18 +906,25 @@ function initGame() {
     gameState.hitstopTimer = 0;
     gameState.isDying = false;
     gameState.deathTimer = 0;
+    gameState.hasRevivedThisRun = false;
+    gameState.invulnerableTimer = 0;
     player.shattered = false;
     if (typeof enemySpatialGrid !== 'undefined') {
         enemySpatialGrid.clear();
     }
 
     gameState.playerStats = { ...DEFAULT_PLAYER_STATS };
+    gameState.totalEnemiesKilled = 0;
+    gameState.totalBossesKilled = 0;
+    if (typeof QuestManager !== 'undefined' && QuestManager.onGameStart) {
+        QuestManager.onGameStart();
+    }
     player.radius = 20 * GAME_SCALE;
     updateLevelIndicator(1);
     updateProgressBar(0, 600);
     updateShieldIndicator(0);
     updateXPBarColor(gameState.playerStats.color); // Reset XP bar color
-    /* BackgroundManager.init(); */
+    if (window.BackgroundManager) BackgroundManager.init();
     gameState.gameActive = true;
     gameState.isPaused = false;
 
@@ -856,9 +953,135 @@ function startDeathSequence() {
     playSound('hit');
 }
 
+let reviveCountdownTimer = null;
+
+function triggerReviveOffer() {
+    gameState.isDying = false;
+    gameState.isPaused = true;
+    player.shattered = false;
+
+    const modal = document.getElementById('revive-modal');
+    if (!modal) {
+        gameOver();
+        return;
+    }
+
+    modal.classList.remove('hidden');
+
+    const numEl = document.getElementById('revive-countdown-num');
+    const barEl = document.getElementById('revive-timer-bar');
+    if (numEl) numEl.innerText = '5';
+    if (barEl) {
+        barEl.style.strokeDashoffset = '0';
+    }
+
+    if (reviveCountdownTimer) clearInterval(reviveCountdownTimer);
+
+    const startTime = Date.now();
+    const duration = 5000;
+    const circumference = 276.46; // 2 * PI * 44
+
+    reviveCountdownTimer = setInterval(() => {
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(0, duration - elapsed);
+        const seconds = Math.ceil(remaining / 1000);
+        
+        if (numEl) numEl.innerText = seconds.toString();
+        if (barEl) {
+            const progress = (duration - remaining) / duration;
+            barEl.style.strokeDashoffset = (progress * circumference).toString();
+        }
+
+        if (remaining <= 0) {
+            clearInterval(reviveCountdownTimer);
+            reviveCountdownTimer = null;
+            declineRevive();
+        }
+    }, 40);
+}
+
+function declineRevive() {
+    if (reviveCountdownTimer) {
+        clearInterval(reviveCountdownTimer);
+        reviveCountdownTimer = null;
+    }
+    const modal = document.getElementById('revive-modal');
+    if (modal) modal.classList.add('hidden');
+    gameOver();
+}
+
+function executeReviveEMP() {
+    if (reviveCountdownTimer) {
+        clearInterval(reviveCountdownTimer);
+        reviveCountdownTimer = null;
+    }
+    const modal = document.getElementById('revive-modal');
+    if (modal) modal.classList.add('hidden');
+
+    gameState.hasRevivedThisRun = true;
+    gameState.isDying = false;
+    gameState.isPaused = false;
+    player.shattered = false;
+
+    // Center player safely
+    player.x = CANVAS.width / 2;
+    player.y = CANVAS.height / 2;
+
+    // Restore full shield
+    const maxShield = gameState.playerStats.maxShield || 1;
+    gameState.playerStats.shield = Math.max(1, maxShield);
+    updateShieldIndicator(gameState.playerStats.shield);
+
+    // 3 seconds invulnerability
+    gameState.invulnerableTimer = 3000;
+
+    // EMP Shockwave visual & screen shake
+    gameState.screenShake = { duration: 800, intensity: 25, timer: 0 };
+    if (typeof spawnShockwave === 'function') {
+        spawnShockwave(player.x, player.y, '#00ffff');
+        setTimeout(() => spawnShockwave(player.x, player.y, '#ffffff'), 150);
+    }
+    spawnParticles(player.x, player.y, 80, 8, '#00ffff');
+    playSound('spark_long');
+    playSound('levelup');
+
+    // Destroy all active enemies and enemy projectiles
+    const activeEnemies = enemyPool.getActive();
+    for (let i = activeEnemies.length - 1; i >= 0; i--) {
+        const enemy = activeEnemies[i];
+        spawnParticles(enemy.x, enemy.y, 12, 5, enemy.color || '#ff0055');
+        enemyPool.release(enemy);
+    }
+
+    if (typeof bossShapePool !== 'undefined') {
+        bossShapePool.releaseAll();
+    }
+
+    // Heavy EMP damage to active boss if any
+    if (gameState.bossActive) {
+        const activeBoss = (typeof boss !== 'undefined' && boss.active) ? boss :
+            (typeof boss2 !== 'undefined' && boss2.active) ? boss2 :
+            (typeof boss3 !== 'undefined' && boss3.active) ? boss3 :
+            (typeof boss4 !== 'undefined' && boss4.active) ? boss4 :
+            (typeof boss5 !== 'undefined' && boss5.active) ? boss5 : null;
+
+        if (activeBoss) {
+            if (typeof activeBoss.takeDamage === 'function') {
+                activeBoss.takeDamage(600);
+            } else if (activeBoss.hp) {
+                activeBoss.hp -= 600;
+            }
+        }
+    }
+
+    lastTime = performance.now();
+    gameState.animationId = requestAnimationFrame(animate);
+}
+
 function gameOver() {
     gameState.gameActive = false;
     gameState.isPaused = true;
+    SaveManager.clearSave(); // Clear save on death
 
     // OPTIMIZATION: Clean up all intervals
     if (gameState.spawnInterval) clearInterval(gameState.spawnInterval);
@@ -870,6 +1093,44 @@ function gameOver() {
     window.lastGameScore = gameState.score;
     window.lastGameLevel = gameState.level;
 
+    // --- QUEST TRACKING ---
+    if (typeof QuestManager !== 'undefined') {
+        QuestManager.onGameEnd(
+            gameState.level,
+            gameState.totalEnemiesKilled || 0,
+            gameState.totalBossesKilled || 0,
+            window.lastEarnedCoins || 0,
+            (gameState.takenPerks || []).length
+        );
+    }
+
+    // --- COIN REWARDS (Level-Only Formula) ---
+    if (typeof CosmeticsManager !== 'undefined' && CosmeticsManager.calculateCoinsForLevel) {
+        let earnedCoins = CosmeticsManager.calculateCoinsForLevel(gameState.level);
+
+        // VIP Bonus Coins
+        if (typeof PremiumStoreManager !== 'undefined') {
+            earnedCoins += PremiumStoreManager.getVipBonusCoins();
+        }
+
+        CosmeticsManager.addCoins(earnedCoins);
+        window.lastEarnedCoins = earnedCoins;
+        window.hasDoubledCoinsThisGameOver = false;
+
+        const coinDisplay = document.getElementById('game-over-coins');
+        const coinAmountEl = document.getElementById('earned-coins-amount');
+        const doubleCoinBtn = document.getElementById('double-coins-btn');
+        if (coinDisplay && coinAmountEl) {
+            coinDisplay.style.display = 'flex';
+            coinAmountEl.innerText = `+${earnedCoins}`;
+        }
+        if (doubleCoinBtn) {
+            doubleCoinBtn.style.display = earnedCoins > 0 ? 'inline-flex' : 'none';
+            doubleCoinBtn.disabled = false;
+            doubleCoinBtn.innerHTML = `<span>⚡</span> <span data-i18n="double_coins">${Localization.t('double_coins_btn') || '2X COINS (WATCH AD)'}</span>`;
+        }
+    }
+
     document.getElementById('submit-score-btn').style.display = 'inline-block';
     document.getElementById('submit-score-btn').disabled = false;
     document.getElementById('submit-score-btn').innerText = Localization.t('save_score');
@@ -879,12 +1140,26 @@ function gameOver() {
         window.fetchLeaderboard();
     }
 
-    gameOverScreen.classList.remove('hidden');
+    // --- INTERSTITIAL AD (every 3rd game, if not VIP) ---
+    gameState.sessionGameCount++;
+    const shouldShowInterstitial = (gameState.sessionGameCount >= 3) &&
+        (gameState.sessionGameCount % 3 === 0) &&
+        (typeof PremiumStoreManager === 'undefined' || PremiumStoreManager.shouldShowInterstitial());
+
+    if (shouldShowInterstitial && typeof AdManager !== 'undefined' && AdManager.showInterstitialAd) {
+        AdManager.showInterstitialAd(() => {
+            // Show game over screen after interstitial
+            gameOverScreen.classList.remove('hidden');
+        });
+    } else {
+        gameOverScreen.classList.remove('hidden');
+    }
+
     // NEW: Animate main buttons on show
     if (typeof animateButton === 'function') {
         animateButton(document.getElementById('submit-score-btn'));
-        //wait 0.5 sec.
         setTimeout(() => {
+            animateButton(document.getElementById('game-over-armory-btn'));
             animateButton(document.getElementById('restart-btn'));
         }, 40);
     }
@@ -1109,3 +1384,55 @@ setTimeout(() => {
         }, 40);
     }
 }, 500);
+
+// --- REWARDED ADS: Revive & Double Coins Listeners ---
+const reviveAdBtn = document.getElementById('revive-ad-btn');
+if (reviveAdBtn) {
+    reviveAdBtn.addEventListener('click', () => {
+        if (typeof AdManager !== 'undefined') {
+            AdManager.showRewardedAd({
+                rewardType: 'REVIVE',
+                onSuccess: () => {
+                    executeReviveEMP();
+                },
+                onDismiss: () => {
+                    declineRevive();
+                }
+            });
+        } else {
+            executeReviveEMP();
+        }
+    });
+}
+
+const reviveSkipBtn = document.getElementById('revive-skip-btn');
+if (reviveSkipBtn) {
+    reviveSkipBtn.addEventListener('click', () => {
+        declineRevive();
+    });
+}
+
+const doubleCoinsBtn = document.getElementById('double-coins-btn');
+if (doubleCoinsBtn) {
+    doubleCoinsBtn.addEventListener('click', () => {
+        if (window.hasDoubledCoinsThisGameOver || !window.lastEarnedCoins) return;
+        if (typeof AdManager !== 'undefined') {
+            AdManager.showRewardedAd({
+                rewardType: 'DOUBLE_COINS',
+                onSuccess: () => {
+                    window.hasDoubledCoinsThisGameOver = true;
+                    if (typeof CosmeticsManager !== 'undefined') {
+                        CosmeticsManager.addCoins(window.lastEarnedCoins);
+                    }
+                    const coinAmountEl = document.getElementById('earned-coins-amount');
+                    if (coinAmountEl) {
+                        coinAmountEl.innerText = `+${window.lastEarnedCoins * 2} (2X BOOSTED!)`;
+                    }
+                    doubleCoinsBtn.disabled = true;
+                    doubleCoinsBtn.innerText = Localization.t('coins_doubled') || 'COINS DOUBLED!';
+                    playSound('levelup');
+                }
+            });
+        }
+    });
+}

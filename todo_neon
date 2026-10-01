@@ -3,3 +3,51 @@ elektrik mobilde çoook uzun sekiyor 1 ekranın başından sonuna sekiyor amk(ek
 oyuncu öldüğünde zaman dursun kamera yavaşca oyuncuya yaklaşsın ve sonra oyuncu parçalansın
 aciliyeti yok: lazer tutunca 99999999999 gibi bişi oluyor enemy.hp texti.
 yeni boss eklenecek boss_2.js scripti oluşturulup.(bu boss 30 lvlda spawn olacak 3 tane phase'i olacak)
+execute perk laser aura ve orbitalde çalışsın
+laser aura orbital bossa hasar versin(10x)
+omega bossu ilk phase bok gibi ve çıkardığı düşmanlar enemy poolda değil.
+sondan 1 önceki boss çıkardığı şeylerin hasarını arttır.
+chronosdan itibaren bossalrın verdiği scoreu azalt. 
+şeyi yapabilir miyiz, bir oyuncu bir cihazdan skor kaydediyorda ve check et bakalım başka skorkaydetmiş mi, kaydetmiş olduğu en yüksek skoru bul ve bu skor eğer şuanki skorundan çoksa kaydetme az iste önceki skoru silip yeni skoru kaydet. çünkü şuanki sistemde 1. 2. 3. 4. 5. aynı kişi olabiliyor:/
+chronos 4 katına çıkar.
+
+Boss Prompt
+"# TASK: Design & Implement an "EPIC" Endgame Boss for "Neon Blast"
+
+**Role:** You are a Lead Game Designer and VFX Specialist.
+**Objective:** Create a visually stunning, mechanically intense, and highly challenging "Endgame Boss" that pushes the player to their limits.
+
+**Game Context:**
+*   **Genre:** Stationary Defense Shooter.
+*   **Player:** Fixed in center, 1 HP (Instant Death).
+*   **Constraint:** Player CANNOT move voluntarily.
+*   **Boss Power:** The Boss Script IS ALLOWED to move the player (e.g., to the bottom/sides) to frame the fight, similar to [boss_2.js](cci:7://file:///c:/Users/iseri/GeminiGames/neonblast/www/game/boss_2.js:0:0-0:0).
+
+**Design Philosophy - "THE EPIC FACTOR":**
+1.  **Visual Spectacle:** The boss must look INCREDIBLE. Use combining shapes, pulsing colors, heavy particle effects, and screen shake (tastefully) to convey power. It shouldn't just be a static circle.
+2.  **High Difficulty:** This should be a "Skill Check." It must be difficult and frantic, limiting the player's safe space, but completely fair (no unavoidable hits).
+3.  **Adrenaline:** The attacks should feel overwhelming but destroyable. Think "Bullet Hell" meets "Tower Defense".
+4.  **Grandeur:** The fight should feel like a climax.
+
+**Reference Files:**
+*   [game/boss_2.js](cci:7://file:///c:/Users/iseri/GeminiGames/neonblast/www/game/boss_2.js:0:0-0:0): **Primary Reference.** Use this for structure and player positioning logic.
+*   [boss_design_guide.md](cci:7://file:///c:/Users/iseri/.gemini/antigravity/brain/34796988-7f61-4df0-82bf-0abd370a6b18/boss_design_guide.md:0:0-0:0): Follow the "Stationary Defense" principles (Telegraphing, Destructible Projectiles).
+*   `game/managers/EnemyPool.js`: CRITICAL. All entities MUST use `enemyPool.get()`.
+*   [game/managers/CollisionManager.js](cci:7://file:///c:/Users/iseri/GeminiGames/neonblast/www/game/managers/CollisionManager.js:0:0-0:0): For hit detection.
+
+**Your Creative Task:**
+1.  **Concept:** Invent a terrifying entity (e.g., "The Galaxy Devourer," "System Override").
+2.  **Visuals:** Describe complex drawing logic (rotating rings, charging animations, color shifts).
+3.  **Mechanics:**
+    *   **Phase 1:** Introduction to pain. High speed or heavy armor.
+    *   **Phase 2:** The "Gimmick" (e.g., Lasers that cut the screen, massive gravity wells).
+    *   **Phase 3:** Total Chaos. The screen should be filled with threats that the player must frantically shoot down.
+4.  **Player Position:** Decide where the player stands (Center? Bottom? Top?) for maximum dramatic effect.
+
+**Implementation Logic:**
+1.  **Code:** Create `game/boss_[NEXT_NUMBER].js` extending `BossBase`.
+2.  **Collision:** If you invent a new projectile type (e.g., a "Bouncing Laser"), provide the specific handling logic for [CollisionManager.js](cci:7://file:///c:/Users/iseri/GeminiGames/neonblast/www/game/managers/CollisionManager.js:0:0-0:0).
+3.  **Integration:** Provide the lines for [SpawnManager.js](cci:7://file:///c:/Users/iseri/GeminiGames/neonblast/www/game/managers/SpawnManager.js:0:0-0:0) and [index.html](cci:7://file:///c:/Users/iseri/GeminiGames/neonblast/www/index.html:0:0-0:0).
+
+**Output:**
+Surprise me. Make it hard. Make it look cool. Provide the full code."

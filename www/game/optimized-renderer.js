@@ -53,6 +53,10 @@ const RenderOptimizer = {
             this._projGroups[proj.color].push(proj);
         }
 
+        const projSkin = (typeof CosmeticsManager !== 'undefined' && CosmeticsManager.getEquipped)
+            ? CosmeticsManager.getEquipped('projectile')
+            : 'proj_default';
+
         // 3. Draw each color group with gradient glow (MUCH faster than shadowBlur)
         for (const color in this._projGroups) {
             const group = this._projGroups[color];
@@ -76,13 +80,93 @@ const RenderOptimizer = {
                 }
             }
 
-            // Draw main projectiles
+            // Draw main projectiles according to equipped cosmetic skin
             CTX.beginPath();
-            for (let i = 0; i < group.length; i++) {
-                const proj = group[i];
-                CTX.moveTo(proj.x + proj.radius, proj.y);
-                CTX.arc(proj.x, proj.y, proj.radius, 0, Math.PI * 2);
+
+            if (projSkin === 'proj_laser') {
+                for (let i = 0; i < group.length; i++) {
+                    const proj = group[i];
+                    const vx = proj.velocity.x || 0;
+                    const vy = proj.velocity.y || 0;
+                    const len = Math.hypot(vx, vy) || 1;
+                    const nx = vx / len;
+                    const ny = vy / len;
+                    const beamLen = proj.radius * 2.6;
+                    const beamWidth = proj.radius * 0.65;
+                    const px = -ny * beamWidth;
+                    const py = nx * beamWidth;
+
+                    CTX.moveTo(proj.x + nx * beamLen, proj.y + ny * beamLen);
+                    CTX.lineTo(proj.x + px, proj.y + py);
+                    CTX.lineTo(proj.x - nx * (beamLen * 0.5), proj.y - ny * (beamLen * 0.5));
+                    CTX.lineTo(proj.x - px, proj.y - py);
+                    CTX.closePath();
+                }
+            } else if (projSkin === 'proj_plasma') {
+                for (let i = 0; i < group.length; i++) {
+                    const proj = group[i];
+                    CTX.moveTo(proj.x + proj.radius * 1.3, proj.y);
+                    CTX.arc(proj.x, proj.y, proj.radius * 1.3, 0, Math.PI * 2, false);
+                    CTX.moveTo(proj.x + proj.radius * 0.6, proj.y);
+                    CTX.arc(proj.x, proj.y, proj.radius * 0.6, 0, Math.PI * 2, true);
+                }
+            } else if (projSkin === 'proj_shuriken') {
+                const nowT = Date.now() * 0.015;
+                for (let i = 0; i < group.length; i++) {
+                    const proj = group[i];
+                    const rot = nowT + (proj.x * 0.02);
+                    const rOuter = proj.radius * 1.5;
+                    const rInner = proj.radius * 0.45;
+
+                    for (let s = 0; s < 4; s++) {
+                        const a = rot + (s * Math.PI / 2);
+                        const aMid = a + Math.PI / 4;
+                        if (s === 0) {
+                            CTX.moveTo(proj.x + Math.cos(a) * rOuter, proj.y + Math.sin(a) * rOuter);
+                        } else {
+                            CTX.lineTo(proj.x + Math.cos(a) * rOuter, proj.y + Math.sin(a) * rOuter);
+                        }
+                        CTX.lineTo(proj.x + Math.cos(aMid) * rInner, proj.y + Math.sin(aMid) * rInner);
+                    }
+                    CTX.closePath();
+                }
+            } else if (projSkin === 'proj_pixel') {
+                for (let i = 0; i < group.length; i++) {
+                    const proj = group[i];
+                    const rPix = proj.radius * 1.25;
+                    CTX.moveTo(proj.x, proj.y - rPix);
+                    CTX.lineTo(proj.x + rPix, proj.y);
+                    CTX.lineTo(proj.x, proj.y + rPix);
+                    CTX.lineTo(proj.x - rPix, proj.y);
+                    CTX.closePath();
+                }
+            } else if (projSkin === 'proj_void') {
+                for (let i = 0; i < group.length; i++) {
+                    const proj = group[i];
+                    const vx = proj.velocity.x || 0;
+                    const vy = proj.velocity.y || 0;
+                    const len = Math.hypot(vx, vy) || 1;
+                    const nx = vx / len;
+                    const ny = vy / len;
+                    const rV = proj.radius * 1.5;
+                    const px = -ny * rV * 0.8;
+                    const py = nx * rV * 0.8;
+
+                    CTX.moveTo(proj.x + nx * rV * 1.6, proj.y + ny * rV * 1.6);
+                    CTX.lineTo(proj.x - nx * rV * 0.8 + px, proj.y - ny * rV * 0.8 + py);
+                    CTX.lineTo(proj.x - nx * rV * 0.25, proj.y - ny * rV * 0.25);
+                    CTX.lineTo(proj.x - nx * rV * 0.8 - px, proj.y - ny * rV * 0.8 - py);
+                    CTX.closePath();
+                }
+            } else {
+                // Default: Smooth Neon Sphere
+                for (let i = 0; i < group.length; i++) {
+                    const proj = group[i];
+                    CTX.moveTo(proj.x + proj.radius, proj.y);
+                    CTX.arc(proj.x, proj.y, proj.radius, 0, Math.PI * 2);
+                }
             }
+
             CTX.fillStyle = color;
             CTX.fill();
         }

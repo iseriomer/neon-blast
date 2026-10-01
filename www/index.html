@@ -96,8 +96,28 @@
     <div id="start-screen">
         <h1>NEON BLAST</h1>
         <p data-i18n="start_desc">Protect the center. Destroy enemies.<br>Fill the XP bar to EVOLVE.</p>
+
+        <div class="start-coin-display">
+            <span class="coin-icon-slot">
+                <svg class="neon-coin-svg" viewBox="0 0 24 24" width="22" height="22">
+                    <circle cx="12" cy="12" r="10" fill="#f59e0b" stroke="#fef08a" stroke-width="1.8"/>
+                    <circle cx="12" cy="12" r="7.2" fill="#d97706" stroke="#fbbf24" stroke-width="1.2"/>
+                    <text x="12" y="16" text-anchor="middle" font-size="11" font-weight="900" fill="#ffffff" font-family="'Segoe UI', Roboto, sans-serif">N</text>
+                </svg>
+            </span>
+            <span id="start-coin-amount">0</span>
+            <span class="coin-label">NEON COINS</span>
+        </div>
+
         <button class="main-btn" id="start-btn" data-i18n="start_btn">START GAME</button>
+        <button class="main-btn armory-menu-btn" id="armory-btn" data-i18n="armory_btn">CEPHANELİK</button>
         <button class="main-btn" id="leaderboard-btn" data-i18n="leaderboard_btn">LEADERBOARD</button>
+
+        <!-- Engagement Buttons -->
+        <div class="start-engagement-row">
+            <button class="engage-btn" id="lucky-spin-btn">🎰 ŞANS ÇARKI</button>
+            <button class="engage-btn" id="daily-quests-btn">📋 GÖREVLER</button>
+        </div>
 
         <div class="lang-selector" style="margin-top: 20px;">
             <button onclick="Localization.setLanguage('tr')"
@@ -141,6 +161,23 @@
             data-i18n="game_over">GAME OVER</h1>
         <p id="final-score">Score: 0</p>
 
+        <!-- Round End Coin Summary & 2X Rewarded Ad Button -->
+        <div id="game-over-coins" class="game-over-coins-banner" style="display: none;">
+            <div class="coins-earned-row">
+                <span class="coin-icon-slot pulse-coin">
+                    <svg class="neon-coin-svg" viewBox="0 0 24 24" width="28" height="28">
+                        <circle cx="12" cy="12" r="10" fill="#f59e0b" stroke="#fef08a" stroke-width="1.8"/>
+                        <circle cx="12" cy="12" r="7.2" fill="#d97706" stroke="#fbbf24" stroke-width="1.2"/>
+                        <text x="12" y="16" text-anchor="middle" font-size="11" font-weight="900" fill="#ffffff" font-family="'Segoe UI', Roboto, sans-serif">N</text>
+                    </svg>
+                </span>
+                <span id="earned-coins-amount">+0</span>
+            </div>
+            <button class="double-coins-ad-btn" id="double-coins-btn">
+                <span>⚡</span> <span data-i18n="double_coins">2X COINS (WATCH AD)</span>
+            </button>
+        </div>
+
         <div id="leaderboard-section">
             <input type="text" id="player-name-input" placeholder="ENTER INITIALS" maxlength="10"
                 data-i18n="enter_initials">
@@ -162,7 +199,153 @@
                 </ul>
             </div>
         </div>
-        <button class="main-btn" id="restart-btn" style="margin-top: 20px;" data-i18n="play_again">PLAY AGAIN</button>
+
+        <div class="game-over-buttons-group">
+            <button class="main-btn armory-menu-btn" id="game-over-armory-btn" data-i18n="armory_btn">CEPHANELİK</button>
+            <button class="main-btn" id="restart-btn" data-i18n="play_again">PLAY AGAIN</button>
+        </div>
+    </div>
+
+    <!-- Revive / Second Chance Modal -->
+    <div id="revive-modal" class="hidden">
+        <div class="revive-card">
+            <div class="revive-header-tag" data-i18n="emergency_revive">EMERGENCY PROTOCOL</div>
+            <h2 class="revive-title" data-i18n="second_chance">SECOND CHANCE</h2>
+            <div class="revive-timer-wrapper">
+                <svg class="revive-timer-svg" viewBox="0 0 100 100">
+                    <circle class="timer-bg" cx="50" cy="50" r="44"></circle>
+                    <circle class="timer-bar" id="revive-timer-bar" cx="50" cy="50" r="44"></circle>
+                </svg>
+                <div class="revive-number" id="revive-countdown-num">5</div>
+            </div>
+            <p class="revive-text" data-i18n="revive_desc">Deploy EMP Shockwave & Restore Full Shields</p>
+            <button class="main-btn revive-action-btn" id="revive-ad-btn">
+                <span data-i18n="revive_btn">REVIVE (WATCH AD)</span>
+            </button>
+            <button class="revive-dismiss-btn" id="revive-skip-btn" data-i18n="revive_skip">VAZGEÇ</button>
+        </div>
+    </div>
+
+    <!-- Armory / Cephanelik Modal -->
+    <div id="armory-modal" class="hidden">
+        <div class="armory-panel">
+            <div class="armory-header">
+                <div class="armory-title-wrap">
+                    <h2 class="armory-title" data-i18n="armory_title">CEPHANELİK</h2>
+                    <span class="armory-subtitle">ÖZELLEŞTİRME</span>
+                </div>
+                <div class="armory-top-right">
+                    <button class="ad-free-coins-btn" id="header-watch-ad-coin-btn" title="+150 Neon Coin">
+                        <span class="ad-free-label">+150 COIN (REKLAM)</span>
+                    </button>
+                    <div class="armory-coin-badge">
+                        <span class="coin-icon-slot">
+                            <svg class="neon-coin-svg" viewBox="0 0 24 24" width="20" height="20">
+                                <circle cx="12" cy="12" r="10" fill="#f59e0b" stroke="#fef08a" stroke-width="1.8"/>
+                                <circle cx="12" cy="12" r="7.2" fill="#d97706" stroke="#fbbf24" stroke-width="1.2"/>
+                                <text x="12" y="16" text-anchor="middle" font-size="11" font-weight="900" fill="#ffffff" font-family="'Segoe UI', Roboto, sans-serif">N</text>
+                            </svg>
+                        </span>
+                        <span id="armory-coin-balance">0</span>
+                    </div>
+                    <button id="close-armory-btn" class="armory-close-btn">&times;</button>
+                </div>
+            </div>
+
+            <!-- Armory Nav Tabs -->
+            <div class="armory-tabs">
+                <button class="armory-tab-btn cipher-tab active" data-tab="packs" data-i18n="tab_packs">SANDIKLAR</button>
+                <button class="armory-tab-btn" data-tab="cores" data-i18n="tab_cores">ÇEKİRDEK</button>
+                <button class="armory-tab-btn" data-tab="projectiles" data-i18n="tab_projectiles">MERMİLER</button>
+                <button class="armory-tab-btn" data-tab="backgrounds" data-i18n="tab_backgrounds">ARKA PLAN</button>
+                <button class="armory-tab-btn premium-tab" data-tab="premium">💎 PREMIUM</button>
+            </div>
+
+            <!-- Dynamic Tab Content -->
+            <div class="armory-content">
+                <!-- Live Hologram Hangar / Test Rig -->
+                <div id="armory-hangar-deck" class="armory-hangar-deck hidden">
+                    <div class="hangar-canvas-wrap">
+                        <canvas id="hangar-preview-canvas" width="600" height="150"></canvas>
+                        <div class="hangar-hud-overlay">
+                            <div class="hangar-tag">TEST PİSTİ</div>
+                            <div class="hangar-preview-info">
+                                <span class="hangar-preview-title" id="hangar-title">KLASİK NEON</span>
+                                <span class="hangar-preview-badge" id="hangar-badge">KUŞANILDI</span>
+                            </div>
+                            <button class="hangar-quick-equip-btn hidden" id="hangar-quick-equip">KUŞAN</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cosmetics Grid (Cores, Projectiles, Backgrounds) -->
+                <div id="armory-items-grid" class="armory-grid hidden"></div>
+
+                <!-- Cipher Packs Section -->
+                <div id="armory-packs-view" class="armory-packs-container">
+                    <!-- Daily Free Ad Airdrop Banner -->
+                    <div class="store-airdrop-banner">
+                        <div class="airdrop-glow"></div>
+                        <div class="airdrop-left">
+                            <div class="airdrop-tag">ÜCRETSİZ TAKVİYE</div>
+                            <h4 class="airdrop-title">GÜNLÜK ÖDÜLLER</h4>
+                        </div>
+                        <div class="airdrop-actions">
+                            <button class="airdrop-ad-btn" id="airdrop-free-coins-btn">
+                                <span class="airdrop-btn-text"><strong>+150 COIN</strong><small>REKLAM İZLE</small></span>
+                            </button>
+                            <button class="airdrop-ad-btn airdrop-crate-btn" id="airdrop-free-crate-btn">
+                                <span class="airdrop-btn-text"><strong>ÜCRETSİZ SANDIK</strong><small>REKLAM İZLE</small></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="packs-grid" id="cipher-packs-grid"></div>
+                </div>
+
+                <!-- Premium Store Tab Content -->
+                <div id="armory-premium-view" class="armory-premium-container hidden">
+                    <div id="premium-store-content"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Daily Reward Modal -->
+    <div id="daily-reward-modal" class="hidden modal-overlay"></div>
+
+    <!-- Lucky Spin Modal -->
+    <div id="lucky-spin-modal" class="hidden modal-overlay"></div>
+
+    <!-- Daily Quests Panel -->
+    <div id="quest-panel-modal" class="hidden modal-overlay">
+        <div class="quest-panel-card">
+            <h2 class="quest-panel-title">📋 GÜNLÜK GÖREVLER</h2>
+            <div id="quest-panel-content"></div>
+            <button class="main-btn quest-close-btn" id="quest-close-btn">KAPAT</button>
+        </div>
+    </div>
+
+    <!-- Decrypt / Pack Opening Sequence Modal -->
+    <div id="pack-opening-modal" class="hidden">
+        <div class="pack-opening-card">
+            <div class="decrypt-scanner"></div>
+            <div class="pack-reveal-box" id="pack-reveal-box">
+                <div class="decrypt-glitch-text" id="decrypt-status-text">DECRYPTING ARCHIVE...</div>
+                <div class="unlocked-item-preview hidden" id="unlocked-item-preview">
+                    <div class="reveal-rarity-badge" id="reveal-rarity-badge">EPIC</div>
+                    <div class="reveal-icon-container" id="reveal-icon-container"></div>
+                    <h3 class="reveal-item-name" id="reveal-item-name">CHRONO DIAL</h3>
+                    <p class="reveal-item-desc" id="reveal-item-desc">A temporal clock gear housing.</p>
+                    <div class="reveal-actions-row">
+                        <button class="main-btn reveal-claim-btn" id="reveal-claim-btn">EQUIP & CONTINUE</button>
+                        <button class="main-btn reveal-ad-again-btn" id="reveal-ad-again-btn">
+                            <span class="ad-icon">⚡</span> OPEN ANOTHER (WATCH AD)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Level Up / Perk Selection Screen -->
@@ -219,6 +402,15 @@
     <!-- 3. NEW: Spatial grid for collision optimization -->
     <script src="game/spatial-grid.js"></script>
 
+    <!-- Monetization & Cosmetics Systems -->
+    <script src="game/managers/AdManager.js"></script>
+    <script src="game/managers/CosmeticsManager.js"></script>
+    <script src="game/managers/PremiumStoreManager.js"></script>
+    <script src="game/managers/DailyRewardManager.js"></script>
+    <script src="game/managers/QuestManager.js"></script>
+    <script src="game/managers/LuckySpinManager.js"></script>
+    <script src="game/managers/ArmoryUI.js"></script>
+
     <!-- 4. NEW: Batch renderer -->
     <script src="game/optimized-renderer.js"></script>
 
@@ -258,6 +450,7 @@
     <script src="game/boss_7.js"></script>
     <script src="game/boss_8.js"></script>
     <script src="game/boss_9.js"></script>
+    <script src="game/bosses/Miniboss.js"></script>
 
     <!-- NEW: Refactored Managers & Skills -->
     <script src="game/managers/CollisionManager.js"></script>
@@ -272,22 +465,41 @@
     <script src="game/game-OPTIMIZED.js"></script>
     <script src="game/background.js"></script>
     <script src="game/admin.js"></script>
+    <script src="game/managers/SaveManager.js"></script>
 
     <script>
         // Initialize systems
-        initAdminPanel();
+        // Admin panel only in dev mode (URL has ?dev=1)
+        if (window.location.search.includes('dev=1')) {
+            initAdminPanel();
+        } else {
+            const adminPanel = document.getElementById('admin-panel');
+            if (adminPanel) adminPanel.remove();
+        }
 
-        // Show optimization tips on load
-        console.log('%c⚡ PERFORMANCE OPTIMIZATIONS ACTIVE ⚡', 'color: #0f0; font-size: 16px; font-weight: bold;');
-        console.log('%cPress "P" to toggle Performance Profiler', 'color: #0ff;');
-        console.log('%cPress "H" to toggle Admin Panel', 'color: #0ff;');
-        console.log('%c📊 Key Optimizations:', 'color: #ff0; font-weight: bold;');
-        console.log('  ✓ Spatial Grid Collision Detection (O(n*m) → O(n))');
-        console.log('  ✓ Batch Rendering (400 calls → 5 calls)');
-        console.log('  ✓ Dynamic Quality Adjustment');
-        console.log('  ✓ Projectile Cap (Max 250)');
-        console.log('  ✓ Reduced Shadow Rendering');
-        console.log('  ✓ Optimized Homing Logic');
+        // Initialize monetization managers
+        if (typeof PremiumStoreManager !== 'undefined') PremiumStoreManager.init();
+        if (typeof DailyRewardManager !== 'undefined') DailyRewardManager.init();
+        if (typeof QuestManager !== 'undefined') QuestManager.init();
+        if (typeof LuckySpinManager !== 'undefined') LuckySpinManager.init();
+
+        // Lucky Spin button
+        const lsBtn = document.getElementById('lucky-spin-btn');
+        if (lsBtn) lsBtn.addEventListener('click', () => LuckySpinManager.showWheel());
+
+        // Daily Quests button
+        const dqBtn = document.getElementById('daily-quests-btn');
+        if (dqBtn) dqBtn.addEventListener('click', () => {
+            QuestManager.renderQuestPanel();
+            document.getElementById('quest-panel-modal').classList.remove('hidden');
+        });
+        const qCloseBtn = document.getElementById('quest-close-btn');
+        if (qCloseBtn) qCloseBtn.addEventListener('click', () => {
+            document.getElementById('quest-panel-modal').classList.add('hidden');
+        });
+
+        console.log('%c⚡ NEON BLAST MONETIZATION ACTIVE ⚡', 'color: #f0f; font-size: 14px; font-weight: bold;');
+        console.log('%c💰 Systems: Rewarded Ads, Interstitials, IAP, Daily Rewards, Quests, Lucky Spin', 'color: #0ff;');
     </script>
 </body>
 

@@ -1,0 +1,12 @@
+{
+  "appId": "com.pandlebury.neonblast",
+  "appName": "Neon Blast",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "plugins": {
+    "StatusBar": {
+      "overlaysWebView": true,
+      "style": "LIGHT"
+    }
+  }
+}

@@ -104,15 +104,37 @@ class BossBase {
         if (typeof gameState !== 'undefined') {
             gameState.score += this.score;
             gameState.bossActive = false;
+            gameState.justDefeatedBoss = true;
+            gameState.totalBossesKilled = (gameState.totalBossesKilled || 0) + 1;
+            if (typeof QuestManager !== 'undefined') {
+                QuestManager.trackEvent('bosses_killed', 1);
+            }
         }
 
-        if (window.triggerLevelUp) triggerLevelUp();
-        if (window.spawnEnemies) spawnEnemies();
+        if (typeof BossManager !== 'undefined') {
+            BossManager.activeBoss = null;
+        }
 
-        // Kill all minions
+        if (typeof CollisionManager !== 'undefined') {
+            CollisionManager.unregisterBoss(this);
+        }
+
+        // Center player back if displaced during fight
+        if (typeof player !== 'undefined' && typeof CANVAS !== 'undefined') {
+            player.x = CANVAS.width / 2;
+            player.y = CANVAS.height / 2;
+        }
+
+        // Kill all minions cleanly without leaving zombie entities
         if (typeof enemyPool !== 'undefined') {
-            enemyPool.getActive().forEach(e => e.hp = 0);
+            const active = [...enemyPool.getActive()];
+            for (let i = 0; i < active.length; i++) {
+                if (window.createExplosion) createExplosion(active[i].x, active[i].y, 30, 0);
+            }
+            enemyPool.releaseAll();
         }
+
+        if (window.triggerLevelUp) triggerLevelUp(true);
     }
 }
 

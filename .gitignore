@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+node_modules/.package-lock.json
+
+# Archives & Builds
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# Capacitor & Android Build artifacts
+android/app/build/
+android/.gradle/
+android/build/
+android/local.properties
+android/.idea/
+android/*.iml
+android/app/*.iml
+android/capacitor-cordova-android-plugins/build/
+android/app/release/
+*.apk
+*.aab
+*.keystore
+*.jks
+
+# IDE & Editor artifacts
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+npm-debug.log*

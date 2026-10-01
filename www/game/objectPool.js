@@ -29,7 +29,11 @@ class ObjectPool {
     release(obj) {
         const index = this.active.indexOf(obj);
         if (index > -1) {
-            this.active.splice(index, 1);
+            // Active order is irrelevant. Swap-removal avoids shifting hundreds
+            // of objects for every projectile/particle released on mobile.
+            const lastIndex = this.active.length - 1;
+            if (index !== lastIndex) this.active[index] = this.active[lastIndex];
+            this.active.pop();
             this.pool.push(obj);
         }
     }

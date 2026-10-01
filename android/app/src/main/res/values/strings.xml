@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Neon Blast</string>
+    <string name="title_activity_main">Neon Blast</string>
+    <string name="package_name">com.pandlebury.neonblast</string>
+    <string name="custom_url_scheme">com.pandlebury.neonblast</string>
+</resources>

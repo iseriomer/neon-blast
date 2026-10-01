@@ -311,5 +311,77 @@ const ALL_PERKS = [
         apply: (stats) => {
             stats.auraRadius *= 1.25; // 25% bigger
         }
+    },
+    // NEW BUILD: Pulse Reactor - periodic radial screen control.
+    {
+        id: 'pulse_core',
+        title: 'perk_pulse_core_title',
+        desc: 'perk_pulse_core_desc',
+        theme: '#35f2ff',
+        singleUse: true,
+        apply: (stats) => { stats.pulseCore = true; }
+    },
+    {
+        id: 'pulse_accelerator',
+        title: 'perk_pulse_accelerator_title',
+        desc: 'perk_pulse_accelerator_desc',
+        theme: '#00aaff',
+        apply: (stats) => { stats.pulseEvery = Math.max(4, stats.pulseEvery - 1); }
+    },
+    {
+        id: 'pulse_payload',
+        title: 'perk_pulse_payload_title',
+        desc: 'perk_pulse_payload_desc',
+        theme: '#8eeeff',
+        apply: (stats) => {
+            stats.pulseProjectiles = Math.min(20, stats.pulseProjectiles + 2);
+            stats.pulseSizeMultiplier *= 1.18;
+        }
+    },
+    // Universal anchors that make focused, fortress and heavy-shot builds viable.
+    {
+        id: 'kinetic_core',
+        title: 'perk_kinetic_core_title',
+        desc: 'perk_kinetic_core_desc',
+        theme: '#ffad32',
+        apply: (stats) => {
+            stats.damageMultiplier *= 1.28;
+            stats.fireRate *= 1.08;
+        }
+    },
+    {
+        id: 'titan_protocol',
+        title: 'perk_titan_protocol_title',
+        desc: 'perk_titan_protocol_desc',
+        theme: '#ff456f',
+        apply: (stats) => { stats.bossDamageMultiplier *= 1.35; }
+    },
+    {
+        id: 'cryo_fracture',
+        title: 'perk_cryo_fracture_title',
+        desc: 'perk_cryo_fracture_desc',
+        theme: '#7de7ff',
+        singleUse: true,
+        apply: (stats) => { stats.cryoFracture = true; }
+    },
+    {
+        id: 'demolition_matrix',
+        title: 'perk_demolition_matrix_title',
+        desc: 'perk_demolition_matrix_desc',
+        theme: '#ff5b24',
+        apply: (stats) => {
+            stats.explosiveRadius *= 1.18;
+            stats.explosiveDamageMultiplier *= 1.4;
+        }
+    },
+    {
+        id: 'critical_cascade',
+        title: 'perk_critical_cascade_title',
+        desc: 'perk_critical_cascade_desc',
+        theme: '#ff4dd8',
+        apply: (stats) => {
+            stats.critChance = Math.min(.65, stats.critChance + .08);
+            stats.critMultiplier += .75;
+        }
     }
 ];

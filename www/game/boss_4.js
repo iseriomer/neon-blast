@@ -540,11 +540,16 @@ class BossSwarm extends BossBase {
                     if (typeof player !== 'undefined' && gameState.gameActive) {
                         const dist = this.pointToLineDistance(player.x, player.y, d1.x, d1.y, d2.x, d2.y);
                         if (dist < player.radius + 5) {
-                            if (gameState.playerStats.shield > 0) {
-                                gameState.playerStats.shield--;
-                                updateShieldIndicator(gameState.playerStats.shield);
-                            } else if (!gameState.godMode) {
-                                startDeathSequence();
+                            // The player is stationary: crossing beams are a clear
+                            // targeting warning, never an unavoidable instant hit.
+                            CTX.beginPath();
+                            CTX.arc(player.x, player.y, player.radius + 16, 0, Math.PI * 2);
+                            CTX.strokeStyle = 'rgba(255, 80, 80, .75)';
+                            CTX.lineWidth = 2;
+                            CTX.stroke();
+                            if (!this.beamWarningCooldown || this.beamWarningCooldown <= 0) {
+                                this.beamWarningCooldown = 45;
+                                if (window.triggerScreenShake) triggerScreenShake(2, 90);
                             }
                         }
                     }
@@ -553,6 +558,7 @@ class BossSwarm extends BossBase {
         }
 
         // Draw split cores
+        if (this.beamWarningCooldown > 0) this.beamWarningCooldown--;
         this.splitCores.forEach(core => {
             CTX.save();
             CTX.translate(core.x, core.y);

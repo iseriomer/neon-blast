@@ -17,6 +17,7 @@ class Enemy {
         this.freezeTimer = 0;
         this.shieldAura = false; // Kalkan aura aktif mi?
         this.shieldPulse = 0;
+        this.isMinibossNode = false;
         this.immuneToKnockback = false;
         this.immuneToFreeze = false;
 
@@ -63,6 +64,7 @@ class Enemy {
         this.freezeTimer = 0;
         this.shieldAura = false;
         this.shieldPulse = 0;
+        this.isMinibossNode = false;
         this.immuneToKnockback = (type.name === 'SUPERTANK');
         this.immuneToFreeze = (type.name === 'SUPERTANK');
 

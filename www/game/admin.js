@@ -86,11 +86,11 @@ function adminLevelUp() {
 }
 
 function adminKillAll() {
-    const enemies = enemyPool.getActive();
+    const enemies = [...enemyPool.getActive()];
     enemies.forEach(enemy => {
         spawnParticles(enemy.x, enemy.y, 10, 5, enemy.color);
-        enemyPool.release(enemy);
     });
+    enemyPool.releaseAll();
     gameState.score += enemies.length * 50;
     updateProgressBar(gameState.score, gameState.nextLevelThreshold, gameState.previousLevelThreshold);
 }

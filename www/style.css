@@ -1517,3 +1517,2118 @@ button.main-btn:active {
         gap: 10px;
     }
 }
+
+/* ==========================================================================
+   NEON BLAST: REWARDED ADS, REVIVE, NEON COINS & ARMORY CIPHER SYSTEM
+   ========================================================================== */
+
+/* --- Start Screen Coin Badge & Armory Button --- */
+.start-coin-display {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #1a1a2e;
+    border: 2px solid #ffd700;
+    border-radius: 0;
+    padding: 6px 16px;
+    margin-bottom: 14px;
+    box-shadow: 4px 4px 0 #000;
+    font-family: monospace;
+}
+
+#start-coin-amount {
+    font-weight: 900;
+    font-size: 1.15rem;
+    color: #ffd700;
+    font-family: monospace;
+}
+
+.start-coin-display .coin-label {
+    font-size: 0.75rem;
+    color: #00ffff;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-family: monospace;
+    font-weight: bold;
+}
+
+.armory-menu-btn {
+    --perk-theme: #d946ef;
+    border-color: #d946ef !important;
+    color: #fff !important;
+    background: #1a1a2e !important;
+    box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.5) !important;
+    margin-top: 15px !important;
+    letter-spacing: 1px !important;
+    font-family: monospace !important;
+    transform: skew(-2deg) !important;
+}
+
+.armory-menu-btn:hover {
+    background: #252540 !important;
+    border-color: #f0abfc !important;
+}
+
+/* --- Game Over Coins Banner --- */
+.game-over-coins-banner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin: 15px auto;
+    padding: 14px 24px;
+    background: #1a1a2e;
+    border: 2px solid #ffd700;
+    border-radius: 0;
+    box-shadow: 6px 6px 0 #000;
+    width: 90%;
+    max-width: 380px;
+    font-family: monospace;
+}
+
+.coins-earned-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#earned-coins-amount {
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: #ffd700;
+    font-family: monospace;
+}
+
+.double-coins-ad-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: #1a1a2e;
+    color: #ffd700;
+    border: 2px solid #ffd700;
+    font-weight: bold;
+    font-size: 1rem;
+    padding: 12px 24px;
+    border-radius: 0;
+    cursor: pointer;
+    box-shadow: 4px 4px 0 #000;
+    transform: skew(-2deg);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-family: monospace;
+    transition: all 0.2s ease;
+}
+
+.double-coins-ad-btn:hover:not(:disabled) {
+    background: #ffd700;
+    color: #000;
+    transform: skew(-2deg) translate(-2px, -2px);
+    box-shadow: 6px 6px 0 #000;
+}
+
+.double-coins-ad-btn:active:not(:disabled) {
+    transform: skew(-2deg) translate(2px, 2px);
+    box-shadow: 2px 2px 0 #000;
+}
+
+.double-coins-ad-btn:disabled {
+    background: #12121f;
+    border-color: #555;
+    color: #777;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: skew(-2deg);
+}
+
+/* --- Revive / Second Chance Modal --- */
+#revive-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(5, 5, 10, 0.96);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    font-family: monospace;
+}
+
+.revive-card {
+    background: #121224;
+    border: 3px solid #00ffff;
+    border-radius: 0;
+    padding: 28px 24px;
+    width: 90%;
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    box-shadow: 10px 10px 0 rgba(0, 0, 0, 0.8);
+    font-family: monospace;
+}
+
+.revive-header-tag {
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: #ff0055;
+    background: #1a1a2e;
+    border: 1px solid #ff0055;
+    padding: 3px 10px;
+    border-radius: 0;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+    font-family: monospace;
+    box-shadow: 2px 2px 0 #000;
+    text-transform: uppercase;
+}
+
+.revive-title {
+    font-size: 1.8rem;
+    color: #00ffff;
+    margin-bottom: 16px;
+    letter-spacing: 1px;
+    font-weight: 900;
+    text-transform: uppercase;
+    font-family: 'Arial Black', monospace, sans-serif;
+    transform: skew(-2deg);
+    text-shadow: 3px 3px 0 #000;
+}
+
+.revive-timer-wrapper {
+    position: relative;
+    width: 110px;
+    height: 110px;
+    margin: 10px 0 16px 0;
+}
+
+.revive-timer-svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.timer-bg {
+    fill: none;
+    stroke: #222;
+    stroke-width: 8;
+}
+
+.timer-bar {
+    fill: none;
+    stroke: #00ffff;
+    stroke-width: 8;
+    stroke-dasharray: 276.46;
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 0.05s linear;
+}
+
+.revive-number {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2.4rem;
+    font-weight: 900;
+    color: #00ffff;
+    font-family: monospace;
+    text-shadow: 2px 2px 0 #000;
+}
+
+.revive-text {
+    font-size: 0.95rem;
+    color: #ccc;
+    margin-bottom: 22px;
+    line-height: 1.4;
+    max-width: 90%;
+    font-family: monospace;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px dashed #444;
+    padding: 8px;
+    box-shadow: 3px 3px 0 #000;
+}
+
+.revive-action-btn {
+    background: #1a1a2e !important;
+    border: 2px solid #00ffff !important;
+    color: #00ffff !important;
+    font-weight: bold !important;
+    box-shadow: 6px 6px 0 #000 !important;
+    width: 100%;
+    padding: 14px 20px !important;
+    font-size: 1.1rem !important;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border-radius: 0 !important;
+    transform: skew(-2deg);
+    font-family: monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.2s ease;
+}
+
+.revive-action-btn:hover {
+    background: #00ffff !important;
+    color: #000 !important;
+    transform: skew(-2deg) translate(-2px, -2px);
+    box-shadow: 8px 8px 0 #000 !important;
+}
+
+.revive-action-btn:active {
+    transform: skew(-2deg) translate(2px, 2px);
+    box-shadow: 2px 2px 0 #000 !important;
+}
+
+.revive-dismiss-btn {
+    background: transparent;
+    border: none;
+    color: #888;
+    font-size: 0.85rem;
+    margin-top: 14px;
+    cursor: pointer;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-family: monospace;
+    transition: color 0.2s;
+}
+
+.revive-dismiss-btn:hover {
+    color: #ff0055;
+    text-decoration: underline;
+}
+
+/* --- Armory Modal Window --- */
+#armory-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(5, 5, 10, 0.98);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 900;
+}
+
+.armory-panel {
+    background: #121224;
+    border: 3px solid #00ffff;
+    border-radius: 0; /* KESKİN - Arcade Style */
+    width: 95%;
+    max-width: 950px;
+    height: 90vh;
+    max-height: 820px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 10px 10px 0 rgba(0, 0, 0, 0.75);
+    overflow: hidden;
+    font-family: monospace;
+}
+
+.armory-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 22px;
+    border-bottom: 2px solid #333;
+    background: #1a1a2e;
+}
+
+.armory-title-wrap {
+    display: flex;
+    flex-direction: column;
+}
+
+.armory-title {
+    font-size: 1.8rem;
+    color: #00ffff;
+    letter-spacing: 1px;
+    margin: 0;
+    font-weight: 900;
+    text-transform: uppercase;
+    font-family: 'Arial Black', monospace, sans-serif;
+    transform: skew(-3deg);
+    text-shadow: 4px 4px 0 #000;
+}
+
+.armory-subtitle {
+    font-size: 0.75rem;
+    color: #888;
+    letter-spacing: 2px;
+    margin-top: 3px;
+    font-family: monospace;
+}
+
+.armory-top-right {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.ad-free-coins-btn {
+    background: #1a1a2e;
+    border: 2px solid #ffd700;
+    color: #ffd700;
+    font-weight: bold;
+    font-size: 0.85rem;
+    padding: 8px 14px;
+    border-radius: 0; /* KESKİN */
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    letter-spacing: 1px;
+    box-shadow: 4px 4px 0 #000;
+    transform: skew(-2deg);
+    font-family: monospace;
+    transition: all 0.2s ease;
+}
+
+.ad-free-coins-btn:hover {
+    background: #ffd700;
+    color: #000;
+    transform: skew(-2deg) translate(-2px, -2px);
+    box-shadow: 6px 6px 0 #000;
+}
+
+.ad-free-coins-btn:active {
+    transform: skew(-2deg) translate(2px, 2px);
+    box-shadow: 2px 2px 0 #000;
+}
+
+.armory-coin-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #1a1a2e;
+    border: 2px solid #ffd700;
+    border-radius: 0; /* KESKİN */
+    padding: 6px 14px;
+    box-shadow: 4px 4px 0 #000;
+    font-family: monospace;
+}
+
+#armory-coin-balance {
+    font-weight: 900;
+    color: #ffd700;
+    font-size: 1.15rem;
+    font-family: monospace;
+}
+
+.armory-close-btn {
+    background: #1a1a2e;
+    border: 2px solid #ff0055;
+    color: #ff0055;
+    font-size: 1.5rem;
+    width: 36px;
+    height: 36px;
+    border-radius: 0; /* KESKİN */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 3px 3px 0 #000;
+    font-family: monospace;
+    font-weight: bold;
+    transition: all 0.2s ease;
+}
+
+.armory-close-btn:hover {
+    background: #ff0055;
+    color: #fff;
+    transform: translate(-1px, -1px);
+    box-shadow: 5px 5px 0 #000;
+}
+
+/* Armory Navigation Tabs (Matches game's .filter-btn) */
+.armory-tabs {
+    display: flex;
+    background: #0f0f1c;
+    border-bottom: 2px solid #333;
+    padding: 10px 18px;
+    gap: 12px;
+    overflow-x: auto;
+}
+
+.armory-tab-btn {
+    background: #1a1a2e;
+    border: 2px solid #444;
+    color: #888;
+    font-weight: bold;
+    font-size: 0.9rem;
+    letter-spacing: 1.5px;
+    padding: 9px 18px;
+    border-radius: 0; /* KESKİN */
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    font-family: monospace;
+    text-transform: uppercase;
+    transform: skew(-2deg);
+    box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.5);
+}
+
+.armory-tab-btn:hover {
+    color: #fff;
+    border-color: #00ffff;
+    background: #252540;
+}
+
+.armory-tab-btn.active {
+    color: #000 !important;
+    background: #00ffff !important;
+    border-color: #00ffff !important;
+    box-shadow: 4px 4px 0 #000 !important;
+    font-weight: 900 !important;
+}
+
+.armory-tab-btn.cipher-tab.active {
+    color: #000 !important;
+    background: #ffd700 !important;
+    border-color: #ffd700 !important;
+    box-shadow: 4px 4px 0 #000 !important;
+}
+
+/* Armory Scroll Content */
+.armory-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 18px;
+    background: #121224;
+}
+
+/* ==========================================================================
+   ARMORY HANGAR TEST DECK (Exact Neon Blast Arcade Panel)
+   ========================================================================== */
+
+.armory-hangar-deck {
+    background: #0d0d1a;
+    border: 2px solid #00ffff;
+    border-radius: 0; /* KESKİN */
+    padding: 8px 12px;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 6px 6px 0 #000;
+}
+
+.hangar-canvas-wrap {
+    position: relative;
+    width: 100%;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#hangar-preview-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.hangar-hud-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 8px 12px;
+}
+
+.hangar-tag {
+    font-size: 0.7rem;
+    font-weight: bold;
+    color: #00ffff;
+    background: #1a1a2e;
+    border: 1px solid #00ffff;
+    padding: 3px 8px;
+    border-radius: 0; /* KESKİN */
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-family: monospace;
+    box-shadow: 3px 3px 0 #000;
+}
+
+.hangar-preview-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    font-family: monospace;
+}
+
+.hangar-preview-title {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #ffffff;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    text-shadow: 2px 2px 0 #000;
+}
+
+.hangar-preview-badge {
+    font-size: 0.7rem;
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 0; /* KESKİN */
+    background: #1a1a2e;
+    color: #10b981;
+    border: 1px solid #10b981;
+    letter-spacing: 1px;
+    box-shadow: 2px 2px 0 #000;
+}
+
+.hangar-preview-badge.previewing {
+    color: #00ffff;
+    border-color: #00ffff;
+}
+
+.hangar-quick-equip-btn {
+    pointer-events: auto;
+    position: absolute;
+    bottom: 8px;
+    right: 12px;
+    background: #1a1a2e;
+    border: 2px solid #10b981;
+    color: #10b981;
+    font-weight: bold;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    padding: 6px 16px;
+    border-radius: 0; /* KESKİN */
+    cursor: pointer;
+    font-family: monospace;
+    box-shadow: 3px 3px 0 #000;
+    transform: skew(-2deg);
+    transition: all 0.2s;
+}
+
+.hangar-quick-equip-btn:hover {
+    background: #10b981;
+    color: #000;
+    transform: skew(-2deg) translate(-1px, -1px);
+    box-shadow: 5px 5px 0 #000;
+}
+
+/* ==========================================================================
+   ARMORY ITEM CARDS (Exact Match to .perk-card Style)
+   ========================================================================== */
+
+.armory-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    padding: 4px;
+}
+
+.armory-item-card {
+    --card-theme: #444;
+    background: #1a1a2e;
+    border: 2px solid var(--card-theme);
+    border-radius: 0; /* KESKİN */
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    cursor: pointer;
+    box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.6);
+    transition: all 0.2s ease;
+    font-family: monospace;
+}
+
+.armory-item-card.rarity-common { --card-theme: #777; }
+.armory-item-card.rarity-rare { --card-theme: #0088ff; }
+.armory-item-card.rarity-epic { --card-theme: #d946ef; }
+.armory-item-card.rarity-legendary { --card-theme: #ffd700; }
+
+.armory-item-card:hover {
+    background: #252540;
+    transform: translate(-3px, -3px);
+    box-shadow: 9px 9px 0 var(--card-theme);
+}
+
+.armory-item-card.is-inspecting {
+    border-color: #00ffff !important;
+    box-shadow: 8px 8px 0 #00ffff !important;
+}
+
+.armory-item-card.is-equipped-active {
+    border-color: #10b981 !important;
+    background: #152422 !important;
+    box-shadow: 8px 8px 0 #10b981 !important;
+}
+
+.armory-item-card.locked {
+    background: #131322;
+    border: 2px dashed #444;
+    opacity: 0.85;
+}
+
+.armory-item-card.locked:hover {
+    border-color: var(--card-theme);
+    box-shadow: 7px 7px 0 var(--card-theme);
+}
+
+.card-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 8px;
+}
+
+.card-rarity-tag {
+    font-size: 0.65rem;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 0; /* KESKİN */
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-family: monospace;
+}
+
+.card-rarity-tag.common { background: #333; color: #ccc; border: 1px solid #555; }
+.card-rarity-tag.rare { background: #002244; color: #60a5fa; border: 1px solid #0088ff; }
+.card-rarity-tag.epic { background: #2b0038; color: #f0abfc; border: 1px solid #d946ef; }
+.card-rarity-tag.legendary { background: #382500; color: #ffd700; border: 1px solid #ffd700; }
+
+.equipped-pill {
+    background: #10b981;
+    color: #000;
+    font-size: 0.65rem;
+    font-weight: 900;
+    padding: 2px 7px;
+    border-radius: 0; /* KESKİN */
+    letter-spacing: 1px;
+    box-shadow: 2px 2px 0 #000;
+}
+
+.card-icon-area {
+    position: relative;
+    width: 100%;
+    height: 110px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #080812;
+    border: 1px solid #333;
+    border-radius: 0; /* KESKİN */
+    box-shadow: inset 3px 3px 0 #000;
+    margin: 4px 0 10px 0;
+    overflow: hidden;
+}
+
+.card-item-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.card-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 12px;
+}
+
+.card-title {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #ffffff;
+    margin: 0 0 4px 0;
+    text-transform: uppercase;
+    font-family: monospace;
+    border-bottom: 2px solid #333;
+    padding-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.card-desc {
+    font-size: 0.78rem;
+    color: #aaa;
+    line-height: 1.4;
+    font-family: monospace;
+    min-height: 32px;
+    margin: 0;
+}
+
+.card-action {
+    margin-top: auto;
+}
+
+/* Card Buttons (Exact Neon Blast style) */
+.card-btn {
+    width: 100%;
+    padding: 10px 8px;
+    border-radius: 0; /* KESKİN */
+    font-weight: bold;
+    font-size: 0.82rem;
+    letter-spacing: 1px;
+    cursor: pointer;
+    border: 2px solid;
+    text-align: center;
+    font-family: monospace;
+    text-transform: uppercase;
+    transition: all 0.2s ease;
+    box-shadow: 4px 4px 0 #000;
+}
+
+.card-btn.active-equipped-btn {
+    background: #10b981 !important;
+    border-color: #10b981 !important;
+    color: #000 !important;
+    font-weight: 900 !important;
+    cursor: default !important;
+    box-shadow: 3px 3px 0 #000 !important;
+}
+
+.card-btn.equip-action-btn {
+    background: #1a1a2e !important;
+    border-color: #00ffff !important;
+    color: #00ffff !important;
+    transform: skew(-2deg);
+}
+
+.card-btn.equip-action-btn:hover {
+    background: #00ffff !important;
+    color: #000 !important;
+    transform: skew(-2deg) translate(-2px, -2px);
+    box-shadow: 6px 6px 0 #000 !important;
+}
+
+.card-btn.go-to-chest-btn {
+    background: #12121f !important;
+    border: 2px dashed #555 !important;
+    color: #888 !important;
+    box-shadow: 2px 2px 0 #000 !important;
+}
+
+.card-btn.go-to-chest-btn:hover {
+    border-color: #ffd700 !important;
+    color: #ffd700 !important;
+    background: #252540 !important;
+    box-shadow: 4px 4px 0 #000 !important;
+}
+
+/* ==========================================================================
+   CIPHER PACKS (SANDIKLAR) & AIRDROP BANNER
+   ========================================================================== */
+
+.armory-packs-container {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+/* Tactical Airdrop Banner */
+.store-airdrop-banner {
+    background: #1a1a2e;
+    border: 2px solid #ffd700;
+    border-radius: 0; /* KESKİN */
+    padding: 16px 20px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    box-shadow: 6px 6px 0 #000;
+    font-family: monospace;
+}
+
+.airdrop-left {
+    flex: 1;
+    min-width: 200px;
+}
+
+.airdrop-tag {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 900;
+    color: #000;
+    background: #ffd700;
+    padding: 2px 6px;
+    border-radius: 0; /* KESKİN */
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+}
+
+.airdrop-title {
+    font-size: 1.2rem;
+    color: #fff;
+    margin: 0;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-family: monospace;
+}
+
+.airdrop-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.airdrop-ad-btn {
+    background: #252540;
+    border: 2px solid #ffd700;
+    color: #ffd700;
+    border-radius: 0; /* KESKİN */
+    padding: 10px 18px;
+    cursor: pointer;
+    box-shadow: 4px 4px 0 #000;
+    transform: skew(-2deg);
+    font-family: monospace;
+    font-weight: bold;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.airdrop-ad-btn:hover {
+    background: #ffd700;
+    color: #000;
+    transform: skew(-2deg) translate(-2px, -2px);
+    box-shadow: 6px 6px 0 #000;
+}
+
+.airdrop-crate-btn {
+    border-color: #00ffff;
+    color: #00ffff;
+}
+
+.airdrop-crate-btn:hover {
+    background: #00ffff;
+    color: #000;
+}
+
+.airdrop-btn-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.airdrop-btn-text strong {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+}
+
+.airdrop-btn-text small {
+    font-size: 0.65rem;
+    opacity: 0.8;
+}
+
+/* Pack Cards Grid */
+.packs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 18px;
+}
+
+.cipher-pack-card {
+    --pack-theme: #00ffff;
+    background: #1a1a2e;
+    border: 2px solid var(--pack-theme);
+    border-radius: 0; /* KESKİN */
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.6);
+    transition: all 0.2s ease;
+    font-family: monospace;
+}
+
+.cipher-pack-card.pack-pack_alpha,
+.cipher-pack-card.pack-alpha { --pack-theme: #00ffff; }
+
+.cipher-pack-card.pack-pack_quantum,
+.cipher-pack-card.pack-quantum { --pack-theme: #d946ef; }
+
+.cipher-pack-card.pack-pack_void,
+.cipher-pack-card.pack-void { --pack-theme: #ffd700; }
+
+.cipher-pack-card:hover {
+    background: #252540;
+    transform: translate(-4px, -4px);
+    box-shadow: 12px 12px 0 var(--pack-theme);
+}
+
+.pack-badge {
+    position: absolute;
+    top: 10px;
+    left: 12px;
+    font-size: 0.65rem;
+    font-weight: 900;
+    padding: 2px 6px;
+    border-radius: 0; /* KESKİN */
+    letter-spacing: 1px;
+    background: #0d0d1a;
+    border: 1px solid var(--pack-theme);
+    color: var(--pack-theme);
+}
+
+.pack-visual {
+    width: 100%;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 10px 0 8px 0;
+}
+
+.pack-pod-canvas {
+    width: 120px;
+    height: 120px;
+    display: block;
+}
+
+.pack-name {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #ffffff;
+    margin: 4px 0 2px 0;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-family: monospace;
+}
+
+.pack-guarantee {
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: #888;
+    margin-bottom: 12px;
+    font-family: monospace;
+}
+
+.pack-cost-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #0d0d1a;
+    border: 1px solid #444;
+    border-radius: 0; /* KESKİN */
+    padding: 6px 16px;
+    margin-bottom: 14px;
+    box-shadow: 3px 3px 0 #000;
+}
+
+.cost-val {
+    font-size: 1.2rem;
+    font-weight: 900;
+    color: #ffd700;
+    font-family: monospace;
+}
+
+.pack-btn-stack {
+    width: 100%;
+}
+
+.pack-decrypt-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 0.95rem !important;
+    font-weight: bold !important;
+    letter-spacing: 1px !important;
+    background: #1a1a2e !important;
+    color: #00ffff !important;
+    border: 2px solid #00ffff !important;
+    border-radius: 0 !important; /* KESKİN */
+    cursor: pointer !important;
+    box-shadow: 5px 5px 0 #000 !important;
+    transform: skew(-2deg);
+    font-family: monospace !important;
+    transition: all 0.2s !important;
+}
+
+.pack-decrypt-btn:hover {
+    background: #00ffff !important;
+    color: #000 !important;
+    transform: skew(-2deg) translate(-2px, -2px);
+    box-shadow: 7px 7px 0 #000 !important;
+}
+
+.pack-need-coins-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 0.85rem !important;
+    font-weight: bold !important;
+    letter-spacing: 1px !important;
+    background: #1a1a2e !important;
+    border: 2px solid #ffd700 !important;
+    color: #ffd700 !important;
+    border-radius: 0 !important; /* KESKİN */
+    cursor: pointer !important;
+    box-shadow: 5px 5px 0 #000 !important;
+    transform: skew(-2deg);
+    font-family: monospace !important;
+    transition: all 0.2s !important;
+}
+
+.pack-need-coins-btn:hover {
+    background: #ffd700 !important;
+    color: #000 !important;
+    transform: skew(-2deg) translate(-2px, -2px);
+    box-shadow: 7px 7px 0 #000 !important;
+}
+
+/* Pack Opening Reveal Modal */
+#pack-opening-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(3, 2, 10, 0.96);
+    backdrop-filter: blur(20px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1100;
+}
+
+.pack-opening-card {
+    width: 90%;
+    max-width: 440px;
+    padding: 30px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.decrypt-glitch-text {
+    font-family: monospace;
+    font-size: 1.2rem;
+    color: #00ffff;
+    text-shadow: 0 0 10px #00ffff;
+    letter-spacing: 3px;
+    animation: textGlitchAnim 0.3s infinite alternate;
+}
+
+@keyframes textGlitchAnim {
+    0% { transform: translate(-2px, 1px); filter: hue-rotate(0deg); }
+    100% { transform: translate(2px, -1px); filter: hue-rotate(90deg); }
+}
+
+.unlocked-item-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: revealBurst 0.6s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+@keyframes revealBurst {
+    0% { transform: scale(0.4); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.reveal-rarity-badge {
+    font-size: 0.8rem;
+    font-weight: 800;
+    padding: 3px 12px;
+    border-radius: 0;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    font-family: monospace;
+    border: 1px solid;
+    box-shadow: 2px 2px 0 #000;
+}
+
+.reveal-rarity-badge.common { background: #1e293b; color: #cbd5e1; border-color: #64748b; }
+.reveal-rarity-badge.rare { background: #002244; color: #60a5fa; border-color: #0088ff; }
+.reveal-rarity-badge.epic { background: #2b0038; color: #f0abfc; border-color: #d946ef; }
+.reveal-rarity-badge.legendary { background: #382500; color: #ffd700; border-color: #ffd700; }
+.reveal-rarity-badge.mythic { background: #3d000f; color: #ff0055; border-color: #ff0055; }
+
+.reveal-icon-container {
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 15px 0;
+}
+
+.reveal-item-name {
+    font-size: 1.6rem;
+    color: #fff;
+    margin: 0 0 8px 0;
+    letter-spacing: 2px;
+    text-shadow: 3px 3px 0 #000;
+    font-family: monospace;
+    text-transform: uppercase;
+}
+
+.reveal-item-desc {
+    font-size: 0.9rem;
+    color: #aaa;
+    margin-bottom: 24px;
+    line-height: 1.4;
+    font-family: monospace;
+}
+
+.reveal-claim-btn {
+    width: 100%;
+    padding: 14px !important;
+    font-size: 1.05rem !important;
+    border-radius: 0 !important;
+    font-family: monospace !important;
+    transform: skew(-2deg) !important;
+}
+
+.rebate-text {
+    color: #ffd700;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    font-family: monospace;
+}
+
+/* --- Miniature Geometric Previews for Card Icons --- */
+.locked-icon-placeholder {
+    width: 60px;
+    height: 60px;
+    border: 1px dashed rgba(255, 255, 255, 0.25);
+    border-radius: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.35);
+    font-size: 1.5rem;
+    font-family: monospace;
+}
+
+/* Card Item Canvas & Holographic Reveal Stage */
+#reveal-canvas {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    filter: drop-shadow(0 0 18px rgba(0, 240, 255, 0.55));
+}
+
+/* ==========================================================================
+   MOBILE-FIRST ARMORY UX, SVG COIN ICON & AD MONETIZATION ENHANCEMENTS
+   ========================================================================== */
+
+/* Neon Coin SVG & Icon Slot */
+.coin-icon-slot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+}
+
+.neon-coin-svg {
+    display: inline-block;
+    vertical-align: middle;
+    filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.75));
+    transition: transform 0.2s ease;
+}
+
+.pulse-coin {
+    display: inline-flex;
+    animation: neonCoinPulse 2s infinite ease-in-out;
+}
+
+@keyframes neonCoinPulse {
+    0%, 100% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 6px #ffd700);
+    }
+    50% {
+        transform: scale(1.16);
+        filter: drop-shadow(0 0 16px #ffd700);
+    }
+}
+
+/* Game Over / Lose Screen Actions */
+.game-over-buttons-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    margin-top: 18px;
+    width: 90%;
+    max-width: 320px;
+}
+
+.game-over-buttons-group .main-btn {
+    width: 100%;
+    margin-top: 0 !important;
+}
+
+/* ==========================================================================
+   ARMORY TOAST NOTIFICATION
+   ========================================================================== */
+.armory-toast {
+    position: fixed;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100px);
+    background: #1a1a2e;
+    border: 2px solid #00ffff;
+    border-radius: 0;
+    padding: 10px 22px;
+    color: #fff;
+    font-weight: bold;
+    font-size: 0.9rem;
+    letter-spacing: 1.5px;
+    box-shadow: 6px 6px 0 #000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 3500;
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.25s ease, opacity 0.25s ease;
+    font-family: monospace;
+    text-transform: uppercase;
+}
+
+.armory-toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+.armory-toast.toast-success {
+    border-color: #ffd700;
+    box-shadow: 6px 6px 0 #000;
+    color: #ffd700;
+}
+
+.armory-toast.toast-warn {
+    border-color: #ff0055;
+    box-shadow: 6px 6px 0 #000;
+    color: #ff0055;
+}
+
+/* ==========================================================================
+   ARCADE UNBOXING MODAL (Exact Neon Blast Brutalist Arcade Style)
+   ========================================================================== */
+
+#pack-opening-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(5, 5, 10, 0.96);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3000;
+    font-family: monospace;
+}
+
+.pack-opening-card {
+    position: relative;
+    width: 90%;
+    max-width: 440px;
+    background: #121224;
+    border: 3px solid #00ffff;
+    border-radius: 0;
+    padding: 28px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    box-shadow: 10px 10px 0 rgba(0, 0, 0, 0.8);
+    overflow: hidden;
+    font-family: monospace;
+}
+
+/* Stage 1: Shaking Pod */
+.pack-opening-card.stage-shaking {
+    animation: podRumble 0.1s infinite alternate ease-in-out;
+}
+
+@keyframes podRumble {
+    0% { transform: translate(-3px, -2px); }
+    100% { transform: translate(3px, 2px); }
+}
+
+.opening-headline {
+    font-size: 1.4rem;
+    color: #ffd700;
+    letter-spacing: 2px;
+    margin-top: 14px;
+    font-weight: 900;
+    text-transform: uppercase;
+    font-family: monospace;
+    text-shadow: 2px 2px 0 #000;
+}
+
+.shaking-chest-visual {
+    height: 130px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 15px 0;
+}
+
+/* Stage 2: Revealed Reward */
+.pack-opening-card.stage-revealed {
+    border-color: #ffd700;
+    box-shadow: 12px 12px 0 rgba(0, 0, 0, 0.9);
+}
+
+.reveal-category-pill {
+    background: #1a1a2e;
+    border: 1px solid #00ffff;
+    color: #00ffff;
+    font-size: 0.75rem;
+    font-weight: bold;
+    padding: 3px 12px;
+    border-radius: 0;
+    letter-spacing: 1.5px;
+    box-shadow: 2px 2px 0 #000;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    font-family: monospace;
+}
+
+.reveal-rarity-banner {
+    font-size: 0.75rem;
+    font-weight: bold;
+    letter-spacing: 2px;
+    padding: 3px 12px;
+    border-radius: 0;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    font-family: monospace;
+    border: 1px solid;
+    box-shadow: 2px 2px 0 #000;
+}
+
+.reveal-rarity-banner.rarity-common { background: #1e293b; color: #cbd5e1; border-color: #64748b; }
+.reveal-rarity-banner.rarity-rare { background: #002244; color: #60a5fa; border-color: #0088ff; }
+.reveal-rarity-banner.rarity-epic { background: #2b0038; color: #f0abfc; border-color: #d946ef; }
+.reveal-rarity-banner.rarity-legendary { background: #382500; color: #ffd700; border-color: #ffd700; }
+
+.reveal-icon-stage {
+    position: relative;
+    width: 100%;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #080812;
+    border: 1px solid #333;
+    border-radius: 0;
+    box-shadow: inset 3px 3px 0 #000;
+    margin: 8px 0 16px 0;
+}
+
+.reveal-item-title {
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: 1px;
+    margin: 0 0 6px 0;
+    text-transform: uppercase;
+    font-family: monospace;
+    text-shadow: 3px 3px 0 #000;
+}
+
+.reveal-item-desc {
+    font-size: 0.85rem;
+    color: #aaa;
+    line-height: 1.45;
+    max-width: 340px;
+    margin: 0 auto 18px auto;
+    font-family: monospace;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px dashed #444;
+    padding: 8px;
+    box-shadow: 3px 3px 0 #000;
+}
+
+.reveal-actions-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
+.reveal-equip-now-btn {
+    --perk-theme: #10b981;
+    background: #1a1a2e !important;
+    border: 2px solid #10b981 !important;
+    color: #10b981 !important;
+    font-size: 1.05rem !important;
+    font-weight: bold !important;
+    padding: 12px !important;
+    letter-spacing: 1px !important;
+    box-shadow: 5px 5px 0 #000 !important;
+    cursor: pointer !important;
+    border-radius: 0 !important;
+    transform: skew(-2deg);
+    font-family: monospace !important;
+    text-transform: uppercase !important;
+    transition: all 0.2s ease !important;
+}
+
+.reveal-equip-now-btn:hover {
+    background: #10b981 !important;
+    color: #000 !important;
+    transform: skew(-2deg) translate(-2px, -2px) !important;
+    box-shadow: 7px 7px 0 #000 !important;
+}
+
+.reveal-ad-again-btn {
+    --perk-theme: #ffd700;
+    background: #1a1a2e !important;
+    border: 2px solid #ffd700 !important;
+    color: #ffd700 !important;
+    font-size: 0.95rem !important;
+    font-weight: bold !important;
+    padding: 12px !important;
+    letter-spacing: 1px !important;
+    box-shadow: 5px 5px 0 #000 !important;
+    cursor: pointer !important;
+    border-radius: 0 !important;
+    transform: skew(-2deg);
+    font-family: monospace !important;
+    text-transform: uppercase !important;
+    transition: all 0.2s ease !important;
+}
+
+.reveal-ad-again-btn:hover {
+    background: #ffd700 !important;
+    color: #000 !important;
+    transform: skew(-2deg) translate(-2px, -2px) !important;
+    box-shadow: 7px 7px 0 #000 !important;
+}
+
+.reveal-close-text-btn {
+    background: transparent;
+    border: none;
+    color: #888;
+    font-size: 0.85rem;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    padding: 8px;
+    font-family: monospace;
+    text-transform: uppercase;
+    transition: color 0.2s;
+}
+
+.reveal-close-text-btn:hover {
+    color: #ff0055;
+    text-decoration: underline;
+}
+
+/* Mobile Screen Ergonomics (< 768px) */
+@media screen and (max-width: 768px) {
+    .armory-panel {
+        width: 100%;
+        height: 100%;
+        max-height: 100vh;
+        border-radius: 0;
+        border: none;
+    }
+
+    .armory-header {
+        padding: 12px 14px;
+    }
+
+    .armory-title {
+        font-size: 1.2rem;
+    }
+
+    .ad-free-label {
+        display: none;
+    }
+
+    .ad-free-coins-btn {
+        padding: 6px 10px;
+    }
+
+    .store-airdrop-banner {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 12px;
+        gap: 10px;
+    }
+
+    .airdrop-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .airdrop-ad-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .hangar-canvas-wrap {
+        height: 100px;
+    }
+
+    .armory-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 10px;
+    }
+
+    .card-icon-area {
+        height: 90px;
+    }
+
+    .card-title {
+        font-size: 0.85rem;
+    }
+
+    .card-desc {
+        font-size: 0.7rem;
+        min-height: 28px;
+    }
+
+    .packs-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ========================================================================
+   MONETIZATION SYSTEM STYLES
+   ======================================================================== */
+
+/* === Modal Overlays === */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(5, 5, 15, 0.95);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 60;
+    backdrop-filter: blur(8px);
+}
+
+/* === Start Screen Engagement Row === */
+.start-engagement-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 12px;
+    justify-content: center;
+}
+
+.engage-btn {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.9));
+    border: 1px solid rgba(0, 240, 255, 0.4);
+    color: #00f0ff;
+    padding: 10px 18px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.engage-btn:hover {
+    border-color: #00f0ff;
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+/* === Daily Reward Modal === */
+.dr-card {
+    background: linear-gradient(145deg, #0f172a, #1e293b);
+    border: 2px solid rgba(245, 158, 11, 0.5);
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 0 40px rgba(245, 158, 11, 0.15);
+}
+
+.dr-header { margin-bottom: 16px; }
+
+.dr-streak-badge {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #000;
+    padding: 4px 16px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    display: inline-block;
+    margin-bottom: 8px;
+}
+
+.dr-title {
+    color: #fbbf24;
+    font-size: 1.4rem;
+    margin: 0;
+    text-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
+}
+
+.dr-days-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin: 16px 0;
+}
+
+.dr-day {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(100, 116, 139, 0.3);
+    border-radius: 6px;
+    padding: 6px 2px;
+    font-size: 0.6rem;
+    text-align: center;
+}
+
+.dr-day.current {
+    border-color: #f59e0b;
+    background: rgba(245, 158, 11, 0.15);
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
+}
+
+.dr-day.claimed {
+    border-color: #22c55e;
+    opacity: 0.6;
+}
+
+.dr-day-num { color: #94a3b8; font-weight: 600; font-size: 0.55rem; }
+.dr-day-icon { font-size: 1.2rem; margin: 4px 0; }
+.dr-day-label { color: #cbd5e1; font-size: 0.5rem; }
+
+.dr-reward-highlight {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.1));
+    border: 1px solid #f59e0b;
+    border-radius: 10px;
+    padding: 12px;
+    margin: 12px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.dr-reward-icon { font-size: 2rem; }
+.dr-reward-text { color: #fbbf24; font-size: 1.1rem; font-weight: 700; }
+
+.dr-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+
+.dr-claim-btn {
+    background: linear-gradient(135deg, #22c55e, #16a34a) !important;
+    border-color: #22c55e !important;
+}
+
+.dr-double-btn {
+    background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+    border-color: #f59e0b !important;
+    color: #000 !important;
+}
+
+.dr-close-btn {
+    background: none;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    margin-top: 8px;
+    font-size: 0.8rem;
+}
+
+/* === Lucky Spin Wheel === */
+.ls-card {
+    background: linear-gradient(145deg, #0f172a, #1e293b);
+    border: 2px solid rgba(0, 240, 255, 0.4);
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 380px;
+    width: 90%;
+    text-align: center;
+}
+
+.ls-title {
+    color: #00f0ff;
+    font-size: 1.4rem;
+    margin: 0 0 16px;
+    text-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+}
+
+.ls-wheel-container {
+    position: relative;
+    display: inline-block;
+    margin: 0 auto 16px;
+}
+
+.ls-pointer {
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 24px;
+    color: #f59e0b;
+    z-index: 2;
+    filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.6));
+}
+
+#ls-wheel-canvas {
+    border-radius: 50%;
+    border: 3px solid rgba(0, 240, 255, 0.3);
+    box-shadow: 0 0 25px rgba(0, 240, 255, 0.15);
+}
+
+.ls-result {
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid #f59e0b;
+    border-radius: 10px;
+    padding: 12px;
+    margin: 12px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    animation: resultPop 0.4s ease;
+}
+
+@keyframes resultPop {
+    0% { transform: scale(0.8); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.ls-result-icon { font-size: 1.8rem; }
+.ls-result-text { color: #fbbf24; font-size: 1.1rem; font-weight: 700; }
+
+.ls-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+
+.ls-spin-btn {
+    background: linear-gradient(135deg, #22c55e, #16a34a) !important;
+    border-color: #22c55e !important;
+}
+
+.ls-ad-spin-btn {
+    background: linear-gradient(135deg, #7c3aed, #6d28d9) !important;
+    border-color: #7c3aed !important;
+}
+
+.ls-free-used, .ls-ad-used {
+    color: #64748b;
+    font-size: 0.8rem;
+    padding: 6px;
+}
+
+.ls-close-btn {
+    background: none;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    margin-top: 8px;
+    font-size: 0.8rem;
+}
+
+/* === Quest Panel === */
+.quest-panel-card {
+    background: linear-gradient(145deg, #0f172a, #1e293b);
+    border: 2px solid rgba(0, 240, 255, 0.4);
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 420px;
+    width: 90%;
+}
+
+.quest-panel-title {
+    color: #00f0ff;
+    font-size: 1.3rem;
+    margin: 0 0 16px;
+    text-align: center;
+    text-shadow: 0 0 12px rgba(0, 240, 255, 0.3);
+}
+
+.quest-row {
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(100, 116, 139, 0.3);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    transition: all 0.3s ease;
+}
+
+.quest-row.quest-done {
+    border-color: #22c55e;
+    background: rgba(34, 197, 94, 0.08);
+}
+
+.quest-info { flex: 1; }
+
+.quest-title {
+    color: #e2e8f0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 6px;
+}
+
+.quest-progress-bar {
+    height: 6px;
+    background: rgba(30, 41, 59, 0.8);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 4px;
+}
+
+.quest-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #0891b2, #00f0ff);
+    border-radius: 3px;
+    transition: width 0.5s ease;
+}
+
+.quest-done .quest-progress-fill {
+    background: linear-gradient(90deg, #22c55e, #4ade80);
+}
+
+.quest-progress-text {
+    color: #64748b;
+    font-size: 0.7rem;
+}
+
+.quest-reward {
+    color: #fbbf24;
+    font-weight: 700;
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+.quest-bonus-row {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(217, 119, 6, 0.08));
+    border: 1px solid #f59e0b;
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+    margin-top: 12px;
+}
+
+.quest-bonus-row span {
+    color: #fbbf24;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.quest-bonus-row.claimed span { color: #22c55e; }
+
+.quest-bonus-btn {
+    background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+    border-color: #f59e0b !important;
+    color: #000 !important;
+    font-size: 0.8rem !important;
+}
+
+.quest-close-btn {
+    margin-top: 16px;
+    width: 100%;
+}
+
+.quest-empty {
+    color: #64748b;
+    text-align: center;
+    padding: 20px;
+}
+
+/* === Premium Store === */
+.armory-premium-container {
+    padding: 16px;
+    overflow-y: auto;
+    max-height: 70vh;
+}
+
+.premium-tab {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(124, 58, 237, 0.1)) !important;
+    border-color: #a855f7 !important;
+    color: #c084fc !important;
+}
+
+.premium-tab.active {
+    background: linear-gradient(135deg, #7c3aed, #6d28d9) !important;
+    color: #fff !important;
+}
+
+.premium-product-card {
+    background: linear-gradient(145deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.8));
+    border: 1px solid rgba(100, 116, 139, 0.3);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 12px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.premium-product-card.featured {
+    border-color: rgba(0, 240, 255, 0.5);
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.1);
+}
+
+.premium-product-card.purchased {
+    opacity: 0.7;
+    border-color: #22c55e;
+}
+
+.starter-pack-card {
+    border-color: #f59e0b !important;
+    background: linear-gradient(145deg, rgba(245, 158, 11, 0.08), rgba(15, 23, 42, 0.9)) !important;
+    box-shadow: 0 0 25px rgba(245, 158, 11, 0.12) !important;
+}
+
+.pp-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #7c3aed, #6d28d9);
+    color: #fff;
+    padding: 3px 12px;
+    border-radius: 12px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+
+.pulse-badge {
+    background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+    color: #000 !important;
+    animation: pulseBadge 2s ease-in-out infinite;
+}
+
+@keyframes pulseBadge {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); box-shadow: 0 0 15px rgba(245, 158, 11, 0.4); }
+}
+
+.pp-timer {
+    color: #ef4444;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    animation: pulseBadge 1.5s ease-in-out infinite;
+}
+
+.pp-icon { font-size: 2.5rem; margin: 8px 0; }
+
+.pp-name {
+    color: #e2e8f0;
+    font-size: 1.1rem;
+    margin: 8px 0;
+}
+
+.pp-benefits {
+    list-style: none;
+    padding: 0;
+    margin: 8px 0 16px;
+    text-align: left;
+}
+
+.pp-benefits li {
+    color: #94a3b8;
+    font-size: 0.8rem;
+    padding: 3px 0;
+}
+
+.pp-buy-btn {
+    background: linear-gradient(135deg, #7c3aed, #6d28d9) !important;
+    border-color: #7c3aed !important;
+    width: 100%;
+    padding: 12px !important;
+    font-size: 0.9rem !important;
+}
+
+.pp-purchased {
+    color: #22c55e;
+    font-weight: 700;
+    padding: 12px;
+}
+
+.coin-packs-header {
+    color: #fbbf24;
+    text-align: center;
+    margin: 20px 0 12px;
+    font-size: 1rem;
+}
+
+.coin-packs-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.coin-pack-card {
+    background: linear-gradient(145deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.8));
+    border: 1px solid rgba(100, 116, 139, 0.3);
+    border-radius: 10px;
+    padding: 14px 8px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.coin-pack-card:hover {
+    border-color: #f59e0b;
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.15);
+}
+
+.cp-icon { font-size: 1.8rem; }
+.cp-amount { color: #fbbf24; font-size: 1.4rem; font-weight: 800; }
+.cp-label { color: #64748b; font-size: 0.6rem; letter-spacing: 1px; margin-bottom: 8px; }
+
+.cp-badge {
+    display: inline-block;
+    background: #22c55e;
+    color: #000;
+    padding: 1px 6px;
+    border-radius: 6px;
+    font-size: 0.55rem;
+    font-weight: 800;
+    margin-bottom: 6px;
+}
+
+.cp-buy-btn {
+    width: 100%;
+    padding: 8px !important;
+    font-size: 0.8rem !important;
+    background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+    border-color: #f59e0b !important;
+    color: #000 !important;
+}
+
+/* === Interstitial Ad Overlay === */
+.interstitial-overlay {
+    z-index: 100;
+}
+
+.interstitial-box {
+    max-width: 350px !important;
+}
+
+/* Strictly ensure hidden modals and containers stay hidden */
+.hidden,
+#pack-opening-modal.hidden,
+#armory-modal.hidden,
+#revive-modal.hidden,
+#admin-panel.hidden,
+#levelup-screen.hidden,
+#daily-reward-modal.hidden,
+#lucky-spin-modal.hidden,
+#quest-panel-modal.hidden,
+#armory-premium-view.hidden {
+    display: none !important;
+}
+

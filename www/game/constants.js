@@ -4,6 +4,7 @@
 const BASE_SCREEN_WIDTH = 1920; // Referans PC ekran genişliği
 // Ekran genişliğine göre bir oran belirle (Mobilde çok küçülmemesi için en az 0.6 ile sınırla)
 let GAME_SCALE = Math.max(window.innerWidth / BASE_SCREEN_WIDTH, 0.6);
+const MOBILE_MODE = window.matchMedia('(pointer: coarse)').matches || window.innerWidth <= 900;
 // ...
 const CANVAS = document.getElementById('gameCanvas');
 const CTX = CANVAS.getContext('2d');
@@ -137,6 +138,15 @@ const DEFAULT_PLAYER_STATS = {
     timeWarp: false,
     critChance: 0,
     critMultiplier: 2,
+    damageMultiplier: 1,
+    bossDamageMultiplier: 1,
+    pulseCore: false,
+    pulseEvery: 8,
+    pulseProjectiles: 10,
+    pulseSizeMultiplier: 1,
+    shotSequence: 0,
+    cryoFracture: false,
+    explosiveDamageMultiplier: 1,
 
     laserDamage: 0.05,
 

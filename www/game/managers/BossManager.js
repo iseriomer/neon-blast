@@ -1,14 +1,14 @@
-// BossManager.js - Orchestrates Boss Fights (Refactored for Polymorphism)
+// BossManager.js - Centralized Boss Control System
 
 class BossManager {
     static activeBoss = null;
 
-    static startBossFight(bossId = 1) {
-        gameState.bossActive = true;
-        gameState.level++;
+    static startBossFight(bossId) {
+        if (gameState.bossActive) return; // Prevent multiple bosses
 
-        // Polymorphic Registry
-        // Relies on the global instances created in boss files
+        gameState.bossActive = true;
+
+        // Boss Registry - Map ID to Boss Instance
         const BOSS_REGISTRY = {
             1: typeof boss !== 'undefined' ? boss : null,
             2: typeof boss2 !== 'undefined' ? boss2 : null,
@@ -18,7 +18,10 @@ class BossManager {
             6: typeof boss6 !== 'undefined' ? boss6 : null,
             7: typeof boss7 !== 'undefined' ? boss7 : null,
             8: typeof boss8 !== 'undefined' ? boss8 : null,
-            9: typeof boss9 !== 'undefined' ? boss9 : null
+            9: typeof boss9 !== 'undefined' ? boss9 : null,
+            101: typeof miniSentinel !== 'undefined' ? miniSentinel : null,
+            102: typeof miniWarden !== 'undefined' ? miniWarden : null,
+            103: typeof miniHarvester !== 'undefined' ? miniHarvester : null
         };
 
         const selectedBoss = BOSS_REGISTRY[bossId];
@@ -38,13 +41,15 @@ class BossManager {
 
         // Cleanup Scene
         if (typeof enemyPool !== 'undefined') {
-            enemyPool.getActive().forEach(e => {
-                if (window.createExplosion) createExplosion(e.x, e.y, 50, 0);
-                enemyPool.release(e);
-            });
+            const active = [...enemyPool.getActive()];
+            for (let i = 0; i < active.length; i++) {
+                if (window.createExplosion) createExplosion(active[i].x, active[i].y, 50, 0);
+            }
+            enemyPool.releaseAll();
         }
 
-        selectedBoss.spawn(CANVAS.width / 2, -100);
+        const spawnY = selectedBoss.isMiniboss ? (selectedBoss.targetY || 120) : -100;
+        selectedBoss.spawn(CANVAS.width / 2, spawnY);
     }
 
     static updateAndDraw(dt) {

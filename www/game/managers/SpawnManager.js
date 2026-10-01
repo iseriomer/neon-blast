@@ -1,4 +1,3 @@
-
 // SpawnManager.js - Handles enemy spawning and diffculty
 
 class SpawnManager {
@@ -54,8 +53,18 @@ class SpawnManager {
         }, spawnRate);
     }
 
-    static triggerLevelUp() {
+    static triggerLevelUp(isFromBossDeath = false) {
         // --- BOSS SCHEDULE ---
+        // Minibosses bridge the long gaps without requiring player movement.
+        const isFromBoss = isFromBossDeath || (typeof gameState !== 'undefined' && gameState.justDefeatedBoss);
+        if (typeof gameState !== 'undefined') gameState.justDefeatedBoss = false;
+
+        if (!isFromBoss) {
+            if (gameState.level === 4 && !gameState.bossActive) { startBossFight(101); return; }
+            if (gameState.level === 14 && !gameState.bossActive) { startBossFight(102); return; }
+            if (gameState.level === 24 && !gameState.bossActive) { startBossFight(103); return; }
+            if (gameState.level === 34 && !gameState.bossActive) { startBossFight(102); return; }
+            if (gameState.level === 47 && !gameState.bossActive) { startBossFight(103); return; }
         // Level 10: OMEGA CORE (Boss 1)
         if (gameState.level === 9 && !gameState.bossActive) {
             startBossFight(1);
@@ -81,11 +90,6 @@ class SpawnManager {
             startBossFight(6);
             return;
         }
-        /* // Level 50: THE OMEGA (Boss 3)
-        if (gameState.level === 49 && !gameState.bossActive) {
-            startBossFight(3);
-            return;
-        } */
         // Level 50: THE OMEGA (Boss 3)
         if (gameState.level === 49 && !gameState.bossActive) {
             startBossFight(7);
@@ -101,11 +105,7 @@ class SpawnManager {
             startBossFight(9);
             return;
         }
-        /* // Level 65: THE NEURAL NEXUS (Boss 9) - DIGITAL CONSCIOUSNESS
-        if (gameState.level === 64 && !gameState.bossActive) {
-            startBossFight(9);
-            return;
-        } */
+        }
 
         gameState.isPaused = true;
         clearInterval(gameState.spawnInterval);
@@ -137,6 +137,10 @@ class SpawnManager {
 
             // Electric Aura Upgrades need Electric Aura
             if ((p.id === 'electric_aura_damage' || p.id === 'electric_aura_rate' || p.id === 'electric_aura_area') && !gameState.playerStats.electricAura) return false;
+            if ((p.id === 'pulse_accelerator' || p.id === 'pulse_payload') && !gameState.playerStats.pulseCore) return false;
+            if (p.id === 'cryo_fracture' && gameState.playerStats.freeze <= 0) return false;
+            if (p.id === 'demolition_matrix' && gameState.playerStats.explosiveRadius <= 0) return false;
+            if (p.id === 'critical_cascade' && gameState.playerStats.critChance <= 0) return false;
 
             return true;
         });
@@ -147,13 +151,8 @@ class SpawnManager {
         // Pick top 3 (or fewer if not enough perks)
         const selectedPerks = shuffled.slice(0, 3);
 
-        // If we have fewer than 3 perks, fill the rest with placeholders or just show fewer
-        // For visual consistency, let's just use what we have.
-
         // 3. SHOW UI WITH PLACEHOLDERS
-        // We want the perk cards to appear immediately after the "LEVEL UP" text starts fading
-        // The original code had 1200ms delay. We'll keep a short delay for the text impact.
-        setTimeout(() => { // Faster start (500ms)
+        setTimeout(() => {
             perkListEl.innerHTML = '';
             levelUpScreen.classList.remove('hidden');
 
@@ -163,24 +162,21 @@ class SpawnManager {
             // We'll create 3 cards (or less)
             for (let i = 0; i < selectedPerks.length; i++) {
                 const div = document.createElement('div');
-                div.className = 'perk-card perk-shuffling'; // Start blurring
-                div.style.setProperty('--perk-theme', '#555'); // Default gray during shuffle
+                div.className = 'perk-card perk-shuffling';
+                div.style.setProperty('--perk-theme', '#555');
 
-                // Staggered entry animation (Tight timing)
                 div.style.animation = `cardEntry 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 0.08}s backwards`;
 
                 div.innerHTML = `
                     <div class="perk-title" style="font-family: monospace;">INIT...</div>
                     <div class="perk-desc">DECRYPTING...</div>
                 `;
-                // Prevent clicking during shuffle
                 div.style.pointerEvents = 'none';
                 perkListEl.appendChild(div);
                 cardElements.push(div);
             }
 
             // 4. SLOT MACHINE ANIMATION
-            // Cycle through random perks on each card independently
             const intervals = [];
             const randomChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#@!%&";
 
@@ -188,34 +184,27 @@ class SpawnManager {
                 let tickCount = 0;
                 const interval = setInterval(() => {
                     tickCount++;
-                    // Play tick sound occasionally (too fast otherwise)
                     if (tickCount % 3 === 0) playSound('ui_tick');
 
-                    // Pick a random perk from ALL available perks just for visual noise
                     const randomPerk = availablePerks[Math.floor(Math.random() * availablePerks.length)];
 
                     if (randomPerk) {
-                        // Randomize color
                         const randomColor = `hsl(${Math.random() * 360}, 70%, 50%)`;
                         card.style.setProperty('--perk-theme', randomColor);
 
-                        // Scramble Text Effect
                         let scrambledTitle = "";
                         for (let k = 0; k < 10; k++) scrambledTitle += randomChars.charAt(Math.floor(Math.random() * randomChars.length));
 
-                        // NO ICON - Scrambled text only
                         card.querySelector('.perk-title').innerText = scrambledTitle;
                     }
-                }, 40); // Faster shuffle (40ms)
+                }, 40);
                 intervals.push(interval);
-                SpawnManager.activeIntervals.push(interval); // Track for cleanup
+                SpawnManager.activeIntervals.push(interval);
             });
 
             // 5. STOP CARDS ONE BY ONE
-            // Faster stagger
             selectedPerks.forEach((finalPerk, index) => {
                 setTimeout(() => {
-                    // OPTIMIZATION: Clear interval and remove from tracking array
                     clearInterval(intervals[index]);
                     const intervalIndex = SpawnManager.activeIntervals.indexOf(intervals[index]);
                     if (intervalIndex > -1) {
@@ -226,7 +215,6 @@ class SpawnManager {
 
                     // Set Final Content
                     let displayDesc = Localization.t(finalPerk.desc);
-                    // Dynamic Descriptions
                     if (finalPerk.id === 'orbitals') {
                         displayDesc = Localization.t('perk_orbitals_desc_dynamic', { value: gameState.playerStats.orbitals });
                     } else if (finalPerk.id === 'split_shot') {
@@ -237,7 +225,6 @@ class SpawnManager {
                         card.style.setProperty('--perk-theme', finalPerk.theme);
                     }
 
-                    // NO ICON in final result
                     card.innerHTML = `
                         <div class="perk-title">${Localization.t(finalPerk.title)}</div>
                         <div class="perk-desc">${displayDesc}</div>
@@ -254,10 +241,10 @@ class SpawnManager {
                     card.style.pointerEvents = 'auto';
                     card.onclick = () => SpawnManager.selectPerk(finalPerk);
 
-                }, 800 + (index * 300)); // Faster stagger (300ms)
+                }, 800 + (index * 300));
             });
 
-        }, 500); // 500ms delay after "LEVEL UP" text appears
+        }, 500);
     }
 
     static selectPerk(perk) {
@@ -266,8 +253,12 @@ class SpawnManager {
 
         playSound('perk_select');
         gameState.takenPerks.push(perk.id);
+        if (typeof QuestManager !== 'undefined') {
+            QuestManager.trackEvent('perks_selected', 1);
+        }
         perk.apply(gameState.playerStats);
         gameState.level++;
+        if (typeof gameState !== 'undefined') gameState.justDefeatedBoss = false;
         gameState.currentLevelStep = Math.floor(gameState.currentLevelStep * 1.1) + 200;
         gameState.previousLevelThreshold = gameState.nextLevelThreshold;
         gameState.nextLevelThreshold += gameState.currentLevelStep;
@@ -280,6 +271,7 @@ class SpawnManager {
         levelUpScreen.classList.add('hidden');
         gameState.isPaused = false;
         SpawnManager.spawnEnemies();
+        SaveManager.saveGame(gameState); // SAVE THE GAME
         requestAnimationFrame(animate);
     }
 }
