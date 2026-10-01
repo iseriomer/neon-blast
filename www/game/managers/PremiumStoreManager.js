@@ -88,6 +88,7 @@ class PremiumStoreManager {
     static init() {
         this.load();
         this.registerPremiumCosmetics();
+        this.initNativeStore();
     }
 
     static load() {
@@ -186,21 +187,74 @@ class PremiumStoreManager {
         return t('time_remaining', { hours, minutes });
     }
 
-    // Simulate purchase (in production: use Capacitor IAP plugin)
+    // Initialize native IAP store if available (CdvPurchase / Capacitor InAppPurchase)
+    static initNativeStore() {
+        if (typeof window !== 'undefined' && window.CdvPurchase && window.CdvPurchase.store) {
+            const store = window.CdvPurchase.store;
+            try {
+                // Register all products for Google Play Billing
+                const products = [
+                    { id: 'remove_ads', type: window.CdvPurchase.ProductType.NON_CONSUMABLE, platform: window.CdvPurchase.Platform.GOOGLE_PLAY },
+                    { id: 'starter_pack', type: window.CdvPurchase.ProductType.NON_CONSUMABLE, platform: window.CdvPurchase.Platform.GOOGLE_PLAY },
+                    { id: 'premium_cosmetic_pack', type: window.CdvPurchase.ProductType.NON_CONSUMABLE, platform: window.CdvPurchase.Platform.GOOGLE_PLAY },
+                    { id: 'coin_500', type: window.CdvPurchase.ProductType.CONSUMABLE, platform: window.CdvPurchase.Platform.GOOGLE_PLAY },
+                    { id: 'coin_1500', type: window.CdvPurchase.ProductType.CONSUMABLE, platform: window.CdvPurchase.Platform.GOOGLE_PLAY },
+                    { id: 'coin_5000', type: window.CdvPurchase.ProductType.CONSUMABLE, platform: window.CdvPurchase.Platform.GOOGLE_PLAY }
+                ];
+                store.register(products);
+
+                // Listen for approved purchases
+                store.when().approved(transaction => {
+                    transaction.products.forEach(p => {
+                        this.grantPurchase(p.id);
+                    });
+                    transaction.finish();
+                });
+
+                store.initialize([window.CdvPurchase.Platform.GOOGLE_PLAY]);
+                console.log('⚡ Native Google Play Billing Store Initialized');
+            } catch (e) {
+                console.warn('Native IAP store init error:', e);
+            }
+        }
+    }
+
+    // Purchase product (supports Native Google Play Billing & Dev Simulation)
     static purchase(productId) {
         const product = this.PRODUCTS[productId];
         if (!product) return;
 
-        // Check for native IAP plugin
+        // 1. Check for standard CdvPurchase (Google Play Billing)
+        if (typeof window !== 'undefined' && window.CdvPurchase && window.CdvPurchase.store) {
+            const store = window.CdvPurchase.store;
+            const p = store.get(productId);
+            if (p && p.canPurchase) {
+                store.order(p.getOffer())
+                    .then(() => console.log('IAP order submitted for', productId))
+                    .catch(err => {
+                        console.warn('Google Play purchase cancelled or failed:', err);
+                        if (typeof ArmoryUI !== 'undefined' && ArmoryUI.showToast) {
+                            ArmoryUI.showToast('Satın alma iptal edildi', false);
+                        }
+                    });
+                return;
+            }
+        }
+
+        // 2. Check for Capacitor native InAppPurchase plugin
         if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.InAppPurchase) {
-            // Native purchase flow
             window.Capacitor.Plugins.InAppPurchase.purchase({ productId: productId })
                 .then(() => this.grantPurchase(productId))
-                .catch(err => console.warn('Purchase failed:', err));
+                .catch(err => {
+                    console.warn('Purchase failed:', err);
+                    if (typeof ArmoryUI !== 'undefined' && ArmoryUI.showToast) {
+                        ArmoryUI.showToast('Satın alma iptal edildi', false);
+                    }
+                });
             return;
         }
 
-        // Web simulation: directly grant (for testing)
+        // 3. Web simulation: directly grant (for dev & testing)
         this.grantPurchase(productId);
     }
 

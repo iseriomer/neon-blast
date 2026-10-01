@@ -3,54 +3,92 @@
 
 const AdManager = {
     isAdPlaying: false,
+    _isInitialized: false,
 
-    init() {
-        console.log('⚡ AdManager Initialized');
-        // Pre-load ads if native
+    // AdMob Configuration:
+    // Uses Google's official Android Test Ad Unit IDs by default so ads work out-of-the-box in testing.
+    // When deploying to Google Play Store: set isTesting: false and paste your real AdMob Ad Unit IDs!
+    CONFIG: {
+        isTesting: true,
+        // Official Google Sample/Test Ad Units for Android:
+        testRewardedId: 'ca-app-pub-3940256099942544/5224354917',
+        testInterstitialId: 'ca-app-pub-3940256099942544/1033173712',
+        // Real Production Ad Units (Paste from your Google AdMob Dashboard):
+        prodRewardedId: '',
+        prodInterstitialId: ''
+    },
+
+    getRewardedAdId() {
+        if (!this.CONFIG.isTesting && this.CONFIG.prodRewardedId) {
+            return this.CONFIG.prodRewardedId;
+        }
+        return this.CONFIG.testRewardedId;
+    },
+
+    getInterstitialAdId() {
+        if (!this.CONFIG.isTesting && this.CONFIG.prodInterstitialId) {
+            return this.CONFIG.prodInterstitialId;
+        }
+        return this.CONFIG.testInterstitialId;
+    },
+
+    async init() {
+        if (this._isInitialized) return;
+        this._isInitialized = true;
+        console.log('⚡ AdManager Initialized (Testing Mode:', this.CONFIG.isTesting, ')');
+
+        // Pre-load ads if native Capacitor AdMob is available
         if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
+            const AdMob = window.Capacitor.Plugins.AdMob;
             try {
-                // Prepare rewarded ad
-                window.Capacitor.Plugins.AdMob.prepareRewardVideoAd({
-                    adId: 'ca-app-pub-XXXXXXXX/YYYYYYYY' // Replace with real ad unit ID
-                });
-                // Prepare interstitial
-                window.Capacitor.Plugins.AdMob.prepareInterstitial({
-                    adId: 'ca-app-pub-XXXXXXXX/ZZZZZZZZ' // Replace with real ad unit ID
-                });
+                if (AdMob.initialize) {
+                    await AdMob.initialize({
+                        initializeForTesting: this.CONFIG.isTesting
+                    });
+                }
+                // Prepare initial rewarded video
+                AdMob.prepareRewardVideoAd({
+                    adId: this.getRewardedAdId()
+                }).catch(e => console.warn('Rewarded ad preload info:', e));
+
+                // Prepare initial interstitial
+                AdMob.prepareInterstitial({
+                    adId: this.getInterstitialAdId()
+                }).catch(e => console.warn('Interstitial preload info:', e));
             } catch (e) {
-                console.warn('AdMob prep error:', e);
+                console.warn('AdMob initialization notice:', e);
             }
         }
     },
 
-    // Show a Rewarded Ad (Revive, Double Coins, Free Pack, Daily Reward, Quest Bonus, Lucky Spin)
+    // Show a Rewarded Ad (Revive, Double Coins, Free Pack, Daily Reward, Quest Bonus, Lucky Spin, Perk Reroll)
     showRewardedAd(param1, param2) {
         if (this.isAdPlaying) return;
 
         const onReward = typeof param1 === 'function' ? param1 : (param1 && param1.onSuccess);
         const onCancel = typeof param2 === 'function' ? param2 : (param1 && param1.onDismiss);
 
-        // Check for Native Capacitor AdMob plugin if integrated
+        // Check for Native Capacitor AdMob plugin if running on real Android device
         if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
-            // Native bridge hook
+            const AdMob = window.Capacitor.Plugins.AdMob;
             try {
-                window.Capacitor.Plugins.AdMob.showRewardVideoAd()
-                    .then(() => {
-                        // Reload next rewarded ad
-                        try {
-                            window.Capacitor.Plugins.AdMob.prepareRewardVideoAd({
-                                adId: 'ca-app-pub-XXXXXXXX/YYYYYYYY'
-                            });
-                        } catch (e) {}
-                        if (onReward) onReward();
+                this.isAdPlaying = true;
+                AdMob.showRewardVideoAd()
+                    .then((reward) => {
+                        this.isAdPlaying = false;
+                        // Reload next rewarded ad in background
+                        AdMob.prepareRewardVideoAd({ adId: this.getRewardedAdId() }).catch(() => {});
+                        if (onReward) onReward(reward);
                     })
                     .catch((err) => {
-                        console.warn('Native ad failed, falling back to simulation', err);
+                        console.warn('Native rewarded ad unavailable, falling back to simulated ad:', err);
+                        this.isAdPlaying = false;
                         this._showSimulatedAd(onReward, onCancel);
                     });
                 return;
             } catch (e) {
-                console.warn('AdMob exception', e);
+                console.warn('AdMob exception, falling back to simulation:', e);
+                this.isAdPlaying = false;
             }
         }
 
@@ -58,7 +96,7 @@ const AdManager = {
         this._showSimulatedAd(onReward, onCancel);
     },
 
-    // Show an Interstitial Ad (between game overs)
+    // Show an Interstitial Ad (every 3rd game over, if user is not VIP)
     showInterstitialAd(onComplete) {
         if (this.isAdPlaying) {
             if (onComplete) onComplete();
@@ -67,31 +105,29 @@ const AdManager = {
 
         // Check for Native Capacitor AdMob
         if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
+            const AdMob = window.Capacitor.Plugins.AdMob;
             try {
                 this.isAdPlaying = true;
-                window.Capacitor.Plugins.AdMob.showInterstitial()
+                AdMob.showInterstitial()
                     .then(() => {
                         this.isAdPlaying = false;
-                        // Reload next interstitial
-                        try {
-                            window.Capacitor.Plugins.AdMob.prepareInterstitial({
-                                adId: 'ca-app-pub-XXXXXXXX/ZZZZZZZZ'
-                            });
-                        } catch (e) {}
+                        // Reload next interstitial in background
+                        AdMob.prepareInterstitial({ adId: this.getInterstitialAdId() }).catch(() => {});
                         if (onComplete) onComplete();
                     })
                     .catch((err) => {
-                        console.warn('Interstitial failed:', err);
+                        console.warn('Native interstitial unavailable, falling back to simulation:', err);
                         this.isAdPlaying = false;
-                        if (onComplete) onComplete();
+                        this._showSimulatedInterstitial(onComplete);
                     });
                 return;
             } catch (e) {
                 console.warn('Interstitial exception:', e);
+                this.isAdPlaying = false;
             }
         }
 
-        // Web simulation: brief flash overlay then continue
+        // Web simulation: brief atmospheric banner then continue
         this._showSimulatedInterstitial(onComplete);
     },
 

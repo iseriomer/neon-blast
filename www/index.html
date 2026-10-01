@@ -527,6 +527,7 @@
         }
 
         // Initialize monetization managers
+        if (typeof AdManager !== 'undefined') AdManager.init();
         if (typeof PremiumStoreManager !== 'undefined') PremiumStoreManager.init();
         if (typeof DailyRewardManager !== 'undefined') DailyRewardManager.init();
         if (typeof QuestManager !== 'undefined') QuestManager.init();
