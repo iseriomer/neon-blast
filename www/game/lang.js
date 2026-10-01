@@ -1,4 +1,4 @@
-// lang.js - Localization System
+﻿// lang.js - Localization System
 
 const Localization = {
     currentLang: 'tr',
@@ -40,7 +40,7 @@ const Localization = {
             revive_desc: "EMP Shockwave & Full Shields",
             revive_btn: "REVIVE (WATCH AD)",
             revive_skip: "GIVE UP",
-            tab_cores: "CORES",
+            tab_cores: "SHIPS & CORES",
             tab_projectiles: "PROJECTILES",
             tab_backgrounds: "BACKGROUNDS",
             tab_packs: "CRATES",
@@ -334,7 +334,7 @@ const Localization = {
             revive_desc: "EMP Dalgası & Tam Kalkan",
             revive_btn: "DİRİL (REKLAM İZLE)",
             revive_skip: "VAZGEÇ",
-            tab_cores: "ÇEKİRDEK",
+            tab_cores: "GEMİ & ÇEKİRDEK",
             tab_projectiles: "MERMİLER",
             tab_backgrounds: "ARKA PLAN",
             tab_packs: "SANDIKLAR",
@@ -853,7 +853,7 @@ const Localization = {
             revive_desc: "Onda PEM & Escudos al máximo",
             revive_btn: "REVIVIR (VER ANUNCIO)",
             revive_skip: "RENDIRSE",
-            tab_cores: "NÚCLEOS",
+            tab_cores: "NAVES Y NÚCLEOS",
             tab_projectiles: "PROYECTILES",
             tab_backgrounds: "FONDOS",
             tab_packs: "CAJAS",
@@ -1080,7 +1080,7 @@ const Localization = {
             revive_desc: "EMP-Schockwelle & Volle Schilde",
             revive_btn: "WIEDERBELEBEN (WERBUNG)",
             revive_skip: "AUFGEBEN",
-            tab_cores: "KERNE",
+            tab_cores: "SCHIFFE & KERNE",
             tab_projectiles: "PROJEKTILE",
             tab_backgrounds: "HINTERGRÜNDE",
             tab_packs: "KISTEN",
@@ -1307,7 +1307,7 @@ const Localization = {
             revive_desc: "Onda EMP & Scudi al massimo",
             revive_btn: "RESUSCITA (GUARDA SPOT)",
             revive_skip: "ARRENDITI",
-            tab_cores: "NUCLEI",
+            tab_cores: "NAVI E NUCLEI",
             tab_projectiles: "PROIETTILI",
             tab_backgrounds: "SFONDI",
             tab_packs: "CASSE",

@@ -23,18 +23,28 @@ function drawPlayer(playerStats, lastShotTime) {
     const r = player.radius;
     const color = playerStats.color || '#00ffff';
 
-    if (typeof player.angle === 'undefined') player.angle = -Math.PI / 2;
-    if (typeof player.targetAngle === 'undefined') player.targetAngle = -Math.PI / 2;
+    function isStarshipCore(skin) {
+        return skin === 'core_dragon' || skin === 'core_aurora' || skin === 'core_void_king';
+    }
+    window.isStarshipCore = isStarshipCore;
 
-    // Smoothly rotate spacecraft towards firing/aim direction
-    let diff = player.targetAngle - player.angle;
-    while (diff > Math.PI) diff -= Math.PI * 2;
-    while (diff < -Math.PI) diff += Math.PI * 2;
-    player.angle += diff * 0.22;
+    const isShip = isStarshipCore(coreSkin);
 
     CTX.save();
     CTX.translate(player.x, player.y);
-    CTX.rotate(player.angle);
+
+    if (isShip) {
+        if (typeof player.angle === 'undefined') player.angle = -Math.PI / 2;
+        if (typeof player.targetAngle === 'undefined') player.targetAngle = -Math.PI / 2;
+
+        // Smoothly rotate starship towards firing/aim direction
+        let diff = player.targetAngle - player.angle;
+        while (diff > Math.PI) diff -= Math.PI * 2;
+        while (diff < -Math.PI) diff += Math.PI * 2;
+        player.angle += diff * 0.22;
+
+        CTX.rotate(player.angle);
+    }
 
     if (RenderOptimizer.useShadows) {
         CTX.shadowBlur = 18;
@@ -169,386 +179,366 @@ function shoot(targetX, targetY, gameState) {
     playSound('shoot');
 }
 
-// Global Procedural Starship Hull & Fighter Renderer
+// Global Procedural Core & Starship Renderer
 function drawSpacecraftHull(ctx, coreSkin, color, r, t, isHangar = false) {
-    const flameFlicker = Math.sin(t * 22) * (r * 0.2) + Math.cos(t * 31) * (r * 0.1);
-    const flameLen = r * 1.1 + flameFlicker;
+    const isShip = (typeof isStarshipCore === 'function') ? isStarshipCore(coreSkin) : (coreSkin === 'core_dragon' || coreSkin === 'core_aurora' || coreSkin === 'core_void_king');
 
-    function drawDualThrusters(yOffset, jetColor = '#00ffff') {
-        [-yOffset, yOffset].forEach(y => {
-            const grad = ctx.createLinearGradient(-r * 0.7, y, -r * 0.7 - flameLen, y);
-            grad.addColorStop(0, '#ffffff');
-            grad.addColorStop(0.3, jetColor);
-            grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-            ctx.fillStyle = grad;
-            ctx.beginPath();
-            ctx.moveTo(-r * 0.65, y - r * 0.18);
-            ctx.lineTo(-r * 0.7 - flameLen, y);
-            ctx.lineTo(-r * 0.65, y + r * 0.18);
-            ctx.closePath();
-            ctx.fill();
-        });
+    // 1. PREMIUM STARSHIPS (Aerodynamic Combat Hulls with Plasma Thrusters)
+    if (isShip) {
+        const flameFlicker = Math.sin(t * 22) * (r * 0.2) + Math.cos(t * 31) * (r * 0.1);
+        const flameLen = r * 1.1 + flameFlicker;
+
+        function drawDualThrusters(yOffset, jetColor = '#00ffff') {
+            [-yOffset, yOffset].forEach(y => {
+                const grad = ctx.createLinearGradient(-r * 0.7, y, -r * 0.7 - flameLen, y);
+                grad.addColorStop(0, '#ffffff');
+                grad.addColorStop(0.3, jetColor);
+                grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.moveTo(-r * 0.65, y - r * 0.18);
+                ctx.lineTo(-r * 0.7 - flameLen, y);
+                ctx.lineTo(-r * 0.65, y + r * 0.18);
+                ctx.closePath();
+                ctx.fill();
+            });
+        }
+
+        switch (coreSkin) {
+            case 'core_dragon': {
+                drawDualThrusters(r * 0.6, '#ff4500');
+                // Cybernetic Dragon Starfighter Hull
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.moveTo(r * 1.7, 0); // Nose tip
+                ctx.lineTo(r * 0.6, -r * 0.4);
+                ctx.lineTo(-r * 0.2, -r * 1.25); // Left dragon wing
+                ctx.lineTo(-r * 0.4, -r * 0.5);
+                ctx.lineTo(-r * 0.85, -r * 0.75); // Winglet
+                ctx.lineTo(-r * 0.65, -r * 0.2);
+                ctx.lineTo(-r * 0.75, 0); // Rear tail
+                ctx.lineTo(-r * 0.65, r * 0.2);
+                ctx.lineTo(-r * 0.85, r * 0.75); // Winglet
+                ctx.lineTo(-r * 0.4, r * 0.5);
+                ctx.lineTo(-r * 0.2, r * 1.25); // Right dragon wing
+                ctx.lineTo(r * 0.6, r * 0.4);
+                ctx.closePath();
+                ctx.fill();
+
+                // Dragon Spine & Cockpit
+                ctx.strokeStyle = '#ffd700';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(r * 1.7, 0); ctx.lineTo(-r * 0.6, 0);
+                ctx.stroke();
+
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.ellipse(r * 0.35, 0, r * 0.45, r * 0.18, 0, 0, Math.PI * 2);
+                ctx.fill();
+                return;
+            }
+
+            case 'core_aurora': {
+                drawDualThrusters(r * 0.55, '#00ff88');
+                // Aurora Stealth Interceptor Starship
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.moveTo(r * 1.6, 0);
+                ctx.lineTo(r * 0.4, -r * 0.4);
+                ctx.lineTo(-r * 0.6, -r * 1.15);
+                ctx.lineTo(-r * 0.45, -r * 0.35);
+                ctx.lineTo(-r * 0.75, 0);
+                ctx.lineTo(-r * 0.45, r * 0.35);
+                ctx.lineTo(-r * 0.6, r * 1.15);
+                ctx.lineTo(r * 0.4, r * 0.4);
+                ctx.closePath();
+                ctx.fill();
+
+                // Aurora Glow Strip
+                ctx.strokeStyle = '#00f0ff';
+                ctx.lineWidth = 1.8;
+                ctx.beginPath();
+                ctx.moveTo(r * 1.3, 0);
+                ctx.lineTo(-r * 0.3, -r * 0.7);
+                ctx.moveTo(r * 1.3, 0);
+                ctx.lineTo(-r * 0.3, r * 0.7);
+                ctx.stroke();
+
+                // Cockpit Core
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(r * 0.2, 0, r * 0.25, 0, Math.PI * 2);
+                ctx.fill();
+                return;
+            }
+
+            case 'core_void_king': {
+                drawDualThrusters(r * 0.75, '#c084fc');
+                // Void Dreadnought / Flagship Hull
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.moveTo(r * 1.65, 0);
+                ctx.lineTo(r * 0.8, -r * 0.5);
+                ctx.lineTo(r * 0.1, -r * 1.2);
+                ctx.lineTo(-r * 0.4, -r * 0.6);
+                ctx.lineTo(-r * 0.85, -r * 0.9);
+                ctx.lineTo(-r * 0.7, 0);
+                ctx.lineTo(-r * 0.85, r * 0.9);
+                ctx.lineTo(-r * 0.4, r * 0.6);
+                ctx.lineTo(r * 0.1, r * 1.2);
+                ctx.lineTo(r * 0.8, r * 0.5);
+                ctx.closePath();
+                ctx.fill();
+
+                // Crown Wings
+                ctx.fillStyle = '#ffd700';
+                ctx.beginPath();
+                ctx.moveTo(r * 0.9, -r * 0.55);
+                ctx.lineTo(r * 1.25, -r * 0.75);
+                ctx.lineTo(r * 0.7, -r * 0.35);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.moveTo(r * 0.9, r * 0.55);
+                ctx.lineTo(r * 1.25, r * 0.75);
+                ctx.lineTo(r * 0.7, r * 0.35);
+                ctx.closePath();
+                ctx.fill();
+
+                // Void Crown Core
+                ctx.fillStyle = '#080114';
+                ctx.beginPath();
+                ctx.arc(0, 0, r * 0.48, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#c084fc';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(0, 0, r * 0.22, 0, Math.PI * 2);
+                ctx.fill();
+                return;
+            }
+        }
     }
 
-    function drawCenterThruster(jetColor = '#00ffff', width = 0.3) {
-        const grad = ctx.createLinearGradient(-r * 0.8, 0, -r * 0.8 - flameLen * 1.3, 0);
-        grad.addColorStop(0, '#ffffff');
-        grad.addColorStop(0.35, jetColor);
-        grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.moveTo(-r * 0.75, -r * width);
-        ctx.lineTo(-r * 0.8 - flameLen * 1.3, 0);
-        ctx.lineTo(-r * 0.75, r * width);
-        ctx.closePath();
-        ctx.fill();
-    }
-
+    // 2. NON-SHIP CORES (Stationary Circular Dots + Rich Procedural VFX)
     switch (coreSkin) {
         case 'core_prism': {
-            drawDualThrusters(r * 0.55, '#32e8ff');
-
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.moveTo(r * 1.5, 0);
-            ctx.lineTo(r * 0.2, -r * 0.45);
-            ctx.lineTo(-r * 0.85, -r * 1.15);
-            ctx.lineTo(-r * 0.5, -r * 0.4);
-            ctx.lineTo(-r * 0.75, 0);
-            ctx.lineTo(-r * 0.5, r * 0.4);
-            ctx.lineTo(-r * 0.85, r * 1.15);
-            ctx.lineTo(r * 0.2, r * 0.45);
-            ctx.closePath();
-            ctx.fill();
-
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
+            // Sabit nokta çekirdek + dönen kristal prizma fasetleri
+            ctx.save();
+            ctx.rotate(t * 0.85);
+            const sides = 6;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
             ctx.lineWidth = 1.6;
             ctx.beginPath();
-            ctx.moveTo(r * 1.5, 0); ctx.lineTo(-r * 0.75, 0);
-            ctx.moveTo(r * 0.2, -r * 0.45); ctx.lineTo(-r * 0.75, 0);
-            ctx.moveTo(r * 0.2, r * 0.45); ctx.lineTo(-r * 0.75, 0);
+            for (let i = 0; i < sides; i++) {
+                const a = (Math.PI * 2 / sides) * i;
+                const px = Math.cos(a) * (r * 1.35);
+                const py = Math.sin(a) * (r * 1.35);
+                if (i === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+            }
+            ctx.closePath();
             ctx.stroke();
 
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 1.2;
+            for (let i = 0; i < sides; i++) {
+                const a = (Math.PI * 2 / sides) * i;
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(Math.cos(a) * (r * 1.35), Math.sin(a) * (r * 1.35));
+                ctx.stroke();
+            }
+            ctx.restore();
+
+            // Sabit neon nokta çekirdek
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(0, 0, r, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Elmas kýrýlma merkezi
             ctx.fillStyle = '#ffffff';
             ctx.beginPath();
-            ctx.moveTo(r * 0.6, 0);
-            ctx.lineTo(r * 0.05, -r * 0.2);
-            ctx.lineTo(-r * 0.25, 0);
-            ctx.lineTo(r * 0.05, r * 0.2);
-            ctx.closePath();
+            ctx.arc(0, 0, r * 0.45, 0, Math.PI * 2);
             ctx.fill();
             break;
         }
 
         case 'core_pulsar': {
-            drawDualThrusters(r * 0.65, '#ffe600');
+            // Sabit nokta çekirdek + çift dönen pulsar yörünge halkalarý
+            const pulse = 1 + Math.sin(t * 4) * 0.12;
 
-            [-r * 0.65, r * 0.65].forEach(y => {
-                ctx.fillStyle = color;
-                ctx.beginPath();
-                ctx.moveTo(r * 1.4, y);
-                ctx.lineTo(-r * 0.75, y - r * 0.32);
-                ctx.lineTo(-r * 0.8, y + r * 0.32);
-                ctx.closePath();
-                ctx.fill();
-
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 2.5;
-                ctx.beginPath();
-                ctx.moveTo(r * 0.8, y);
-                ctx.lineTo(r * 1.65, y);
-                ctx.stroke();
-            });
-
-            ctx.fillStyle = 'rgba(20, 20, 35, 0.9)';
             ctx.strokeStyle = color;
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 2.2;
             ctx.beginPath();
-            ctx.rect(-r * 0.4, -r * 0.65, r * 0.8, r * 1.3);
+            ctx.ellipse(0, 0, r * 1.5 * pulse, r * 0.55, t * 1.8, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, r * 1.5 * pulse, r * 0.55, -t * 1.8, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Sabit neon nokta çekirdek
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(0, 0, r, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(0, 0, r * 0.42 * pulse, 0, Math.PI * 2);
+            ctx.fill();
+            break;
+        }
+
+        case 'core_singularity': {
+            // Sabit nokta çekirdek + girdaplý mor çekim alaný
+            ctx.save();
+            ctx.rotate(t * 1.5);
+            const grad = ctx.createRadialGradient(0, 0, r * 0.5, 0, 0, r * 1.6);
+            grad.addColorStop(0, 'rgba(184, 68, 255, 0.95)');
+            grad.addColorStop(0.7, 'rgba(0, 240, 255, 0.5)');
+            grad.addColorStop(1, 'transparent');
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(0, 0, r * 1.6, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+            ctx.lineWidth = 1.8;
+            for (let i = 0; i < 4; i++) {
+                const off = (Math.PI / 2) * i;
+                ctx.beginPath();
+                ctx.arc(0, 0, r * 1.1, off, off + 0.85);
+                ctx.stroke();
+            }
+            ctx.restore();
+
+            // Merkez karanlýk madde çekirdek noktasý
+            ctx.fillStyle = '#060114';
+            ctx.strokeStyle = '#d946ef';
+            ctx.lineWidth = 2.2;
+            ctx.beginPath();
+            ctx.arc(0, 0, r * 0.8, 0, Math.PI * 2);
             ctx.fill();
             ctx.stroke();
 
-            const pulse = 1 + Math.sin(t * 6) * 0.12;
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 1.8;
-            ctx.beginPath();
-            ctx.ellipse(0, 0, r * 0.45 * pulse, r * 0.2, t * 2, 0, Math.PI * 2);
-            ctx.stroke();
-
-            ctx.fillStyle = '#ffe600';
+            ctx.fillStyle = '#ffffff';
             ctx.beginPath();
             ctx.arc(0, 0, r * 0.28, 0, Math.PI * 2);
             ctx.fill();
             break;
         }
 
-        case 'core_singularity': {
-            drawCenterThruster('#d946ef', 0.4);
-
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.moveTo(r * 1.5, -r * 0.6);
-            ctx.lineTo(r * 0.5, -r * 0.2);
-            ctx.lineTo(r * 1.5, r * 0.6);
-            ctx.lineTo(r * 0.3, r * 0.4);
-            ctx.lineTo(-r * 0.85, r * 0.9);
-            ctx.lineTo(-r * 0.6, 0);
-            ctx.lineTo(-r * 0.85, -r * 0.9);
-            ctx.lineTo(r * 0.3, -r * 0.4);
-            ctx.closePath();
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.arc(0, 0, r * 0.55, 0, Math.PI * 2);
-            ctx.fillStyle = '#050010';
-            ctx.fill();
-            ctx.strokeStyle = '#d946ef';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
-            ctx.lineWidth = 1.5;
-            for (let i = 0; i < 3; i++) {
-                const off = (Math.PI * 2 / 3) * i + t * 4;
-                ctx.beginPath();
-                ctx.arc(0, 0, r * 0.38, off, off + 1.2);
-                ctx.stroke();
-            }
-            break;
-        }
-
         case 'core_chrono': {
-            drawCenterThruster('#ffd700', 0.35);
-
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.arc(0, 0, r * 0.95, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.moveTo(r * 1.55, 0);
-            ctx.lineTo(r * 0.5, -r * 0.45);
-            ctx.lineTo(r * 0.5, r * 0.45);
-            ctx.closePath();
-            ctx.fill();
-
+            // Sabit nokta çekirdek + altýn saat mekanizmasý & ibreler
+            ctx.save();
+            ctx.rotate(t * 0.6);
             ctx.strokeStyle = '#ffd700';
             ctx.lineWidth = 2;
             for (let i = 0; i < 8; i++) {
                 const a = (Math.PI * 2 / 8) * i;
                 ctx.beginPath();
-                ctx.moveTo(Math.cos(a) * (r * 0.65), Math.sin(a) * (r * 0.65));
-                ctx.lineTo(Math.cos(a) * (r * 1.05), Math.sin(a) * (r * 1.05));
+                ctx.moveTo(Math.cos(a) * (r * 0.8), Math.sin(a) * (r * 0.8));
+                ctx.lineTo(Math.cos(a) * (r * 1.35), Math.sin(a) * (r * 1.35));
                 ctx.stroke();
             }
+            ctx.restore();
 
-            ctx.fillStyle = '#170f03';
+            // Sabit altýn nokta çekirdek
+            ctx.fillStyle = color;
             ctx.beginPath();
-            ctx.arc(0, 0, r * 0.42, 0, Math.PI * 2);
+            ctx.arc(0, 0, r, 0, Math.PI * 2);
             ctx.fill();
 
+            // Dönen saat ibreleri
             ctx.strokeStyle = '#ffffff';
             ctx.lineWidth = 1.8;
             ctx.beginPath();
-            ctx.moveTo(0, 0); ctx.lineTo(Math.cos(-t * 3) * (r * 0.32), Math.sin(-t * 3) * (r * 0.32));
-            ctx.moveTo(0, 0); ctx.lineTo(Math.cos(t * 1.5) * (r * 0.38), Math.sin(t * 1.5) * (r * 0.38));
+            ctx.moveTo(0, 0);
+            ctx.lineTo(Math.cos(-t * 2.8) * (r * 0.55), Math.sin(-t * 2.8) * (r * 0.55));
+            ctx.moveTo(0, 0);
+            ctx.lineTo(Math.cos(t * 1.4) * (r * 0.7), Math.sin(t * 1.4) * (r * 0.7));
             ctx.stroke();
             break;
         }
 
         case 'core_glitch': {
-            drawDualThrusters(r * 0.48, '#00ff66');
-
-            const jitter = (Math.floor(Date.now() / 70) % 2 === 0) ? (Math.random() - 0.5) * 3.5 : 0;
-
-            ctx.fillStyle = 'rgba(0, 240, 255, 0.7)';
+            // Sabit nokta çekirdek + RGB kromatik aberasyon & parazit çizgileri
+            const jitter = (Math.floor(Date.now() / 90) % 2 === 0) ? (Math.random() - 0.5) * 4 : 0;
+            ctx.fillStyle = 'rgba(0, 240, 255, 0.75)';
             ctx.beginPath();
-            ctx.moveTo(r * 1.45 + jitter, -jitter);
-            ctx.lineTo(-r * 0.8 + jitter, -r * 0.95 - jitter);
-            ctx.lineTo(-r * 0.4 + jitter, -jitter);
-            ctx.lineTo(-r * 0.8 + jitter, r * 0.95 - jitter);
-            ctx.closePath();
+            ctx.arc(jitter, -jitter, r, 0, Math.PI * 2);
             ctx.fill();
 
-            ctx.fillStyle = 'rgba(255, 0, 120, 0.7)';
+            ctx.fillStyle = 'rgba(255, 0, 100, 0.75)';
             ctx.beginPath();
-            ctx.moveTo(r * 1.45 - jitter, jitter);
-            ctx.lineTo(-r * 0.8 - jitter, -r * 0.95 + jitter);
-            ctx.lineTo(-r * 0.4 - jitter, jitter);
-            ctx.lineTo(-r * 0.8 - jitter, r * 0.95 + jitter);
-            ctx.closePath();
+            ctx.arc(-jitter, jitter, r * 0.95, 0, Math.PI * 2);
             ctx.fill();
 
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.moveTo(r * 1.45, 0);
-            ctx.lineTo(-r * 0.8, -r * 0.95);
-            ctx.lineTo(-r * 0.4, 0);
-            ctx.lineTo(-r * 0.8, r * 0.95);
-            ctx.closePath();
-            ctx.fill();
-
-            ctx.fillStyle = '#ffffff';
-            ctx.beginPath();
-            ctx.arc(r * 0.2, 0, r * 0.22, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1.2;
+            for (let y = -r; y <= r; y += 6) {
+                ctx.beginPath();
+                ctx.moveTo(-r * 0.8, y);
+                ctx.lineTo(r * 0.8, y);
+                ctx.stroke();
+            }
             break;
         }
 
         case 'core_solar': {
-            drawDualThrusters(r * 0.5, '#ff5500');
-
-            ctx.fillStyle = 'rgba(255, 100, 0, 0.45)';
-            for (let i = 0; i < 6; i++) {
-                const a = (Math.PI * 2 / 6) * i + t * 0.8;
-                const flareLen = r * (1.1 + Math.sin(t * 5 + i) * 0.25);
+            // Sabit parlak güneþ noktasý + korona alev saçýlmalarý
+            ctx.save();
+            ctx.strokeStyle = '#ff3366';
+            ctx.lineWidth = 2.2;
+            for (let i = 0; i < 8; i++) {
+                const a = (Math.PI * 2 / 8) * i + t;
+                const len = r * (1.2 + Math.sin(t * 5 + i) * 0.25);
                 ctx.beginPath();
-                ctx.moveTo(0, 0);
-                ctx.lineTo(Math.cos(a - 0.25) * (r * 0.65), Math.sin(a - 0.25) * (r * 0.65));
-                ctx.lineTo(Math.cos(a) * flareLen, Math.sin(a) * flareLen);
-                ctx.lineTo(Math.cos(a + 0.25) * (r * 0.65), Math.sin(a + 0.25) * (r * 0.65));
-                ctx.closePath();
-                ctx.fill();
-            }
-
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.moveTo(r * 1.55, 0);
-            ctx.lineTo(r * 0.3, -r * 0.5);
-            ctx.lineTo(-r * 0.9, -r * 1.05);
-            ctx.lineTo(-r * 0.55, 0);
-            ctx.lineTo(-r * 0.9, r * 1.05);
-            ctx.lineTo(r * 0.3, r * 0.5);
-            ctx.closePath();
-            ctx.fill();
-
-            ctx.fillStyle = '#fff7b2';
-            ctx.beginPath();
-            ctx.arc(r * 0.1, 0, r * 0.38, 0, Math.PI * 2);
-            ctx.fill();
-            break;
-        }
-
-        case 'core_dragon': {
-            drawDualThrusters(r * 0.45, '#ff3300');
-
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.moveTo(r * 1.6, 0);
-            ctx.lineTo(r * 0.8, -r * 0.35);
-            ctx.lineTo(r * 0.1, -r * 1.15);
-            ctx.lineTo(-r * 0.7, -r * 0.65);
-            ctx.lineTo(-r * 0.45, 0);
-            ctx.lineTo(-r * 0.7, r * 0.65);
-            ctx.lineTo(r * 0.1, r * 1.15);
-            ctx.lineTo(r * 0.8, r * 0.35);
-            ctx.closePath();
-            ctx.fill();
-
-            ctx.fillStyle = '#ff1100';
-            ctx.beginPath();
-            ctx.ellipse(r * 0.6, 0, r * 0.32, r * 0.18, 0, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.fillStyle = '#ffea00';
-            ctx.beginPath();
-            ctx.arc(r * 0.65, 0, r * 0.1, 0, Math.PI * 2);
-            ctx.fill();
-            break;
-        }
-
-        case 'core_aurora': {
-            drawDualThrusters(r * 0.5, '#00ffcc');
-
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.moveTo(r * 1.4, 0);
-            ctx.quadraticCurveTo(r * 0.4, -r * 1.1, -r * 0.8, -r * 0.9);
-            ctx.lineTo(-r * 0.45, 0);
-            ctx.lineTo(-r * 0.8, r * 0.9);
-            ctx.quadraticCurveTo(r * 0.4, r * 1.1, r * 1.4, 0);
-            ctx.closePath();
-            ctx.fill();
-
-            for (let i = 0; i < 2; i++) {
-                const off = i * Math.PI + t * 3;
-                ctx.strokeStyle = (i === 0) ? '#00ffcc' : '#a855f7';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.ellipse(0, 0, r * 0.75, r * 0.35, off * 0.3, 0, Math.PI * 2);
+                ctx.moveTo(Math.cos(a) * (r * 0.8), Math.sin(a) * (r * 0.8));
+                ctx.lineTo(Math.cos(a) * len, Math.sin(a) * len);
                 ctx.stroke();
             }
+            ctx.restore();
+
+            ctx.fillStyle = '#ff8800';
+            ctx.beginPath();
+            ctx.arc(0, 0, r, 0, Math.PI * 2);
+            ctx.fill();
 
             ctx.fillStyle = '#ffffff';
             ctx.beginPath();
-            ctx.arc(r * 0.2, 0, r * 0.22, 0, Math.PI * 2);
+            ctx.arc(0, 0, r * 0.45, 0, Math.PI * 2);
             ctx.fill();
             break;
         }
 
-        case 'core_void_king': {
-            drawDualThrusters(r * 0.55, '#c084fc');
-
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.moveTo(r * 1.55, 0);
-            ctx.lineTo(r * 0.9, -r * 0.55);
-            ctx.lineTo(r * 1.25, -r * 0.75);
-            ctx.lineTo(-r * 0.85, -r * 1.05);
-            ctx.lineTo(-r * 0.5, 0);
-            ctx.lineTo(-r * 0.85, r * 1.05);
-            ctx.lineTo(r * 1.25, r * 0.75);
-            ctx.lineTo(r * 0.9, r * 0.55);
-            ctx.closePath();
-            ctx.fill();
-
-            ctx.fillStyle = '#080114';
-            ctx.beginPath();
-            ctx.arc(0, 0, r * 0.48, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = '#c084fc';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-
-            ctx.fillStyle = '#ffffff';
-            ctx.beginPath();
-            ctx.arc(0, 0, r * 0.22, 0, Math.PI * 2);
-            ctx.fill();
-            break;
-        }
-
+        case 'core_default':
         default: {
-            drawDualThrusters(r * 0.5, '#00ffff');
-
+            // Klasik Neon: Eski saf parlak neon nokta
             ctx.fillStyle = color;
             ctx.beginPath();
-            ctx.moveTo(r * 1.5, 0);
-            ctx.lineTo(r * 0.2, -r * 0.35);
-            ctx.lineTo(-r * 0.85, -r * 1.05);
-            ctx.lineTo(-r * 0.6, -r * 0.4);
-            ctx.lineTo(-r * 0.85, -r * 0.35);
-            ctx.lineTo(-r * 0.55, 0);
-            ctx.lineTo(-r * 0.85, r * 0.35);
-            ctx.lineTo(-r * 0.6, r * 0.4);
-            ctx.lineTo(-r * 0.85, r * 1.05);
-            ctx.lineTo(r * 0.2, r * 0.35);
-            ctx.closePath();
+            ctx.arc(0, 0, r, 0, Math.PI * 2);
             ctx.fill();
 
             ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 2.5;
             ctx.beginPath();
-            ctx.moveTo(-r * 0.85, -r * 1.05); ctx.lineTo(-r * 0.4, -r * 1.05);
-            ctx.moveTo(-r * 0.85, r * 1.05); ctx.lineTo(-r * 0.4, r * 1.05);
+            ctx.arc(0, 0, r * 0.72, 0, Math.PI * 2);
             ctx.stroke();
 
             ctx.fillStyle = '#ffffff';
             ctx.beginPath();
-            ctx.moveTo(r * 0.65, 0);
-            ctx.lineTo(r * 0.05, -r * 0.22);
-            ctx.lineTo(-r * 0.25, 0);
-            ctx.lineTo(r * 0.05, r * 0.22);
-            ctx.closePath();
+            ctx.arc(0, 0, r * 0.38, 0, Math.PI * 2);
             ctx.fill();
             break;
         }
