@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "test": "node --test tests/regressions.cjs",
+    "test:browser": "node tests/browser-smoke.cjs"
+  },
   "dependencies": {
     "@capacitor-community/admob": "^8.1.0",
     "@capacitor/android": "^8.0.0",

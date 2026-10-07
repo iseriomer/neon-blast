@@ -6,7 +6,16 @@ let mouseX = 0;
 let mouseY = 0;
 
 class InputManager {
+    static reset() {
+        activeTouches.clear();
+        isMouseDown = false;
+        if (window.joystick && window.joystick.pointerId !== null) {
+            window.joystick.handleEnd({ pointerId: window.joystick.pointerId, preventDefault() {} });
+        }
+    }
+
     static init() {
+        window.addEventListener('blur', () => this.reset());
         if (window.joystick) {
             window.joystick.init();
         }
@@ -66,7 +75,7 @@ class InputManager {
         // --- Mouse Event Listeners ---
 
         window.addEventListener('mousedown', (e) => {
-            if (e.target.closest('button') || e.target.closest('.perk-card')) return;
+            if (e.target !== CANVAS || e.button !== 0) return;
             if (!gameState.gameActive || gameState.isPaused) return;
             isMouseDown = true;
             mouseX = e.clientX;

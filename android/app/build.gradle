@@ -7,8 +7,8 @@ android {
         applicationId "com.pandlebury.neonblast"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 29
-        versionName "2.0.4"
+        versionCode 36
+        versionName "2.0.11"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,8 +16,19 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (System.getenv('NEON_KEYSTORE_PATH')) {
+                storeFile file(System.getenv('NEON_KEYSTORE_PATH'))
+                storePassword System.getenv('NEON_STORE_PASSWORD')
+                keyAlias System.getenv('NEON_KEY_ALIAS')
+                keyPassword System.getenv('NEON_KEY_PASSWORD')
+            }
+        }
+    }
     buildTypes {
         release {
+            if (System.getenv('NEON_KEYSTORE_PATH')) signingConfig signingConfigs.release
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -36,13 +47,12 @@ dependencies {
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation "com.android.billingclient:billing:8.0.0"
     implementation project(':capacitor-android')
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
-    // Google Play Billing Library (Required by Google Play Console >= 8.0.0)
-    implementation "com.android.billingclient:billing:8.0.0"
 }
 
 apply from: 'capacitor.build.gradle'
@@ -54,11 +64,4 @@ try {
     }
 } catch(Exception e) {
     logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
-}
-configurations.all {
-    resolutionStrategy.eachDependency { details ->
-        if (details.requested.group == 'org.jetbrains.kotlin' && details.requested.name.startsWith('kotlin-stdlib')) {
-            details.useVersion("1.8.22")
-        }
-    }
 }

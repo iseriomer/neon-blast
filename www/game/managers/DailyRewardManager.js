@@ -47,7 +47,8 @@ class DailyRewardManager {
     }
 
     static getTodayStr() {
-        return new Date().toISOString().split('T')[0];
+        const date = new Date();
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
     }
 
     static hasClaimedToday() {
@@ -70,11 +71,15 @@ class DailyRewardManager {
         }
 
         // Show after a slight delay so the start screen is visible
-        setTimeout(() => this.showModal(), 800);
+        setTimeout(() => {
+            if (!gameState.gameActive && !AdManager.isAdPlaying &&
+                document.getElementById('armory-modal').classList.contains('hidden')) this.showModal();
+        }, 800);
     }
 
     static getCurrentDayIndex() {
-        return this.state.currentStreak % 7;
+        const streak = this.state.currentStreak - (this.hasClaimedToday() ? 1 : 0);
+        return Math.max(0, streak) % 7;
     }
 
     static showModal() {
@@ -104,7 +109,7 @@ class DailyRewardManager {
                 <div class="dr-day ${statusClass}">
                     <div class="dr-day-num">${t('daily_day_badge', { day: i + 1 })}</div>
                     <div class="dr-day-icon">${daySvg}</div>
-                    <div class="dr-day-label">${r.label}</div>
+                    <div class="dr-day-label">${this.getRewardLabel(r)}</div>
                 </div>
             `;
         }
@@ -125,7 +130,7 @@ class DailyRewardManager {
                 <div class="dr-days-grid">${daysHTML}</div>
                 <div class="dr-reward-highlight">
                     <span class="dr-reward-icon">${rewardHighlightSvg}</span>
-                    <span class="dr-reward-text">${reward.label}</span>
+                    <span class="dr-reward-text">${this.getRewardLabel(reward)}</span>
                 </div>
                 <div class="dr-actions">
                     ${alreadyClaimed
@@ -168,7 +173,15 @@ class DailyRewardManager {
         }
     }
 
+    static getRewardLabel(reward) {
+        if (typeof Localization === 'undefined') return reward.label;
+        if (!reward.special) return Localization.t('currency_count', { count: reward.coins });
+        const pack = CosmeticsManager.CIPHER_PACKS.find(pack => pack.id === reward.special);
+        return CosmeticsManager.getPackName(pack) + (reward.day === 7 ? ' ★' : '');
+    }
+
     static claimReward(doubled) {
+        if (this.hasClaimedToday()) return;
         const dayIndex = this.getCurrentDayIndex();
         const reward = this.REWARDS[dayIndex];
         const multiplier = doubled ? 2 : 1;
@@ -214,9 +227,9 @@ class DailyRewardManager {
         if (modal) modal.classList.add('hidden');
 
         // Show toast
-        const msg = doubled
-            ? `🎉 2X ÖDÜL ALINDI! (${reward.label})`
-            : `✅ ${reward.label} alındı!`;
+        const msg = typeof Localization !== 'undefined'
+            ? Localization.t(doubled ? 'daily_doubled' : 'daily_claimed', { reward: this.getRewardLabel(reward) })
+            : this.getRewardLabel(reward);
         if (typeof ArmoryUI !== 'undefined' && ArmoryUI.showToast) {
             ArmoryUI.showToast(msg, true);
         }

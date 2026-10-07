@@ -57,7 +57,7 @@ class QuestManager {
     }
 
     static getTodayStr() {
-        return new Date().toISOString().split('T')[0];
+        return DailyRewardManager.getTodayStr();
     }
 
     static shouldReset() {
@@ -92,6 +92,7 @@ class QuestManager {
 
     // Called from game events
     static trackEvent(type, value = 1) {
+        if (this.shouldReset()) this.generateDailyQuests();
         if (!this.state.quests || this.state.quests.length === 0) return;
 
         let changed = false;
@@ -106,6 +107,7 @@ class QuestManager {
             } else {
                 quest.progress += value;
             }
+            changed = true;
 
             if (quest.progress >= quest.targetValue && !quest.completed) {
                 quest.completed = true;
@@ -139,7 +141,7 @@ class QuestManager {
         this.trackEvent('enemies_killed', enemiesKilled);
         this.trackEvent('bosses_killed', bossesKilled);
         this.trackEvent('coins_earned', coinsEarned);
-        this.trackEvent('perks_selected', perksCount);
+        // Perks are tracked immediately when selected; do not count them again here.
 
         if (this.session.gameStartTime > 0) {
             const seconds = Math.floor((Date.now() - this.session.gameStartTime) / 1000);
@@ -220,6 +222,7 @@ class QuestManager {
                     AdManager.showRewardedAd({
                         rewardType: 'QUEST_BONUS',
                         onSuccess: () => {
+                            if (this.state.bonusClaimed) return;
                             this.state.bonusClaimed = true;
                             this.save();
                             // Give a free crate

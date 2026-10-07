@@ -11,6 +11,7 @@ node_modules/.package-lock.json
 # Capacitor & Android Build artifacts
 android/app/build/
 android/.gradle/
+android/.kotlin/
 android/build/
 android/local.properties
 android/.idea/
@@ -37,3 +38,6 @@ desktop.ini
 # Logs
 *.log
 npm-debug.log*
+artifacts/
+release/
+__pycache__/

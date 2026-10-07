@@ -10,7 +10,8 @@ class PremiumStoreManager {
         starterPackBought: false,
         starterPackFirstSeen: null, // timestamp
         vipStatus: false,
-        purchaseHistory: []
+        purchaseHistory: [],
+        processedTransactions: []
     };
 
     // IAP Product Definitions
@@ -84,6 +85,33 @@ class PremiumStoreManager {
             cosmetics: ['core_dragon', 'proj_storm', 'bg_cybercity']
         }
     };
+
+    static translate(key, params = {}) {
+        return typeof Localization !== 'undefined' ? Localization.t(key, params) : key;
+    }
+
+    static getLocalizedProduct(id) {
+        const product = this.PRODUCTS[id];
+        if (!product || typeof Localization === 'undefined') return product;
+        const t = (key, params) => this.translate(key, params);
+        const metadata = {
+            remove_ads: ['prod_remove_ads_title', 'prod_remove_ads_desc', 'badge_most_popular',
+                ['benefit_no_interstitials', 'benefit_bonus_coins', 'benefit_vip_badge', 'benefit_rerolls']],
+            starter_pack: ['prod_starter_pack_title', 'prod_starter_pack_desc', 'badge_limited_time',
+                ['currency_count', 'benefit_gold_crate', 'benefit_dragon_core']],
+            premium_cosmetic_pack: ['prod_cosmetic_pack_title', 'prod_cosmetic_pack_desc', 'badge_special',
+                ['benefit_dragon_core', 'benefit_storm_projectile', 'benefit_cyber_background']]
+        };
+        if (product.coins) return {
+            ...product,
+            name: t('currency_count', { count: product.coins.toLocaleString(Localization.currentLang) }),
+            description: t('coin_product_desc', { count: product.coins }),
+            badge: id === 'coin_1500' ? t('badge_bonus_20') : id === 'coin_5000' ? t('badge_best_value') : ''
+        };
+        const [nameKey, descriptionKey, badgeKey, benefitKeys] = metadata[id];
+        return { ...product, name: t(nameKey), description: t(descriptionKey), badge: t(badgeKey),
+            benefits: benefitKeys.map(key => t(key, { count: 1000 })) };
+    }
 
     static init() {
         this.load();
@@ -205,10 +233,8 @@ class PremiumStoreManager {
 
                 // Listen for approved purchases
                 store.when().approved(transaction => {
-                    transaction.products.forEach(p => {
-                        this.grantPurchase(p.id);
-                    });
-                    transaction.finish();
+                    this.grantTransaction(transaction);
+                    Promise.resolve(transaction.finish()).catch(error => console.warn('Purchase finish failed:', error));
                 });
 
                 store.initialize([window.CdvPurchase.Platform.GOOGLE_PLAY]);
@@ -220,6 +246,14 @@ class PremiumStoreManager {
     }
 
     // Purchase product (supports Native Google Play Billing & Dev Simulation)
+    static grantTransaction(transaction) {
+        const key = `${transaction.platform}:${transaction.transactionId}`;
+        if (!transaction.transactionId || this.state.processedTransactions.includes(key)) return;
+        transaction.products.forEach(product => this.grantPurchase(product.id));
+        this.state.processedTransactions.push(key);
+        this.save();
+    }
+
     static purchase(productId) {
         const product = this.PRODUCTS[productId];
         if (!product) return;
@@ -234,7 +268,7 @@ class PremiumStoreManager {
                     .catch(err => {
                         console.warn('Google Play purchase cancelled or failed:', err);
                         if (typeof ArmoryUI !== 'undefined' && ArmoryUI.showToast) {
-                            ArmoryUI.showToast('Satın alma iptal edildi', false);
+                            ArmoryUI.showToast(this.translate('purchase_cancelled'), false);
                         }
                     });
                 return;
@@ -248,7 +282,7 @@ class PremiumStoreManager {
                 .catch(err => {
                     console.warn('Purchase failed:', err);
                     if (typeof ArmoryUI !== 'undefined' && ArmoryUI.showToast) {
-                        ArmoryUI.showToast('Satın alma iptal edildi', false);
+                        ArmoryUI.showToast(this.translate('purchase_cancelled'), false);
                     }
                 });
             return;
@@ -259,22 +293,27 @@ class PremiumStoreManager {
         if (isNative) {
             console.warn('Google Play Store is connecting or product not loaded yet:', productId);
             if (typeof ArmoryUI !== 'undefined' && ArmoryUI.showToast) {
-                ArmoryUI.showToast('Google Play Store bağlantısı kuruluyor... Lütfen tekrar deneyin.', false);
+                ArmoryUI.showToast(this.translate('store_connecting'), false);
             }
             return;
         }
 
-        // 4. Web browser dev simulation ONLY
+        if (!AdManager.isDev()) {
+            ArmoryUI.showToast(this.translate('purchase_native_only'), false);
+            return;
+        }
+        // Explicit web development mode only.
         console.log('Web browser simulation: granting test purchase for', productId);
         this.grantPurchase(productId);
         if (typeof ArmoryUI !== 'undefined' && ArmoryUI.showToast) {
-            ArmoryUI.showToast('Test Satın Alma (Web Simülasyonu)', true);
+            ArmoryUI.showToast(this.translate('purchase_test'), true);
         }
     }
 
     static grantPurchase(productId) {
         const product = this.PRODUCTS[productId];
         if (!product) return;
+        if (product.type === 'non_consumable' && this.state.purchaseHistory.includes(productId)) return;
 
         switch (productId) {
             case 'remove_ads':
@@ -288,7 +327,7 @@ class PremiumStoreManager {
                     CosmeticsManager.addCoins(1000);
                     CosmeticsManager.unlock('core_dragon');
                     // Open an Altın Sandık
-                    const packResult = CosmeticsManager.openPack('pack_quantum');
+                    CosmeticsManager.openPack('pack_quantum', true);
                 }
                 break;
 
@@ -314,9 +353,10 @@ class PremiumStoreManager {
         this.save();
         if (typeof playSound === 'function') playSound('levelup');
         if (typeof ArmoryUI !== 'undefined' && ArmoryUI.showToast) {
-            ArmoryUI.showToast(`✅ ${product.name} satın alındı!`, true);
+            ArmoryUI.showToast(this.translate('purchase_completed', { name: this.getLocalizedProduct(productId).name }), true);
         }
         if (typeof ArmoryUI !== 'undefined') ArmoryUI.updateCoinBadges();
+        if (typeof ArmoryUI !== 'undefined') ArmoryUI.renderCurrentView();
     }
 
     // Should we show interstitial ads?
@@ -342,7 +382,7 @@ class PremiumStoreManager {
         const timerIcon = typeof IconSystem !== 'undefined' ? IconSystem.get('timer', { size: 16, color: '#ef4444' }) : '';
 
         // Starter Pack (with countdown if available)
-        const starterPack = this.PRODUCTS.starter_pack;
+        const starterPack = this.getLocalizedProduct('starter_pack');
         if (!this.state.starterPackBought) {
             const timeLeft = this.getStarterPackTimeLeft();
             if (timeLeft > 0) {
@@ -364,7 +404,7 @@ class PremiumStoreManager {
         }
 
         // Remove Ads
-        const removeAds = this.PRODUCTS.remove_ads;
+        const removeAds = this.getLocalizedProduct('remove_ads');
         html += `
             <div class="premium-product-card ${this.state.adsRemoved ? 'purchased' : 'featured'}">
                 <div class="pp-badge">${t(removeAds.badgeKey || 'badge_most_popular')}</div>
@@ -381,7 +421,7 @@ class PremiumStoreManager {
         `;
 
         // Premium Cosmetic Pack
-        const cosmeticPack = this.PRODUCTS.premium_cosmetic_pack;
+        const cosmeticPack = this.getLocalizedProduct('premium_cosmetic_pack');
         const cosmeticBought = this.state.purchaseHistory.includes('premium_cosmetic_pack');
         html += `
             <div class="premium-product-card ${cosmeticBought ? 'purchased' : ''}">
@@ -402,12 +442,12 @@ class PremiumStoreManager {
         html += `<h3 class="coin-packs-header">${getIcon('coin', 20)} ${t('prod_coin_packs_title')}</h3>`;
         html += '<div class="coin-packs-grid">';
         ['coin_500', 'coin_1500', 'coin_5000'].forEach(id => {
-            const p = this.PRODUCTS[id];
+            const p = this.getLocalizedProduct(id);
             html += `
                 <div class="coin-pack-card">
                     <div class="cp-icon">${getIcon(p.iconKey, 34)}</div>
                     <div class="cp-amount">${p.coins}</div>
-                    <div class="cp-label">NEON COIN</div>
+                    <div class="cp-label">${t('currency_name')}</div>
                     ${p.badge ? `<div class="cp-badge">${p.badge}</div>` : ''}
                     <button class="main-btn cp-buy-btn" data-product="${id}">${p.price}</button>
                 </div>

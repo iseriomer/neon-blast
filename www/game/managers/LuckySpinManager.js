@@ -43,7 +43,7 @@ class LuckySpinManager {
     }
 
     static getTodayStr() {
-        return new Date().toISOString().split('T')[0];
+        return DailyRewardManager.getTodayStr();
     }
 
     static hasFreeSpinToday() {
@@ -68,6 +68,8 @@ class LuckySpinManager {
     }
 
     static showWheel() {
+        if (this.isSpinning) return;
+        clearTimeout(this._refreshTimer);
         const modal = document.getElementById('lucky-spin-modal');
         if (!modal) return;
 
@@ -115,6 +117,7 @@ class LuckySpinManager {
         const freeBtn = document.getElementById('ls-free-spin');
         if (freeBtn) {
             freeBtn.addEventListener('click', () => {
+                if (this.isSpinning || AdManager.isAdPlaying || !this.hasFreeSpinToday()) return;
                 this.state.lastFreeSpinDate = this.getTodayStr();
                 this.save();
                 this.executeSpin();
@@ -124,6 +127,7 @@ class LuckySpinManager {
         const adBtn = document.getElementById('ls-ad-spin');
         if (adBtn) {
             adBtn.addEventListener('click', () => {
+                if (this.isSpinning || AdManager.isAdPlaying || !this.canAdSpin()) return;
                 if (typeof AdManager !== 'undefined') {
                     AdManager.showRewardedAd({
                         rewardType: 'LUCKY_SPIN',
@@ -211,7 +215,9 @@ class LuckySpinManager {
             ctx.textBaseline = 'middle';
             ctx.shadowColor = items[i].accent;
             ctx.shadowBlur = 6;
-            ctx.fillText(items[i].label + ' COIN', r * 0.80, 0);
+            ctx.fillText(typeof Localization !== 'undefined'
+                ? Localization.t('currency_count', { count: items[i].coins }) + (items[i].coins === 1000 ? ' ★' : '')
+                : items[i].label + ' COIN', r * 0.80, 0);
             ctx.shadowBlur = 0;
 
             ctx.restore();
@@ -307,7 +313,9 @@ class LuckySpinManager {
                     resultEl.classList.remove('hidden');
                 }
 
-                setTimeout(() => this.showWheel(), 2000);
+                this._refreshTimer = setTimeout(() => {
+                    if (!document.getElementById('lucky-spin-modal').classList.contains('hidden')) this.showWheel();
+                }, 2000);
             }
         };
 

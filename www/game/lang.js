@@ -1534,7 +1534,7 @@ const Localization = {
 
         // Simple parameter replacement {param}
         for (const [param, value] of Object.entries(params)) {
-            text = text.replace(`{${param}}`, value);
+            text = text.split(`{${param}}`).join(String(value));
         }
 
         return text;
@@ -1556,18 +1556,28 @@ const Localization = {
         const elements = document.querySelectorAll('[data-i18n]');
         elements.forEach(el => {
             const key = el.getAttribute('data-i18n');
-            if (el.tagName === 'INPUT' && el.type === 'placeholder') {
-                el.placeholder = this.t(key);
+            const params = JSON.parse(el.getAttribute('data-i18n-params') || '{}');
+            const translated = this.t(key, params);
+            if (el.tagName === 'INPUT') {
+                el.placeholder = translated;
             } else {
                 // Keep existing HTML structure if needed, but usually innerText replacement is safer unless we expect HTML
                 // For start_desc we have <br>, so innerHTML is better there
                 if (key === 'start_desc') {
-                    el.innerHTML = this.t(key);
+                    el.innerHTML = translated;
                 } else {
-                    el.innerText = this.t(key);
+                    el.innerText = translated;
                 }
+                el.dataset.originalText = el.innerText;
             }
         });
+
+        for (const attribute of ['title', 'aria-label', 'placeholder']) {
+            document.querySelectorAll(`[data-i18n-${attribute}]`).forEach(el => {
+                el.setAttribute(attribute, this.t(el.getAttribute(`data-i18n-${attribute}`),
+                    JSON.parse(el.getAttribute('data-i18n-params') || '{}')));
+            });
+        }
 
         // Update specific dynamic elements if they exist
         if (typeof updateUIForLanguage === 'function') {
@@ -1587,6 +1597,14 @@ const Localization = {
         // Re-render Quest Panel if available to update quests in real-time
         if (typeof QuestManager !== 'undefined' && typeof QuestManager.renderQuestPanel === 'function') {
             QuestManager.renderQuestPanel();
+        }
+        if (typeof DailyRewardManager !== 'undefined') {
+            const modal = document.getElementById('daily-reward-modal');
+            if (modal && !modal.classList.contains('hidden')) DailyRewardManager.showModal();
+        }
+        if (typeof LuckySpinManager !== 'undefined' && !LuckySpinManager.isSpinning) {
+            const modal = document.getElementById('lucky-spin-modal');
+            if (modal && !modal.classList.contains('hidden')) LuckySpinManager.showWheel();
         }
     }
 };

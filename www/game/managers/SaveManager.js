@@ -15,6 +15,7 @@ class SaveManager {
             difficultyMultiplier: gameState.difficultyMultiplier,
             playerStats: gameState.playerStats,
             takenPerks: gameState.takenPerks,
+            hasRevivedThisRun: !!gameState.hasRevivedThisRun,
 
             // Save Boss State if active
             bossActive: gameState.bossActive,

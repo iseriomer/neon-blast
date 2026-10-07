@@ -48,6 +48,8 @@ const ArmoryUI = {
     cardCanvases: [],
 
     init() {
+        if (this._initialized) return;
+        this._initialized = true;
         this.bindEvents();
         this.updateCoinBadges();
     },
@@ -105,8 +107,8 @@ const ArmoryUI = {
                 if (this.inspectedItem && CosmeticsManager.isUnlocked(this.inspectedItem.id)) {
                     CosmeticsManager.equip(this.inspectedItem.type, this.inspectedItem.id);
                     if (typeof playSound === 'function') playSound('shoot');
-                    this.showToast(`${this.inspectedItem.name} kuşanıldı`, true);
-                    this.renderItems(this.currentTab);
+                    this.showToast(Localization.t('item_equipped_toast', { name: CosmeticsManager.getItemName(this.inspectedItem) }), true);
+                    this.renderItems(this.inspectedItem.type);
                     this.updateHangarHUD();
                 }
             });
@@ -149,12 +151,12 @@ const ArmoryUI = {
             onSuccess: () => {
                 CosmeticsManager.addCoins(amount);
                 this.updateCoinBadges();
-                this.showToast(`+${amount} NEON COIN EKLENDİ`, true);
+                this.showToast(Localization.t('coins_added', { count: amount }), true);
                 if (typeof playSound === 'function') playSound('levelup');
                 this.renderCurrentView();
             },
             onDismiss: () => {
-                this.showToast('Reklam tamamlanmadı, ödül verilmedi.', false);
+                this.showToast(Localization.t('ad_incomplete'), false);
             }
         });
     },
@@ -164,11 +166,11 @@ const ArmoryUI = {
         AdManager.showRewardedAd({
             rewardType: 'FREE_CIPHER',
             onSuccess: () => {
-                this.showToast('Ücretsiz Sandık Açılıyor', true);
+                this.showToast(Localization.t('free_pack_opening'), true);
                 this.executePackOpening('pack_alpha', true);
             },
             onDismiss: () => {
-                this.showToast('Reklam tamamlanmadı.', false);
+                this.showToast(Localization.t('ad_incomplete'), false);
             }
         });
     },
@@ -177,7 +179,7 @@ const ArmoryUI = {
         this.testProjectiles = [];
         this.lastShotTime = Date.now();
         this.updateCoinBadges();
-        this.switchTab(this.currentTab || 'store');
+        this.switchTab('store');
         const modal = document.getElementById('armory-modal');
         if (modal) modal.classList.remove('hidden');
         if (typeof playSound === 'function') playSound('levelup');
@@ -185,6 +187,7 @@ const ArmoryUI = {
     },
 
     closeArmory() {
+        if (this.isOpeningPack || (typeof AdManager !== 'undefined' && AdManager.isAdPlaying)) return;
         const modal = document.getElementById('armory-modal');
         if (modal) modal.classList.add('hidden');
         this.testProjectiles = [];
@@ -193,6 +196,8 @@ const ArmoryUI = {
     },
 
     switchTab(tabName) {
+        if (tabName === 'packs') tabName = 'store';
+        if (!['store', 'cores', 'projectiles', 'backgrounds'].includes(tabName)) return;
         this.currentTab = tabName;
 
         const tabBtns = document.querySelectorAll('.armory-tab-btn');
@@ -210,6 +215,8 @@ const ArmoryUI = {
 
         this.testProjectiles = [];
         this.lastShotTime = Date.now();
+        const content = document.querySelector('.armory-content');
+        if (content) content.scrollTop = 0;
 
         if (tabName === 'store' || tabName === 'packs') {
             if (storeView) storeView.classList.remove('hidden');
@@ -243,7 +250,7 @@ const ArmoryUI = {
 
         const offerIds = ['remove_ads', 'starter_pack', 'premium_cosmetic_pack'];
         offerIds.forEach(id => {
-            const prod = PremiumStoreManager.PRODUCTS[id];
+            const prod = PremiumStoreManager.getLocalizedProduct(id);
             if (!prod) return;
 
             const isOwned = (id === 'remove_ads' && PremiumStoreManager.state.adsRemoved) ||
@@ -260,10 +267,10 @@ const ArmoryUI = {
                     `</ul>`;
             }
 
-            const buyBtnText = isOwned ? 'SAHİP OLUNDU' : `${prod.price} - SATIN AL`;
+            const buyBtnText = isOwned ? Localization.t('purchased_label') : Localization.t('buy_with_price', { price: prod.price });
 
             card.innerHTML = `
-                <div class="offer-badge">${prod.badge || 'ÖZEL'}</div>
+                <div class="offer-badge">${prod.badge || Localization.t('badge_special')}</div>
                 <h4 class="offer-title">${prod.name}</h4>
                 <p class="offer-desc">${prod.description}</p>
                 ${benefitsHtml}
@@ -294,7 +301,7 @@ const ArmoryUI = {
 
         const coinIds = ['coin_500', 'coin_1500', 'coin_5000'];
         coinIds.forEach(id => {
-            const prod = PremiumStoreManager.PRODUCTS[id];
+            const prod = PremiumStoreManager.getLocalizedProduct(id);
             if (!prod) return;
 
             const card = document.createElement('div');
@@ -304,7 +311,7 @@ const ArmoryUI = {
                 ${prod.badge ? `<div class="coin-badge-pill">${prod.badge}</div>` : ''}
                 <div class="coin-offer-amount">
                     ${getNeonCoinSVG(24)}
-                    <span>${prod.coins.toLocaleString()}</span>
+                    <span>${prod.coins.toLocaleString(Localization.currentLang)}</span>
                 </div>
                 <div class="coin-offer-name">${prod.name}</div>
                 <button class="main-btn coin-buy-btn" data-prod-id="${id}">
@@ -331,6 +338,16 @@ const ArmoryUI = {
 
     updateLanguage() {
         this.renderCurrentView();
+        const result = this._revealedResult;
+        const modal = document.getElementById('pack-opening-modal');
+        if (result && modal && !modal.classList.contains('hidden') && modal.querySelector('.stage-revealed')) {
+            const item = result.item;
+            modal.querySelector('.reveal-category-pill').textContent = Localization.t(`category_${item.type}`);
+            modal.querySelector('.reveal-rarity-banner').textContent = Localization.t(`rarity_${item.rarity.toLowerCase()}`);
+            modal.querySelector('.reveal-item-title').textContent = CosmeticsManager.getItemName(item);
+            modal.querySelector('.reveal-item-desc').textContent = result.duplicate
+                ? Localization.t('currency_count', { count: `+${result.refund}` }) : CosmeticsManager.getItemDesc(item);
+        }
     },
 
     updateHangarHUD() {
@@ -345,11 +362,13 @@ const ArmoryUI = {
         const isEquipped = (equippedId === this.inspectedItem.id);
 
         if (titleEl) {
-            titleEl.innerText = isUnlocked ? CosmeticsManager.getItemName(this.inspectedItem) : '???';
+            titleEl.innerText = CosmeticsManager.getItemName(this.inspectedItem);
             titleEl.style.color = isUnlocked ? (this.inspectedItem.color || '#00f0ff') : '#94a3b8';
         }
 
         if (badgeEl) {
+            badgeEl.style.borderColor = '';
+            badgeEl.style.color = '';
             if (isEquipped) {
                 badgeEl.innerText = (typeof Localization !== 'undefined' ? Localization.t('badge_equipped') : 'KUŞANILDI');
                 badgeEl.className = 'hangar-preview-badge';
@@ -392,8 +411,8 @@ const ArmoryUI = {
             card.className = `armory-item-card rarity-${item.rarity.toLowerCase()} ${isUnlocked ? 'unlocked' : 'locked'} ${isEquipped ? 'is-equipped-active' : ''} ${isInspecting ? 'is-inspecting' : ''}`;
             card.setAttribute('data-id', item.id);
 
-            const displayName = isUnlocked ? CosmeticsManager.getItemName(item) : '???';
-            const displayDesc = isUnlocked ? CosmeticsManager.getItemDesc(item) : (typeof Localization !== 'undefined' ? Localization.t('locked_desc') : 'Sandık açarak kilidini açabilirsin.');
+            const displayName = CosmeticsManager.getItemName(item);
+            const displayDesc = CosmeticsManager.getItemDesc(item);
             const activeText = typeof Localization !== 'undefined' ? Localization.t('badge_active') : 'AKTİF';
             const equippedText = typeof Localization !== 'undefined' ? Localization.t('btn_equipped') : 'SEÇİLİ';
             const equipText = typeof Localization !== 'undefined' ? Localization.t('btn_equip') : 'KUŞAN';
@@ -401,7 +420,7 @@ const ArmoryUI = {
 
             card.innerHTML = `
                 <div class="card-top-row">
-                    <span class="card-rarity-tag ${item.rarity.toLowerCase()}">${item.rarity}</span>
+                    <span class="card-rarity-tag ${item.rarity.toLowerCase()}">${Localization.t(`rarity_${item.rarity.toLowerCase()}`)}</span>
                     ${isEquipped ? `<span class="equipped-pill">${activeText}</span>` : ''}
                 </div>
                 <div class="card-icon-area">
@@ -417,7 +436,7 @@ const ArmoryUI = {
                             ? `<button class="card-btn active-equipped-btn" disabled>${equippedText}</button>`
                             : `<button class="card-btn equip-action-btn" data-cat="${category}" data-id="${item.id}">${equipText}</button>`
                     ) : (
-                        `<button class="card-btn go-to-chest-btn" data-shop="true">${lockedText}</button>`
+                        `<button class="card-btn go-to-chest-btn" data-shop="true">${item.premium ? 'PREMIUM' : (typeof Localization !== 'undefined' ? Localization.t('tab_store') : 'MAĞAZA')}</button>`
                     )}
                 </div>
             `;
@@ -453,7 +472,7 @@ const ArmoryUI = {
                     CosmeticsManager.equip(cat, id);
                     if (typeof playSound === 'function') playSound('shoot');
                     this.inspectedItem = CosmeticsManager.ITEMS[id] || null;
-                    this.showToast(`${CosmeticsManager.ITEMS[id]?.name || 'Tasarım'} kuşanıldı`, true);
+                    this.showToast(Localization.t('item_equipped_toast', { name: CosmeticsManager.getItemName(CosmeticsManager.ITEMS[id]) }), true);
                     this.renderItems(cat);
                     this.updateHangarHUD();
                 }
@@ -490,7 +509,7 @@ const ArmoryUI = {
             const needCoinsText = typeof Localization !== 'undefined' ? Localization.t('ad_coins_badge') : '+150 COIN (REKLAM)';
 
             packCard.innerHTML = `
-                <div class="pack-badge">${pack.badge}</div>
+                <div class="pack-badge">${Localization.t(`rarity_${pack.rarities[pack.rarities.length - 1].toLowerCase()}`)}</div>
                 <div class="pack-visual">
                     <canvas class="pack-pod-canvas" data-pack-id="${pack.id}" width="140" height="130"></canvas>
                 </div>
@@ -544,6 +563,9 @@ const ArmoryUI = {
     },
 
     executePackOpening(packId, isFree = false) {
+        if (this.isOpeningPack) return;
+        const modal = document.getElementById('pack-opening-modal');
+        if (!modal) return;
         this.isOpeningPack = true;
 
         let result;
@@ -568,15 +590,13 @@ const ArmoryUI = {
         }
 
         if (!result.success) {
-            this.showToast(result.message || 'Sandık açılamadı.', false);
+            this.showToast(Localization.t(result.messageKey || 'pack_open_failed'), false);
             this.isOpeningPack = false;
             return;
         }
 
         this.updateCoinBadges();
 
-        const modal = document.getElementById('pack-opening-modal');
-        if (!modal) return;
         modal.classList.remove('hidden');
 
         const item = result.item;
@@ -587,7 +607,7 @@ const ArmoryUI = {
                 <div class="shaking-chest-visual">
                     <canvas id="unboxing-shaking-canvas" width="160" height="150"></canvas>
                 </div>
-                <h3 class="opening-headline">KİLİT ÇÖZÜLÜYOR...</h3>
+                <h3 class="opening-headline" data-i18n="pack_decrypting">${Localization.t('pack_decrypting')}</h3>
             </div>
         `;
 
@@ -603,27 +623,25 @@ const ArmoryUI = {
         setTimeout(() => {
             if (typeof playSound === 'function') playSound('levelup');
 
-            let categoryLabel = 'YENİ TASARIM';
-            if (item.type === 'core') categoryLabel = 'ÇEKİRDEK';
-            else if (item.type === 'projectile') categoryLabel = 'MERMİ';
-            else if (item.type === 'background') categoryLabel = 'ARKA PLAN';
+            this._revealedResult = result;
+            const categoryLabel = Localization.t(`category_${item.type}`);
 
             modal.innerHTML = `
                 <div class="pack-opening-card stage-revealed">
                     <div class="reveal-category-pill">${categoryLabel}</div>
-                    <div class="reveal-rarity-banner rarity-${item.rarity.toLowerCase()}">${item.rarity}</div>
+                    <div class="reveal-rarity-banner rarity-${item.rarity.toLowerCase()}">${Localization.t(`rarity_${item.rarity.toLowerCase()}`)}</div>
                     
                     <div class="reveal-icon-stage">
                         <canvas id="reveal-canvas" width="180" height="140"></canvas>
                     </div>
 
                     <h2 class="reveal-item-title">${CosmeticsManager.getItemName(item)}</h2>
-                    <p class="reveal-item-desc">${result.duplicate ? `+${result.refund} Coin` : CosmeticsManager.getItemDesc(item)}</p>
+                    <p class="reveal-item-desc">${result.duplicate ? Localization.t('currency_count', { count: `+${result.refund}` }) : CosmeticsManager.getItemDesc(item)}</p>
 
                     <div class="reveal-actions-stack">
-                        <button class="main-btn reveal-equip-now-btn" id="reveal-equip-btn">${typeof Localization !== 'undefined' ? Localization.t('btn_equip') : 'KUŞAN'}</button>
-                        <button class="main-btn reveal-ad-again-btn" id="reveal-ad-again-btn">${typeof Localization !== 'undefined' ? (Localization.t('open_again_ad') || 'BİR DAHA AÇ (REKLAM)') : 'BİR DAHA AÇ (REKLAM)'}</button>
-                        <button class="reveal-close-text-btn" id="reveal-close-btn">${typeof Localization !== 'undefined' ? Localization.t('close_btn') : 'KAPAT'}</button>
+                        <button class="main-btn reveal-equip-now-btn" id="reveal-equip-btn" data-i18n="btn_equip">${Localization.t('btn_equip')}</button>
+                        <button class="main-btn reveal-ad-again-btn" id="reveal-ad-again-btn" data-i18n="open_again_ad">${Localization.t('open_again_ad')}</button>
+                        <button class="reveal-close-text-btn" id="reveal-close-btn" data-i18n="close_btn">${Localization.t('close_btn')}</button>
                     </div>
                 </div>
             `;
@@ -639,7 +657,7 @@ const ArmoryUI = {
             const equipBtn = document.getElementById('reveal-equip-btn');
             if (equipBtn) {
                 equipBtn.addEventListener('click', () => {
-                    if (!result.duplicate) {
+                    if (CosmeticsManager.isUnlocked(item.id)) {
                         CosmeticsManager.equip(item.type, item.id);
                         const itemName = CosmeticsManager.getItemName(item);
                         const toastMsg = typeof Localization !== 'undefined' ? Localization.t('item_equipped_toast', { name: itemName }) : `${itemName} kuşanıldı`;
@@ -717,7 +735,7 @@ const ArmoryUI = {
             if (!entry || !entry.canvas) continue;
             const ctx = entry.canvas.getContext('2d');
             if (!ctx) continue;
-            this.drawItemGraphic(ctx, entry.item, entry.isUnlocked, entry.isEquipped, time);
+            this.drawItemGraphic(ctx, entry.item, true, entry.isEquipped, time);
         }
     },
 
@@ -1413,8 +1431,8 @@ const ArmoryUI = {
             const c1y = pad + bh * 0.40 + Math.cos(t * 0.70) * bh * 0.18;
             const c1r = bh * (0.75 + Math.sin(t * 1.1) * 0.18);
             const g1 = ctx.createRadialGradient(c1x, c1y, 2, c1x, c1y, c1r);
-            g1.addColorStop(0, bgCfg.clouds[0].color);
-            g1.addColorStop(0.65, bgCfg.clouds[0].stop);
+            g1.addColorStop(0, bgCfg.clouds[0]?.color || 'transparent');
+            g1.addColorStop(0.65, bgCfg.clouds[0]?.stop || 'transparent');
             g1.addColorStop(1, 'transparent');
             ctx.fillStyle = g1;
             ctx.fillRect(pad, pad, bw, bh);

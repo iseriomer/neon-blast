@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Neon Blast</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="armory.css">
 </head>
 
 <body>
@@ -232,7 +233,7 @@
                     <circle class="timer-bg" cx="50" cy="50" r="44"></circle>
                     <circle class="timer-bar" id="revive-timer-bar" cx="50" cy="50" r="44"></circle>
                 </svg>
-                <div class="revive-number" id="revive-countdown-num">5</div>
+                <div class="revive-number" id="revive-countdown-num">10</div>
             </div>
             <p class="revive-text" data-i18n="revive_desc">Deploy EMP Shockwave & Restore Full Shields</p>
             <button class="main-btn revive-action-btn" id="revive-ad-btn">
@@ -251,7 +252,7 @@
                     <span class="armory-subtitle" data-i18n="armory_subtitle">ÖZELLEŞTİRME</span>
                 </div>
                 <div class="armory-top-right">
-                    <button class="ad-free-coins-btn" id="header-watch-ad-coin-btn" title="+150 Neon Coin">
+                    <button class="ad-free-coins-btn" id="header-watch-ad-coin-btn" data-i18n-title="currency_count" data-i18n-params='{"count":"+150"}' title="+150 Neon Coin">
                         <span class="ad-free-label" data-i18n="ad_coins_badge">+150 COIN (REKLAM)</span>
                     </button>
                     <div class="armory-coin-badge">
@@ -264,7 +265,7 @@
                         </span>
                         <span id="armory-coin-balance">0</span>
                     </div>
-                    <button id="close-armory-btn" class="armory-close-btn">&times;</button>
+                    <button id="close-armory-btn" class="armory-close-btn" data-i18n-aria-label="close_btn">&times;</button>
                 </div>
             </div>
 
@@ -307,7 +308,7 @@
                         </div>
                         <div class="airdrop-actions">
                             <button class="airdrop-ad-btn" id="airdrop-free-coins-btn">
-                                <span class="airdrop-btn-text"><strong>+150 COIN</strong><small data-i18n="watch_ad_sub">REKLAM İZLE</small></span>
+                                <span class="airdrop-btn-text"><strong data-i18n="currency_count" data-i18n-params='{"count":"+150"}'>+150 COIN</strong><small data-i18n="watch_ad_sub">REKLAM İZLE</small></span>
                             </button>
                             <button class="airdrop-ad-btn airdrop-crate-btn" id="airdrop-free-crate-btn">
                                 <span class="airdrop-btn-text"><strong data-i18n="free_chest">ÜCRETSİZ SANDIK</strong><small data-i18n="watch_ad_sub">REKLAM İZLE</small></span>
@@ -318,21 +319,21 @@
                     <!-- 1. Holographic Cipher Pods (Sandıklar) -->
                     <div class="store-section-header">
                         <h3 class="store-section-title" data-i18n="section_cipher_crates">ŞANS SANDIKLARI</h3>
-                        <span class="store-section-badge">GÜVENCELİ İÇERİK</span>
+                        <span class="store-section-badge" data-i18n="store_guaranteed">GÜVENCELİ İÇERİK</span>
                     </div>
                     <div class="packs-grid" id="cipher-packs-grid"></div>
 
                     <!-- 2. Special Offers & VIP In-App Purchases -->
                     <div class="store-section-header" style="margin-top: 24px;">
                         <h3 class="store-section-title" data-i18n="section_special_offers">ÖZEL FIRSATLAR & VIP</h3>
-                        <span class="store-section-badge" style="border-color:#c084fc; color:#c084fc;">PREMIUM</span>
+                        <span class="store-section-badge" data-i18n="rarity_premium" style="border-color:#c084fc; color:#c084fc;">PREMIUM</span>
                     </div>
                     <div class="premium-offers-grid" id="store-premium-offers-grid"></div>
 
                     <!-- 3. Neon Coin Packs -->
                     <div class="store-section-header" style="margin-top: 24px;">
                         <h3 class="store-section-title" data-i18n="section_coin_packs">NEON COIN PAKETLERİ</h3>
-                        <span class="store-section-badge" style="border-color:#fbbf24; color:#fbbf24;">EKONOMİ</span>
+                        <span class="store-section-badge" data-i18n="store_economy" style="border-color:#fbbf24; color:#fbbf24;">EKONOMİ</span>
                     </div>
                     <div class="coin-offers-grid" id="store-coin-offers-grid"></div>
                 </div>
@@ -451,6 +452,7 @@
     <script src="game/constants.js"></script>
     <script src="game/audio.js"></script>
     <script src="game/lang.js"></script>
+    <script src="game/store-translations.js"></script>
     <script src="game/ui-icons.js"></script>
 
     <!-- 2. NEW: Performance profiler -->
@@ -523,6 +525,7 @@
     <script src="game/background.js"></script>
     <script src="game/admin.js"></script>
     <script src="game/managers/SaveManager.js"></script>
+    <script src="game/navigation.js"></script>
 
     <script>
         // Initialize systems

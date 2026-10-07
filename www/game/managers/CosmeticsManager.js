@@ -269,12 +269,15 @@ class CosmeticsManager {
     }
 
     static addCoins(amount) {
+        if (!Number.isFinite(amount) || amount <= 0) return;
+        amount = Math.floor(amount);
         this.coins += Math.max(0, amount);
         this.save();
         this.updateUI();
     }
 
     static spendCoins(amount) {
+        if (!Number.isFinite(amount) || amount < 0) return false;
         if (this.coins < amount) return false;
         this.coins -= amount;
         this.save();
@@ -314,7 +317,7 @@ class CosmeticsManager {
                            (type === 'projectiles' || type === 'projectile') ? 'projectile' :
                            (type === 'backgrounds' || type === 'background') ? 'background' : type;
 
-        if (!this.ITEMS[itemId] || !this.isUnlocked(itemId)) return false;
+        if (!this.ITEMS[itemId] || this.ITEMS[itemId].type !== normalized || !this.isUnlocked(itemId)) return false;
         
         this.equipped[normalized] = itemId;
         this.save();
@@ -351,12 +354,12 @@ class CosmeticsManager {
     // PACK OPENING LOGIC
     // STRICT RULE: No duplicates as long as unowned items exist in that pack's pool!
     // Refund occurs ONLY if EVERYTHING in that pool is already unlocked!
-    static openPack(packId) {
+    static openPack(packId, isFree = false) {
         const pack = this.CIPHER_PACKS.find(p => p.id === packId);
-        if (!pack) return { success: false, message: 'Geçersiz sandık.' };
+        if (!pack) return { success: false, messageKey: 'invalid_pack' };
 
-        if (!this.spendCoins(pack.cost)) {
-            return { success: false, message: 'Yetersiz Neon Coin!' };
+        if (!isFree && !this.spendCoins(pack.cost)) {
+            return { success: false, messageKey: 'insufficient_coins' };
         }
 
         // 1. Gather all items in this pack's rarity pool
@@ -381,8 +384,8 @@ class CosmeticsManager {
             };
         } else {
             // EVERYTHING in this pool is unlocked!
-            // 40% rebate returned to the player
-            const refund = Math.floor(pack.cost * 0.20);
+            // Completed collections receive a coin rebate.
+            const refund = isFree ? 100 : Math.floor(pack.cost * 0.20);
             this.addCoins(refund);
             const fallbackItem = validItems[Math.floor(Math.random() * validItems.length)];
             return {

@@ -200,7 +200,7 @@ function animateTextScramble(el, options = {}) {
         clearInterval(shuffleInterval);
         el.classList.remove('btn-shuffling');
 
-        el.innerText = originalText;
+        el.innerText = el.dataset.originalText || originalText;
         if (finalColor || el.style.getPropertyValue('--perk-theme')) {
             el.style.setProperty('--perk-theme', themeColor);
         }

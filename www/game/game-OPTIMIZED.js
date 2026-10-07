@@ -141,7 +141,7 @@ function animate(timestamp) {
             CTX.fillStyle = `rgba(0, 255, 255, ${alpha})`;
             CTX.font = 'bold 40px Arial';
             CTX.textAlign = 'center';
-            CTX.fillText("SYSTEM REBOOT...", centerX, centerY + 100);
+            CTX.fillText(Localization.t('system_reboot'), centerX, centerY + 100);
 
         }
         // Phase 2: Flash & Spawn (2000ms - 2500ms)
@@ -166,7 +166,7 @@ function animate(timestamp) {
             CTX.fillStyle = `rgba(0, 255, 255, ${flashAlpha})`;
             CTX.font = 'bold 60px Arial';
             CTX.textAlign = 'center';
-            CTX.fillText("ONLINE", centerX, centerY - 100);
+            CTX.fillText(Localization.t('system_online'), centerX, centerY - 100);
 
         } else {
             // Animasyon Bitişi
@@ -745,6 +745,11 @@ function drawElectricArc(ctx, x1, y1, x2, y2, alpha) {
 // Initialize Game
 // Initialize Game
 function initGame() {
+    if (gameState.animationId) cancelAnimationFrame(gameState.animationId);
+    InputManager.reset();
+    if (reviveCountdownTimer) clearInterval(reviveCountdownTimer);
+    reviveCountdownTimer = null;
+    document.getElementById('revive-modal').classList.add('hidden');
     hideBar();
 
     // A run can end during a miniboss. Clear transient encounter references so
@@ -767,6 +772,8 @@ function initGame() {
         gameState.difficultyMultiplier = saveData.difficultyMultiplier;
         gameState.playerStats = { ...DEFAULT_PLAYER_STATS, ...saveData.playerStats };
         gameState.takenPerks = saveData.takenPerks || [];
+        gameState.hasRevivedThisRun = !!saveData.hasRevivedThisRun;
+        gameState.invulnerableTimer = 0;
 
         // Restore Globals
         gameState.activeHealerCount = 0;
@@ -839,7 +846,7 @@ function initGame() {
         if (typeof animateButton === 'function') animateButton(document.getElementById('resume-btn'));
 
         SpawnManager.spawnEnemies(); // Start spawning logic (it will check isPaused and wait)
-        requestAnimationFrame(animate);
+        gameState.animationId = requestAnimationFrame(animate);
         return;
     }
 
@@ -941,7 +948,7 @@ function initGame() {
     player.x = CANVAS.width / 2;
     player.y = CANVAS.height / 2;
 
-    requestAnimationFrame(animate);
+    gameState.animationId = requestAnimationFrame(animate);
 }
 
 // Death Sequence
@@ -954,6 +961,7 @@ function startDeathSequence() {
 }
 
 let reviveCountdownTimer = null;
+const REVIVE_OFFER_DURATION_MS = 10000;
 
 function triggerReviveOffer() {
     gameState.isDying = false;
@@ -970,7 +978,7 @@ function triggerReviveOffer() {
 
     const numEl = document.getElementById('revive-countdown-num');
     const barEl = document.getElementById('revive-timer-bar');
-    if (numEl) numEl.innerText = '5';
+    if (numEl) numEl.innerText = Math.ceil(REVIVE_OFFER_DURATION_MS / 1000).toString();
     if (barEl) {
         barEl.style.strokeDashoffset = '0';
     }
@@ -978,7 +986,7 @@ function triggerReviveOffer() {
     if (reviveCountdownTimer) clearInterval(reviveCountdownTimer);
 
     const startTime = Date.now();
-    const duration = 5000;
+    const duration = REVIVE_OFFER_DURATION_MS;
     const circumference = 276.46; // 2 * PI * 44
 
     reviveCountdownTimer = setInterval(() => {
@@ -1028,7 +1036,7 @@ function executeReviveEMP() {
     player.y = CANVAS.height / 2;
 
     // Restore full shield
-    const maxShield = gameState.playerStats.maxShield || 1;
+    const maxShield = gameState.playerStats.maxShields || 1;
     gameState.playerStats.shield = Math.max(1, maxShield);
     updateShieldIndicator(gameState.playerStats.shield);
 
@@ -1059,11 +1067,16 @@ function executeReviveEMP() {
 
     // Heavy EMP damage to active boss if any
     if (gameState.bossActive) {
-        const activeBoss = (typeof boss !== 'undefined' && boss.active) ? boss :
+        const activeBoss = BossManager.activeBoss?.active ? BossManager.activeBoss :
+            (typeof boss !== 'undefined' && boss.active) ? boss :
             (typeof boss2 !== 'undefined' && boss2.active) ? boss2 :
             (typeof boss3 !== 'undefined' && boss3.active) ? boss3 :
             (typeof boss4 !== 'undefined' && boss4.active) ? boss4 :
-            (typeof boss5 !== 'undefined' && boss5.active) ? boss5 : null;
+            (typeof boss5 !== 'undefined' && boss5.active) ? boss5 :
+            (typeof boss6 !== 'undefined' && boss6.active) ? boss6 :
+            (typeof boss7 !== 'undefined' && boss7.active) ? boss7 :
+            (typeof boss8 !== 'undefined' && boss8.active) ? boss8 :
+            (typeof boss9 !== 'undefined' && boss9.active) ? boss9 : null;
 
         if (activeBoss) {
             if (typeof activeBoss.takeDamage === 'function') {
@@ -1079,6 +1092,8 @@ function executeReviveEMP() {
 }
 
 function gameOver() {
+    if (!gameState.gameActive) return;
+    InputManager.reset();
     gameState.gameActive = false;
     gameState.isPaused = true;
     SaveManager.clearSave(); // Clear save on death
@@ -1092,17 +1107,6 @@ function gameOver() {
     finalScoreEl.innerText = `${Localization.t('score')}: ${gameState.score} - ${Localization.t('level')}: ${gameState.level}`;
     window.lastGameScore = gameState.score;
     window.lastGameLevel = gameState.level;
-
-    // --- QUEST TRACKING ---
-    if (typeof QuestManager !== 'undefined') {
-        QuestManager.onGameEnd(
-            gameState.level,
-            gameState.totalEnemiesKilled || 0,
-            gameState.totalBossesKilled || 0,
-            window.lastEarnedCoins || 0,
-            (gameState.takenPerks || []).length
-        );
-    }
 
     // --- COIN REWARDS (Level-Only Formula) ---
     if (typeof CosmeticsManager !== 'undefined' && CosmeticsManager.calculateCoinsForLevel) {
@@ -1122,15 +1126,30 @@ function gameOver() {
         const doubleCoinBtn = document.getElementById('double-coins-btn');
         if (coinDisplay && coinAmountEl) {
             coinDisplay.style.display = 'flex';
+            delete coinAmountEl.dataset.i18n;
+            delete coinAmountEl.dataset.i18nParams;
             coinAmountEl.innerText = `+${earnedCoins}`;
         }
         if (doubleCoinBtn) {
+            doubleCoinBtn.disabled = false;
+            delete doubleCoinBtn.dataset.i18n;
             doubleCoinBtn.style.display = earnedCoins > 0 ? 'inline-flex' : 'none';
             const lightningSvg = typeof IconSystem !== 'undefined'
                 ? IconSystem.get('lightning', { size: 18, color: '#fbbf24' })
                 : '<svg width="18" height="18" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" fill="#fbbf24"/></svg>';
-            doubleCoinBtn.innerHTML = `<span>${lightningSvg}</span> <span data-i18n="double_coins">${Localization.t('double_coins_btn') || '2X COINS (WATCH AD)'}</span>`;
+            doubleCoinBtn.innerHTML = `<span>${lightningSvg}</span> <span data-i18n="double_coins_btn">${Localization.t('double_coins_btn')}</span>`;
         }
+    }
+
+    // --- QUEST TRACKING ---
+    if (typeof QuestManager !== 'undefined') {
+        QuestManager.onGameEnd(
+            gameState.level,
+            gameState.totalEnemiesKilled || 0,
+            gameState.totalBossesKilled || 0,
+            window.lastEarnedCoins || 0,
+            (gameState.takenPerks || []).length
+        );
     }
 
     document.getElementById('submit-score-btn').style.display = 'inline-block';
@@ -1171,6 +1190,10 @@ function gameOver() {
 
 // PAUSE FUNCTIONALITY
 function togglePause() {
+    if (typeof AdManager !== 'undefined' && AdManager.isAdPlaying) return;
+    if (!document.getElementById('revive-modal').classList.contains('hidden')) return;
+    InputManager.reset();
+    if (gameState.animationId) cancelAnimationFrame(gameState.animationId);
     if (!gameState.gameActive) return; // Can't pause if game not active
     if (!levelUpScreen.classList.contains('hidden')) return; // Can't toggle pause during level up
 
@@ -1199,7 +1222,7 @@ function togglePause() {
             musicManager.play();
         }
 
-        requestAnimationFrame(animate);
+        gameState.animationId = requestAnimationFrame(animate);
     }
 }
 
@@ -1391,6 +1414,9 @@ setTimeout(() => {
 const reviveAdBtn = document.getElementById('revive-ad-btn');
 if (reviveAdBtn) {
     reviveAdBtn.addEventListener('click', () => {
+        if (AdManager.isAdPlaying || document.getElementById('revive-modal').classList.contains('hidden')) return;
+        clearInterval(reviveCountdownTimer);
+        reviveCountdownTimer = null;
         if (typeof AdManager !== 'undefined') {
             AdManager.showRewardedAd({
                 rewardType: 'REVIVE',
@@ -1410,6 +1436,7 @@ if (reviveAdBtn) {
 const reviveSkipBtn = document.getElementById('revive-skip-btn');
 if (reviveSkipBtn) {
     reviveSkipBtn.addEventListener('click', () => {
+        if (AdManager.isAdPlaying) return;
         declineRevive();
     });
 }
@@ -1428,10 +1455,13 @@ if (doubleCoinsBtn) {
                     }
                     const coinAmountEl = document.getElementById('earned-coins-amount');
                     if (coinAmountEl) {
-                        coinAmountEl.innerText = `+${window.lastEarnedCoins * 2} (2X BOOSTED!)`;
+                        coinAmountEl.dataset.i18n = 'coins_doubled_amount';
+                        coinAmountEl.dataset.i18nParams = JSON.stringify({ count: window.lastEarnedCoins * 2 });
+                        coinAmountEl.innerText = Localization.t('coins_doubled_amount', { count: window.lastEarnedCoins * 2 });
                     }
                     doubleCoinsBtn.disabled = true;
-                    doubleCoinsBtn.innerText = Localization.t('coins_doubled') || 'COINS DOUBLED!';
+                    doubleCoinsBtn.dataset.i18n = 'coins_doubled';
+                    doubleCoinsBtn.innerText = Localization.t('coins_doubled');
                     playSound('levelup');
                 }
             });

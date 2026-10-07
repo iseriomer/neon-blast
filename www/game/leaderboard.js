@@ -25,7 +25,7 @@ const firebaseConfig = {
 // Firebase'i Başlat
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const analytics = getAnalytics(app);
+try { getAnalytics(app); } catch (error) { console.warn('Analytics unavailable:', error); }
 const scoresCollection = collection(db, "scores");
 
 // DOM Elementleri
@@ -47,6 +47,12 @@ const filterWeeklyBtn = document.getElementById('lb-filter-weekly');
 const filterAllBtnGO = document.getElementById('lb-filter-all-go');
 const filterMonthlyBtnGO = document.getElementById('lb-filter-monthly-go');
 const filterWeeklyBtnGO = document.getElementById('lb-filter-weekly-go');
+
+function escapeName(value) {
+    const span = document.createElement('span');
+    span.textContent = String(value ?? '');
+    return span.innerHTML;
+}
 
 let currentTimeframe = 'all'; // 'all', 'monthly', 'weekly'
 
@@ -124,13 +130,14 @@ async function loadLeaderboard(timeframe = 'all') {
     });
 
     let q;
+    let startDate;
 
     // Construct Query
     if (timeframe === 'all') {
         q = query(scoresCollection, orderBy("score", "desc"), limit(10));
     } else {
         const now = new Date();
-        let startDate = new Date();
+        startDate = new Date();
 
         if (timeframe === 'monthly') {
             startDate.setMonth(now.getMonth(), 1);
@@ -166,7 +173,7 @@ async function loadLeaderboard(timeframe = 'all') {
             scores.forEach((data, index) => {
                 const li = document.createElement('li');
                 li.innerHTML = `
-                    <span class="name-span">#${index + 1} ${data.name}</span>
+                    <span class="name-span">#${index + 1} ${escapeName(data.name)}</span>
                     <span>${data.score}</span>
                 `;
                 el.appendChild(li);
@@ -208,7 +215,7 @@ async function loadLeaderboard(timeframe = 'all') {
                     if (fallbackScores.length === 0) { el.innerHTML = `<li>${Localization.t('lb_no_scores_found')}</li>`; return; }
                     fallbackScores.forEach((data, index) => {
                         const li = document.createElement('li');
-                        li.innerHTML = `<span>#${index + 1} ${data.name}</span><span>${data.score}</span>`;
+                        li.innerHTML = `<span>#${index + 1} ${escapeName(data.name)}</span><span>${data.score}</span>`;
                         el.appendChild(li);
                     });
                 });
@@ -234,42 +241,6 @@ if (submitBtn) {
     });
 }
 
-// NEW: Main Menu Button Logic
-if (openLeaderboardBtn) {
-    openLeaderboardBtn.addEventListener('click', () => {
-        if (leaderboardScreen) {
-            leaderboardScreen.classList.remove('hidden');
-            leaderboardScreen.style.display = 'flex';
-            leaderboardScreen.style.zIndex = '100'; // Force on top
-            loadLeaderboard('all'); // Default to all time
-
-            // NEW: Animate Back button
-            if (window.animateButton) {
-                window.animateButton(closeLeaderboardBtn);
-            }
-        }
-    });
-}
-
-if (closeLeaderboardBtn) {
-    closeLeaderboardBtn.addEventListener('click', () => {
-        if (leaderboardScreen) {
-            leaderboardScreen.style.display = 'none';
-            leaderboardScreen.classList.add('hidden');
-        }
-    });
-}
-
-// Filter Listeners (Main Menu)
-if (filterAllBtn) filterAllBtn.addEventListener('click', () => loadLeaderboard('all'));
-if (filterMonthlyBtn) filterMonthlyBtn.addEventListener('click', () => loadLeaderboard('monthly'));
-if (filterWeeklyBtn) filterWeeklyBtn.addEventListener('click', () => loadLeaderboard('weekly'));
-
-// Filter Listeners (Game Over)
-if (filterAllBtnGO) filterAllBtnGO.addEventListener('click', () => loadLeaderboard('all'));
-if (filterMonthlyBtnGO) filterMonthlyBtnGO.addEventListener('click', () => loadLeaderboard('monthly'));
-if (filterWeeklyBtnGO) filterWeeklyBtnGO.addEventListener('click', () => loadLeaderboard('weekly'));
-
-
 // Fonksiyonu dışarıdan tetiklenebilir yapmak için window'a ata
+window.loadLeaderboard = loadLeaderboard;
 window.fetchLeaderboard = () => loadLeaderboard('all');
