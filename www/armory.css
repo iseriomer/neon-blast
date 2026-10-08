@@ -1,4 +1,14 @@
 /* Armory: readable collection, touch targets and a scrollable mobile storefront. */
+.reward-value-hint {
+    margin: 4px 0 0;
+    padding: 0;
+    background: none;
+    border: 0;
+    box-shadow: none;
+    color: #94a3b8;
+    font-size: 0.75rem;
+    line-height: 1.4;
+}
 .armory-panel {
     border: 1px solid #245469;
     border-radius: 18px;

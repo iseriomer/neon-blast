@@ -57,16 +57,12 @@ const RenderOptimizer = {
             ? CosmeticsManager.getEquipped('projectile')
             : 'proj_default';
 
-        const cosmeticItem = (typeof CosmeticsManager !== 'undefined' && CosmeticsManager.ITEMS)
-            ? CosmeticsManager.ITEMS[projSkin]
-            : null;
-
         // 3. Draw each color group with high performance
         for (const defaultColor in this._projGroups) {
             const group = this._projGroups[defaultColor];
             if (group.length === 0) continue;
 
-            const skinColor = (cosmeticItem && cosmeticItem.color) ? cosmeticItem.color : defaultColor;
+            const skinColor = defaultColor;
 
             // Draw glow layer for small/medium groups
             if (this.useShadows && group.length < 5000) {
@@ -75,7 +71,7 @@ const RenderOptimizer = {
                     if (projSkin === 'proj_pixel') {
                         // Sharp pixel glow block
                         const s = proj.radius * 1.5;
-                        CTX.fillStyle = 'rgba(34, 197, 94, 0.28)';
+                        CTX.fillStyle = CosmeticVisuals.alpha(skinColor, 0.28);
                         CTX.fillRect(proj.x - s * 1.3, proj.y - s * 1.3, s * 2.6, s * 2.6);
                     } else {
                         const gradient = CTX.createRadialGradient(
@@ -93,7 +89,15 @@ const RenderOptimizer = {
                 }
             }
 
-            if (projSkin === 'proj_pixel') {
+            if (CosmeticVisuals.detailedShot(projSkin)) {
+                const time = Date.now() * 0.002;
+                for (const proj of group) {
+                    CTX.save(); CTX.translate(proj.x, proj.y);
+                    CTX.rotate(Math.atan2(proj.velocity.y, proj.velocity.x));
+                    CosmeticVisuals.drawProjectile(CTX, projSkin, skinColor, proj.radius, time);
+                    CTX.restore();
+                }
+            } else if (projSkin === 'proj_pixel') {
                 // AUTHENTIC 8-BIT ARCADE PIXEL BULLET:
                 // Chunky retro square slug + white pixel core + trailing pixel bits
                 for (let i = 0; i < group.length; i++) {
@@ -106,13 +110,13 @@ const RenderOptimizer = {
                     const ny = vy / len;
 
                     // Trailing 8-bit pixel motes
-                    CTX.fillStyle = 'rgba(34, 197, 94, 0.65)';
+                    CTX.fillStyle = CosmeticVisuals.alpha(skinColor, 0.65);
                     CTX.fillRect(proj.x - nx * s * 1.8 - s * 0.4, proj.y - ny * s * 1.8 - s * 0.4, s * 0.8, s * 0.8);
-                    CTX.fillStyle = 'rgba(34, 197, 94, 0.35)';
+                    CTX.fillStyle = CosmeticVisuals.alpha(skinColor, 0.35);
                     CTX.fillRect(proj.x - nx * s * 3.1 - s * 0.25, proj.y - ny * s * 3.1 - s * 0.25, s * 0.5, s * 0.5);
 
                     // Main 8-bit green pixel block
-                    CTX.fillStyle = '#22c55e';
+                    CTX.fillStyle = skinColor;
                     CTX.fillRect(proj.x - s, proj.y - s, s * 2, s * 2);
 
                     // White-hot center pixel

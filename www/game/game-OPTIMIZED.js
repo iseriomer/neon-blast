@@ -63,6 +63,7 @@ const gameState = {
     killStreak: 0,
     killStreakTimer: 0,
     sessionGameCount: 0,       // Track games played this session for interstitial frequency
+    activeRunMs: 0,
     totalEnemiesKilled: 0,     // Track for quests
     totalBossesKilled: 0       // Track for quests
 };
@@ -106,6 +107,8 @@ function animate(timestamp) {
     if (!lastTime) lastTime = timestamp;
     const deltaTime = timestamp - lastTime;
     lastTime = timestamp;
+    if (window.FirstRunGuide) FirstRunGuide.update(gameState);
+    if (!gameState.isStarting && !gameState.isDying) gameState.activeRunMs += Math.max(0, Math.min(deltaTime, 100));
 
     // START ANIMATION (REBIRTH)
     if (gameState.isStarting) {
@@ -151,7 +154,7 @@ function animate(timestamp) {
                 player.x = centerX;
                 player.y = centerY;
                 createExplosion(centerX, centerY, 200, 0); // Görsel patlama
-                playSound('levelup');
+                // Intro is presentation-only; the start button already provides feedback.
             }
 
             // Flash Effect
@@ -773,6 +776,12 @@ function initGame() {
         gameState.playerStats = { ...DEFAULT_PLAYER_STATS, ...saveData.playerStats };
         gameState.takenPerks = saveData.takenPerks || [];
         gameState.hasRevivedThisRun = !!saveData.hasRevivedThisRun;
+        gameState.activeRunMs = Number.isFinite(saveData.activeRunMs) ? Math.max(0, saveData.activeRunMs) : 0;
+        gameState.totalEnemiesKilled = saveData.totalEnemiesKilled || 0;
+        gameState.totalBossesKilled = saveData.totalBossesKilled || 0;
+        if (window.FirstRunGuide) FirstRunGuide.start();
+        if (window.GameTelemetry) GameTelemetry.track('run_resume', { level: gameState.level });
+        if (typeof AdManager !== 'undefined') AdManager.preload();
         gameState.invulnerableTimer = 0;
 
         // Restore Globals
@@ -923,6 +932,10 @@ function initGame() {
     gameState.playerStats = { ...DEFAULT_PLAYER_STATS };
     gameState.totalEnemiesKilled = 0;
     gameState.totalBossesKilled = 0;
+    gameState.activeRunMs = 0;
+    if (window.FirstRunGuide) FirstRunGuide.start();
+    if (window.GameTelemetry) GameTelemetry.track('run_start');
+    if (typeof AdManager !== 'undefined') AdManager.preload();
     if (typeof QuestManager !== 'undefined' && QuestManager.onGameStart) {
         QuestManager.onGameStart();
     }
@@ -1093,6 +1106,12 @@ function executeReviveEMP() {
 
 function gameOver() {
     if (!gameState.gameActive) return;
+    if (window.FirstRunGuide) FirstRunGuide.finish();
+    if (window.GameTelemetry) GameTelemetry.track('run_end', {
+        score: gameState.score, level: gameState.level, duration_seconds: gameState.activeRunMs / 1000,
+        kills: gameState.totalEnemiesKilled, bosses: gameState.totalBossesKilled,
+        perk_count: gameState.takenPerks.length
+    });
     InputManager.reset();
     gameState.gameActive = false;
     gameState.isPaused = true;
@@ -1104,7 +1123,7 @@ function gameOver() {
         SpawnManager.clearAllIntervals();
     }
 
-    finalScoreEl.innerText = `${Localization.t('score')}: ${gameState.score} - ${Localization.t('level')}: ${gameState.level}`;
+    MenuUI.renderResults(gameState.score, gameState.level);
     window.lastGameScore = gameState.score;
     window.lastGameLevel = gameState.level;
 
@@ -1137,7 +1156,14 @@ function gameOver() {
             const lightningSvg = typeof IconSystem !== 'undefined'
                 ? IconSystem.get('lightning', { size: 18, color: '#fbbf24' })
                 : '<svg width="18" height="18" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" fill="#fbbf24"/></svg>';
-            doubleCoinBtn.innerHTML = `<span>${lightningSvg}</span> <span data-i18n="double_coins_btn">${Localization.t('double_coins_btn')}</span>`;
+            doubleCoinBtn.innerHTML = `<span>${lightningSvg}</span> <span data-i18n="double_reward_action" data-i18n-params='${JSON.stringify({ coins: earnedCoins })}'>${Localization.t('double_reward_action', { coins: earnedCoins })}</span>`;
+            const hint = document.getElementById('double-coins-hint');
+            if (hint) {
+                hint.classList.remove('hidden');
+                hint.dataset.i18n = 'double_reward_hint';
+                hint.dataset.i18nParams = JSON.stringify({ before: earnedCoins, after: earnedCoins * 2 });
+                hint.textContent = Localization.t('double_reward_hint', { before: earnedCoins, after: earnedCoins * 2 });
+            }
         }
     }
 
@@ -1148,7 +1174,8 @@ function gameOver() {
             gameState.totalEnemiesKilled || 0,
             gameState.totalBossesKilled || 0,
             window.lastEarnedCoins || 0,
-            (gameState.takenPerks || []).length
+            (gameState.takenPerks || []).length,
+            gameState.activeRunMs
         );
     }
 
@@ -1157,15 +1184,15 @@ function gameOver() {
     document.getElementById('submit-score-btn').innerText = Localization.t('save_score');
     document.getElementById('player-name-input').style.display = 'inline-block';
 
-    if (window.fetchLeaderboard) {
+    if (window.refreshMenuLeaderboard) {
+        window.refreshMenuLeaderboard();
+    } else if (window.fetchLeaderboard) {
         window.fetchLeaderboard();
     }
 
-    // --- INTERSTITIAL AD (every 3rd game, if not VIP) ---
+    // Count active play only; skip short runs, recent ads, VIP and unavailable ads.
     gameState.sessionGameCount++;
-    const shouldShowInterstitial = (gameState.sessionGameCount >= 3) &&
-        (gameState.sessionGameCount % 3 === 0) &&
-        (typeof PremiumStoreManager === 'undefined' || PremiumStoreManager.shouldShowInterstitial());
+    const shouldShowInterstitial = typeof AdManager !== 'undefined' && AdManager.shouldShowAfterRun(gameState.activeRunMs);
 
     if (shouldShowInterstitial && typeof AdManager !== 'undefined' && AdManager.showInterstitialAd) {
         AdManager.showInterstitialAd(() => {
@@ -1332,8 +1359,7 @@ document.getElementById('music-volume').addEventListener('input', (e) => {
 });
 
 document.getElementById('prev-track-btn').addEventListener('click', () => {
-    const switchSound = new Audio('game/music/switchTrack.mp3');
-    switchSound.play();
+    if (window.MenuAudio) MenuAudio.play('toggle');
     const trackName = musicManager.prevTrack();
     document.getElementById('current-track-name').innerText = trackName;
 });
@@ -1368,8 +1394,7 @@ if (savedShakePref !== null) {
 }
 
 document.getElementById('next-track-btn').addEventListener('click', () => {
-    const switchSound = new Audio('game/music/switchTrack.mp3');
-    switchSound.play();
+    if (window.MenuAudio) MenuAudio.play('toggle');
     const trackName = musicManager.nextTrack();
     document.getElementById('current-track-name').innerText = trackName;
 });
@@ -1462,7 +1487,8 @@ if (doubleCoinsBtn) {
                     doubleCoinsBtn.disabled = true;
                     doubleCoinsBtn.dataset.i18n = 'coins_doubled';
                     doubleCoinsBtn.innerText = Localization.t('coins_doubled');
-                    playSound('levelup');
+                    document.getElementById('double-coins-hint')?.classList.add('hidden');
+                    if (window.MenuAudio) MenuAudio.play('reward');
                 }
             });
         }

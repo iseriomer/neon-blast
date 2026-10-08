@@ -91,7 +91,13 @@ class PremiumStoreManager {
     }
 
     static getLocalizedProduct(id) {
-        const product = this.PRODUCTS[id];
+        const definition = this.PRODUCTS[id];
+        if (!definition) return null;
+        const native = !!(window.Capacitor && window.Capacitor.isNativePlatform());
+        const nativeProduct = window.CdvPurchase?.store?.get(id, window.CdvPurchase?.Platform?.GOOGLE_PLAY);
+        const storePrice = nativeProduct?.pricing?.price;
+        const product = { ...definition, canPurchase: !native || !!(nativeProduct?.canPurchase && storePrice),
+            price: native ? (storePrice || this.translate('store_price_pending')) : definition.price };
         if (!product || typeof Localization === 'undefined') return product;
         const t = (key, params) => this.translate(key, params);
         const metadata = {
@@ -236,8 +242,11 @@ class PremiumStoreManager {
                     this.grantTransaction(transaction);
                     Promise.resolve(transaction.finish()).catch(error => console.warn('Purchase finish failed:', error));
                 });
+                store.when().productUpdated(() => {
+                    if (typeof ArmoryUI !== 'undefined' && !document.getElementById('armory-modal')?.classList.contains('hidden')) ArmoryUI.renderCurrentView();
+                });
 
-                store.initialize([window.CdvPurchase.Platform.GOOGLE_PLAY]);
+                Promise.resolve(store.initialize([window.CdvPurchase.Platform.GOOGLE_PLAY])).catch(error => console.warn('Store connection failed:', error));
                 console.log('⚡ Native Google Play Billing Store Initialized');
             } catch (e) {
                 console.warn('Native IAP store init error:', e);
@@ -257,6 +266,7 @@ class PremiumStoreManager {
     static purchase(productId) {
         const product = this.PRODUCTS[productId];
         if (!product) return;
+        if (window.GameTelemetry) GameTelemetry.track('purchase_begin', { product_id: productId });
 
         // 1. Check for standard CdvPurchase (Google Play Billing)
         if (typeof window !== 'undefined' && window.CdvPurchase && window.CdvPurchase.store) {
@@ -351,12 +361,44 @@ class PremiumStoreManager {
         }
 
         this.save();
-        if (typeof playSound === 'function') playSound('levelup');
+        if (window.GameTelemetry) GameTelemetry.track('purchase_granted', { product_id: productId });
+        if (window.MenuAudio) MenuAudio.play('reward');
         if (typeof ArmoryUI !== 'undefined' && ArmoryUI.showToast) {
             ArmoryUI.showToast(this.translate('purchase_completed', { name: this.getLocalizedProduct(productId).name }), true);
         }
         if (typeof ArmoryUI !== 'undefined') ArmoryUI.updateCoinBadges();
         if (typeof ArmoryUI !== 'undefined') ArmoryUI.renderCurrentView();
+    }
+
+    static async restorePurchases() {
+        const store = window.CdvPurchase?.store;
+        if (!store || typeof store.restorePurchases !== 'function') {
+            if (typeof ArmoryUI !== 'undefined') ArmoryUI.showToast(this.translate('restore_failed'), false);
+            return false;
+        }
+        try {
+            const error = await store.restorePurchases();
+            if (error) throw error;
+            // Restore durable entitlements without replaying coin/crate grants.
+            for (const id of ['remove_ads', 'starter_pack', 'premium_cosmetic_pack']) {
+                if (!store.owned(id)) continue;
+                if (!this.state.purchaseHistory.includes(id)) this.state.purchaseHistory.push(id);
+                if (id === 'remove_ads') { this.state.adsRemoved = true; this.state.vipStatus = true; }
+                if (id === 'starter_pack') this.state.starterPackBought = true;
+            }
+            this.save();
+            this.registerPremiumCosmetics();
+            if (typeof ArmoryUI !== 'undefined') {
+                ArmoryUI.updateCoinBadges();
+                ArmoryUI.renderCurrentView();
+                ArmoryUI.showToast(this.translate('restore_done'), true);
+            }
+            return true;
+        } catch (error) {
+            console.warn('Purchase restoration failed:', error);
+            if (typeof ArmoryUI !== 'undefined') ArmoryUI.showToast(this.translate('restore_failed'), false);
+            return false;
+        }
     }
 
     // Should we show interstitial ads?

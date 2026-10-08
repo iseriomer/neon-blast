@@ -159,93 +159,23 @@ class LuckySpinManager {
         const canvas = document.getElementById('ls-wheel-canvas');
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
-        const cx = canvas.width / 2;
-        const cy = canvas.height / 2;
-        const r = 140;
+        const cx = canvas.width / 2, cy = canvas.height / 2, r = 138;
         const items = this.WHEEL_ITEMS;
-        const sliceAngle = (Math.PI * 2) / items.length;
-
+        const sliceAngle = Math.PI * 2 / items.length;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // Draw outer neon rim
-        ctx.beginPath();
-        ctx.arc(cx, cy, r + 4, 0, Math.PI * 2);
-        ctx.strokeStyle = 'rgba(0, 240, 255, 0.4)';
-        ctx.lineWidth = 3;
-        ctx.stroke();
-
-        // Draw slices
         for (let i = 0; i < items.length; i++) {
-            const startAngle = rotation + (i * sliceAngle);
-            const endAngle = startAngle + sliceAngle;
-
-            ctx.beginPath();
-            ctx.moveTo(cx, cy);
-            ctx.arc(cx, cy, r, startAngle, endAngle);
-            ctx.closePath();
-            ctx.fillStyle = items[i].color;
-            ctx.fill();
-
-            // Neon border between slices
-            ctx.strokeStyle = items[i].border || 'rgba(255,255,255,0.15)';
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
-
-            // Content inside slice
-            ctx.save();
-            ctx.translate(cx, cy);
-            ctx.rotate(startAngle + sliceAngle / 2);
-
-            // Draw a neat neon credit coin glyph on canvas
-            const iconDist = r * 0.52;
-            ctx.beginPath();
-            ctx.arc(iconDist, 0, 7.5, 0, Math.PI * 2);
-            ctx.fillStyle = items[i].accent;
-            ctx.fill();
-            ctx.fillStyle = '#000';
-            ctx.font = 'bold 8.5px "Segoe UI", sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('N', iconDist, 0.5);
-
-            // Amount text
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 11px "Segoe UI", sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.shadowColor = items[i].accent;
-            ctx.shadowBlur = 6;
-            ctx.fillText(typeof Localization !== 'undefined'
-                ? Localization.t('currency_count', { count: items[i].coins }) + (items[i].coins === 1000 ? ' ★' : '')
-                : items[i].label + ' COIN', r * 0.80, 0);
-            ctx.shadowBlur = 0;
-
-            ctx.restore();
+            const start = rotation + i * sliceAngle;
+            const middle = start + sliceAngle / 2;
+            ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,start,start+sliceAngle);ctx.closePath();
+            ctx.fillStyle = items[i].coins === 1000 ? '#201b0d' : '#080c10';ctx.fill();
+            ctx.strokeStyle = '#3c434d';ctx.lineWidth = .8;ctx.stroke();
+            ctx.fillStyle = items[i].coins === 1000 ? '#ffd45b' : '#edf1f5';
+            ctx.font = '500 23px MenuText, monospace';ctx.textAlign = 'center';ctx.textBaseline = 'middle';
+            ctx.fillText(String(items[i].coins), cx + Math.cos(middle)*r*.70, cy + Math.sin(middle)*r*.70);
         }
-
-        // Center hub - futuristic cyber dial
-        ctx.beginPath();
-        ctx.arc(cx, cy, 26, 0, Math.PI * 2);
-        ctx.fillStyle = '#05050f';
-        ctx.fill();
-        ctx.strokeStyle = 'rgba(0, 240, 255, 0.8)';
-        ctx.lineWidth = 3;
-        ctx.stroke();
-
-        // Inner glowing core
-        ctx.beginPath();
-        ctx.arc(cx, cy, 14, 0, Math.PI * 2);
-        ctx.fillStyle = '#00f0ff';
-        ctx.shadowColor = '#00f0ff';
-        ctx.shadowBlur = 12;
-        ctx.fill();
-        ctx.shadowBlur = 0;
-
-        // Center white point
-        ctx.beginPath();
-        ctx.arc(cx, cy, 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#ffffff';
-        ctx.fill();
+        ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.strokeStyle='#00efff';ctx.lineWidth=1.2;ctx.stroke();
+        ctx.beginPath();ctx.arc(cx,cy,18,0,Math.PI*2);ctx.fillStyle='#050709';ctx.fill();ctx.lineWidth=.8;ctx.stroke();
+        ctx.beginPath();ctx.arc(cx,cy,7,0,Math.PI*2);ctx.fillStyle='#00efff';ctx.fill();
     }
 
     static executeSpin() {
@@ -271,8 +201,9 @@ class LuckySpinManager {
         const btns = document.querySelectorAll('.ls-spin-btn, .ls-ad-spin-btn');
         btns.forEach(b => b.disabled = true);
 
-        if (typeof playSound === 'function') playSound('spark_long');
+        if (window.MenuAudio) MenuAudio.play('decrypt');
 
+        let lastSoundSegment = 0;
         const animateSpin = () => {
             const elapsed = Date.now() - startTime;
             const progress = Math.min(elapsed / duration, 1);
@@ -282,6 +213,11 @@ class LuckySpinManager {
             const currentRotation = startRotation + (finalRotation - startRotation) * eased;
 
             this.drawWheel(currentRotation);
+            const soundSegment = Math.floor(Math.abs(currentRotation) / sliceAngle);
+            if (soundSegment !== lastSoundSegment && progress < 1) {
+                lastSoundSegment = soundSegment;
+                if (window.MenuAudio) MenuAudio.play('tick');
+            }
 
             if (progress < 1) {
                 requestAnimationFrame(animateSpin);
@@ -293,7 +229,7 @@ class LuckySpinManager {
                 if (typeof CosmeticsManager !== 'undefined') {
                     CosmeticsManager.addCoins(reward.coins);
                 }
-                if (typeof playSound === 'function') playSound('levelup');
+                if (window.MenuAudio) MenuAudio.play('reward');
 
                 this.state.totalSpins++;
                 this.save();

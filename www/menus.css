@@ -1,0 +1,2176 @@
+/* Approved portrait concepts. Deliberately scoped away from the combat HUD/canvas. */
+@font-face {
+    font-family:MenuDisplay;
+    src:url('fonts/Oswald.ttf') format('truetype');
+    font-weight:200 700;
+    font-display:swap
+}
+@font-face {
+    font-family:MenuText;
+    src:url('fonts/Rajdhani-Medium.ttf') format('truetype');
+    font-weight:400 500;
+    font-display:swap
+}
+@font-face {
+    font-family:MenuText;
+    src:url('fonts/Rajdhani-SemiBold.ttf') format('truetype');
+    font-weight:600 900;
+    font-display:swap
+}
+:root {
+    --menu-bg:#050709;
+    --menu-white:#f3f6f8;
+    --menu-muted:#9298a7;
+    --menu-line:#303640;
+    --menu-cyan:#00efff;
+    --menu-pink:#ff16b5;
+    --menu-gold:#ffd45b
+}
+:is(#start-screen,#pause-menu,#game-over-screen,#leaderboard-screen,#levelup-screen,#armory-modal,#revive-modal,#daily-reward-modal,#lucky-spin-modal,#quest-panel-modal,#pack-opening-modal) {
+    box-sizing:border-box;
+    font-family:MenuText,monospace;
+    color:var(--menu-white);
+    background:var(--menu-bg);
+    text-shadow:none;
+    zoom:1;
+    overflow-x:hidden
+}
+:is(#start-screen,#pause-menu,#game-over-screen,#leaderboard-screen,#levelup-screen,#revive-modal,#daily-reward-modal,#lucky-spin-modal,#quest-panel-modal,#pack-opening-modal) {
+    position:fixed;
+    inset:0;
+    width:100%;
+    height:100dvh;
+    padding:0;
+    overflow-y:auto;
+    align-items:center;
+    justify-content:flex-start;
+    scrollbar-width:thin;
+    scrollbar-color:var(--menu-line) transparent
+}
+:is(#start-screen,#pause-menu,#game-over-screen,#leaderboard-screen,#levelup-screen) p,.armory-panel p,.pack-opening-card p {
+    border:0;
+    background:none;
+    box-shadow:none;
+    padding:0;
+    color:var(--menu-muted);
+    font-family:MenuText,monospace
+}
+:is(#start-screen,#pause-menu,#game-over-screen,#leaderboard-screen,#levelup-screen) :is(h1,h2),.armory-title,.dr-title,.ls-title,.quest-panel-title,.revive-title,.reveal-headline {
+    font-family:MenuDisplay,sans-serif;
+    font-weight:700;
+    font-style:italic;
+    transform:skew(-5deg);
+    color:var(--menu-white)!important;
+    -webkit-text-fill-color:var(--menu-white)!important;
+    text-shadow:1px 1px 0 #005562!important;
+    letter-spacing:-1px;
+    line-height:1.15;
+    text-transform:uppercase;
+    border:0;
+    padding:0
+}
+:is(#start-screen,#pause-menu,#game-over-screen,#leaderboard-screen,#levelup-screen,#armory-modal,#revive-modal,#daily-reward-modal,#lucky-spin-modal,#quest-panel-modal,#pack-opening-modal) button {
+    font-family:MenuText,monospace;
+    border-radius:0;
+    transform:none;
+    box-shadow:none;
+    letter-spacing:1px;
+    cursor:pointer;
+    text-transform:uppercase;
+    transition:color .15s,border-color .15s,background .15s;
+    white-space:normal;
+    overflow-wrap:anywhere
+}
+:is(#start-screen,#pause-menu,#game-over-screen,#leaderboard-screen,#levelup-screen,#armory-modal,#revive-modal,#daily-reward-modal,#lucky-spin-modal,#quest-panel-modal,#pack-opening-modal) button:focus-visible {
+    outline:2px solid var(--menu-cyan);
+    outline-offset:5px
+}
+:is(#start-screen,#pause-menu,#game-over-screen,#leaderboard-screen,#levelup-screen,#armory-modal,#revive-modal,#daily-reward-modal,#lucky-spin-modal,#quest-panel-modal,#pack-opening-modal) button:disabled {
+    cursor:default;
+    opacity:.45
+}
+:is(#start-screen,#pause-menu,#game-over-screen,#leaderboard-screen,#levelup-screen,#armory-modal,#revive-modal,#daily-reward-modal,#lucky-spin-modal,#quest-panel-modal,#pack-opening-modal) .main-btn {
+    box-sizing:border-box;
+    min-width:0;
+    background:transparent;
+    color:var(--menu-white);
+    border:1px solid var(--menu-pink);
+    box-shadow:0 0 10px #ff16b508;
+    font-size:22px;
+    font-weight:600;
+    min-height:52px;
+    padding:12px 20px;
+    margin:0;
+    text-shadow:none;
+    transform:none
+}
+:is(#start-screen,#pause-menu,#game-over-screen,#leaderboard-screen,#levelup-screen) .main-btn.locked-in {
+    animation:none;
+    border-color:var(--menu-pink)!important;
+    background:transparent!important;
+    box-shadow:none!important
+}
+#start-screen :is(#armory-btn,#leaderboard-btn).locked-in {
+    border:0!important
+}
+#start-screen #armory-btn,#game-over-screen #game-over-armory-btn {
+    background:none!important;
+    border:0!important;
+    box-shadow:none!important;
+    margin:0!important;
+    transform:none!important;
+    font-family:MenuText,monospace!important
+}
+#leaderboard-screen {
+    z-index:25
+}
+#armory-modal .armory-tab-btn,#armory-modal .armory-tab-btn:hover {
+    background:none!important;
+    color:var(--menu-muted)!important;
+    box-shadow:none!important;
+    border-color:transparent!important
+}
+#armory-modal .armory-tab-btn.active {
+    background:none!important;
+    color:var(--menu-cyan)!important;
+    border-bottom-color:var(--menu-cyan)!important;
+    box-shadow:none!important
+}
+#armory-modal :is(.pack-decrypt-btn,.pack-need-coins-btn) {
+    background:none!important;
+    box-shadow:none!important;
+    border:0!important;
+    transform:none!important;
+    font-family:MenuText,monospace!important;
+    font-size:17px!important;
+    color:var(--menu-white)!important
+}
+#armory-modal .pack-need-coins-btn {
+    font-size:12px!important;
+    color:var(--menu-gold)!important
+}
+#armory-modal :is(.offer-buy-btn,.coin-buy-btn) {
+    background:none!important;
+    border:1px solid var(--menu-pink)!important;
+    box-shadow:none!important;
+    color:var(--menu-white)!important;
+    font-family:MenuText,monospace!important;
+    transform:none!important
+}
+#revive-modal .revive-action-btn {
+    background:none!important;
+    border:1px solid var(--menu-pink)!important;
+    box-shadow:none!important;
+    color:var(--menu-white)!important;
+    font:600 20px MenuText!important;
+    padding:12px 20px!important
+}
+#levelup-screen .perk-card.locked-in {
+    box-shadow:none!important;
+    transform:none!important;
+    border-color:var(--menu-line)!important;
+    animation:none;
+    background:none
+}
+#levelup-screen .perk-card.locked-in:first-child {
+    border-color:var(--menu-cyan)!important
+}
+:is(#start-screen,#pause-menu,#game-over-screen,#leaderboard-screen,#levelup-screen,#armory-modal,#revive-modal,#daily-reward-modal,#lucky-spin-modal,#quest-panel-modal,#pack-opening-modal) .main-btn::before {
+    display:none
+}
+:is(#start-screen,#pause-menu,#game-over-screen,#leaderboard-screen,#levelup-screen,#armory-modal,#revive-modal,#daily-reward-modal,#lucky-spin-modal,#quest-panel-modal,#pack-opening-modal) .main-btn:hover {
+    background:#ff16b509;
+    transform:none;
+    box-shadow:none
+}
+:is(#start-screen,#game-over-screen,#armory-modal) .neon-coin-svg {
+    filter:none!important
+}
+:is(#start-screen,#game-over-screen,#armory-modal) .neon-coin-svg circle {
+    fill:none;
+    stroke:var(--menu-gold);
+    stroke-width:1.3
+}
+:is(#start-screen,#game-over-screen,#armory-modal) .neon-coin-svg circle:nth-child(2) {
+    fill:var(--menu-gold);
+    stroke:none;
+    r:6.8
+}
+:is(#start-screen,#game-over-screen,#armory-modal) .neon-coin-svg text {
+    display:none
+}
+.menu-shell {
+    position:relative;
+    width:min(100%,480px);
+    flex-shrink:0;
+    box-sizing:border-box;
+    margin:auto;
+    padding:0 28px
+}
+#start-screen .start-layout {
+    height:max(100dvh,660px);
+    display:grid;
+    grid-template-rows:18% 10% 13% 10% 10% 10% 20% 9%;
+    justify-items:center;
+    align-items:center;
+    width:min(100%,480px);
+    margin:0 auto;
+    position:relative;
+    padding:0 24px;
+    box-sizing:border-box
+}
+#start-screen h1 {
+    grid-row:2;
+    white-space:nowrap;
+    font-size:clamp(42px,14vw,68px);
+    margin:0;
+    letter-spacing:-1.8px
+}
+.menu-core {
+    width:50px;
+    height:50px;
+    border:1px solid var(--menu-cyan);
+    border-radius:50%;
+    position:relative;
+    display:grid;
+    place-items:center;
+    flex-shrink:0
+}
+.menu-core::after {
+    content:'';
+    width:13px;
+    height:13px;
+    border-radius:50%;
+    background:var(--menu-cyan);
+    box-shadow:0 0 14px #00efff25
+}
+#start-screen .menu-core {
+    grid-row:3
+}
+#start-screen p {
+    grid-row:4;
+    margin:0;
+    font-size:18px;
+    line-height:1.55;
+    letter-spacing:1px;
+    max-width:none
+}
+#start-screen .start-coin-display {
+    position:absolute;
+    top:max(16px,env(safe-area-inset-top));
+    right:20px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    background:none;
+    border:0;
+    padding:0;
+    margin:0;
+    box-shadow:none;
+    font-size:20px;
+    color:var(--menu-gold)
+}
+#start-screen .coin-label {
+    display:none
+}
+#start-screen #start-btn {
+    grid-row:5;
+    width:80%;
+    font-size:24px
+}
+.menu-secondary {
+    grid-row:6;
+    display:flex;
+    gap:12px;
+    width:90%;
+    justify-content:space-between;
+    align-items:center
+}
+#start-screen :is(#armory-btn,#leaderboard-btn) {
+    background:none;
+    border:0;
+    padding:10px 0;
+    margin:0;
+    color:var(--menu-white);
+    font-size:18px;
+    min-height:44px;
+    flex:1;
+    box-shadow:none
+}
+#start-screen .start-engagement-row {
+    grid-row:7;
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    width:100%;
+    margin:0;
+    padding-top:35px
+}
+#start-screen .engage-btn {
+    display:flex;
+    flex:1;
+    min-width:0;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+    background:none;
+    border:0;
+    color:var(--menu-muted);
+    font-size:12px;
+    padding:8px 0;
+    box-shadow:none
+}
+#start-screen .engage-icon-slot {
+    height:28px;
+    display:grid;
+    place-items:center;
+    filter:none
+}
+#start-screen .engage-icon-slot svg {
+    width:26px;
+    height:26px;
+    stroke:var(--menu-muted);
+    fill:none;
+    filter:none
+}
+.menu-languages {
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:4px;
+    width:100%;
+    margin:0!important
+}
+.menu-languages button {
+    border:0!important;
+    background:none!important;
+    color:var(--menu-muted)!important;
+    padding:8px 6px!important;
+    margin:0!important;
+    font-size:15px;
+    min-width:36px;
+    min-height:44px
+}
+.menu-languages button[aria-pressed=true] {
+    color:var(--menu-cyan)!important
+}
+#start-screen .menu-languages {
+    grid-row:8
+}
+/* Settings: switches align to the right, music controls stay with their row. */
+#pause-menu {
+    background:rgba(5,7,9,.94);
+    backdrop-filter:blur(5px);
+    display:flex
+}
+.pause-layout {
+    min-height:max(100dvh,760px);
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:30px;
+    padding-top:72px;
+    padding-bottom:max(18px,env(safe-area-inset-bottom))
+}
+#pause-menu h2 {
+    font-size:clamp(35px,11vw,50px);
+    margin:0 0 22px;
+    text-align:center;
+    white-space:nowrap
+}
+#pause-menu .pause-options {
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    gap:0;
+    margin:0;
+    max-width:none
+}
+#pause-menu .toggle-container {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    position:relative;
+    padding:14px 0;
+    margin:0;
+    min-height:58px;
+    border-bottom:1px solid var(--menu-line);
+    font-size:18px;
+    color:var(--menu-white);
+    text-align:left
+}
+#pause-menu .toggle-container>span:last-child {
+    order:-1
+}
+#pause-menu .toggle-container input {
+    position:absolute;
+    right:0;
+    opacity:0;
+    width:44px;
+    height:28px
+}
+#pause-menu .checkmark {
+    position:relative;
+    inset:auto;
+    width:40px;
+    height:23px;
+    border:1px solid var(--menu-muted);
+    border-radius:2px;
+    background:none;
+    box-shadow:none;
+    flex-shrink:0
+}
+#pause-menu .checkmark:before {
+    width:15px;
+    height:15px;
+    left:3px;
+    top:3px;
+    background:var(--menu-muted);
+    border-radius:1px;
+    box-shadow:none
+}
+#pause-menu input:checked~.checkmark {
+    background:none;
+    border-color:var(--menu-cyan)
+}
+#pause-menu input:checked~.checkmark:before {
+    left:20px;
+    background:var(--menu-cyan)
+}
+#pause-menu input:focus-visible~.checkmark {
+    outline:2px solid white;
+    outline-offset:3px
+}
+#pause-menu .track-selector {
+    display:flex;
+    border:0;
+    background:none;
+    box-shadow:none;
+    margin:12px 0 4px;
+    width:100%;
+    justify-content:center;
+    gap:14px;
+    padding:0;
+    height:36px
+}
+#pause-menu .arrow-btn {
+    border:0;
+    background:none;
+    color:var(--menu-muted);
+    font-size:18px;
+    width:44px;
+    min-height:44px
+}
+#pause-menu #current-track-name {
+    font-family:MenuText;
+    font-size:16px;
+    color:var(--menu-muted)
+}
+#pause-menu .slider-container {
+    display:flex!important;
+    flex-direction:row!important;
+    align-items:center;
+    gap:15px;
+    margin:12px 0!important;
+    padding:0 0 16px;
+    border-bottom:1px solid var(--menu-line)
+}
+#pause-menu .slider-container label {
+    font:15px MenuText!important;
+    margin:0!important;
+    white-space:nowrap;
+    color:var(--menu-muted)
+}
+#pause-menu #music-volume {
+    min-width:0;
+    accent-color:var(--menu-cyan);
+    height:3px
+}
+#pause-menu #resume-btn {
+    width:100%;
+    margin-top:4px
+}
+#pause-menu .menu-languages {
+    margin-top:12px!important
+}
+/* Base results styles; viewport rules also expose the compact ranking panel. */
+.results-layout {
+    min-height:max(100dvh,760px);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding-top:clamp(70px,14dvh,130px);
+    padding-bottom:40px;
+    gap:18px
+}
+#game-over-screen h1 {
+    font-size:clamp(42px,13vw,60px);
+    margin:0 0 14px;
+    text-shadow:1px 1px 0 #9e0065!important
+}
+#game-over-screen #final-score {
+    margin:0;
+    color:var(--menu-white);
+    font:600 64px/1 MenuText;
+    text-shadow:1px 0 var(--menu-cyan);
+    letter-spacing:1px
+}
+.result-score-label {
+    font:16px MenuText;
+    color:var(--menu-muted);
+    margin-top:-10px;
+    text-transform:uppercase
+}
+.result-level {
+    border-top:1px solid var(--menu-line);
+    padding:14px 20px 0;
+    margin:0!important;
+    font-size:20px;
+    letter-spacing:1px;
+    width:65%
+}
+.result-level strong {
+    color:var(--menu-cyan);
+    font-weight:600
+}
+#game-over-screen .game-over-coins-banner {
+    width:90%;
+    background:none;
+    border:0;
+    box-shadow:none;
+    margin:4px 0 8px;
+    padding:0;
+    flex-direction:column;
+    gap:12px
+}
+#game-over-screen .coins-earned-row {
+    justify-content:center;
+    gap:10px;
+    font-size:20px;
+    color:var(--menu-gold)
+}
+#game-over-screen #earned-coins-amount {
+    font:600 22px MenuText;
+    color:var(--menu-gold);
+    text-shadow:none
+}
+#game-over-screen .pulse-coin {
+    animation:none
+}
+#game-over-screen .double-coins-ad-btn {
+    width:100%;
+    border:1px solid var(--menu-gold);
+    background:none;
+    color:var(--menu-gold);
+    font-size:16px;
+    min-height:42px;
+    padding:9px;
+    justify-content:center;
+    box-shadow:none;
+    border-radius:0;
+    margin:0;
+    transform:none
+}
+#game-over-screen .double-coins-ad-btn svg {
+    display:none
+}
+#game-over-screen .reward-value-hint {
+    margin:0;
+    font-size:14px;
+    color:var(--menu-muted)
+}
+#game-over-screen #leaderboard-section {
+    width:90%;
+    margin:4px 0 12px;
+    display:flex;
+    flex-direction:column;
+    gap:0;
+    align-items:flex-end;
+    max-width:none
+}
+#game-over-screen #leaderboard-section .leaderboard-container,#game-over-screen .leaderboard-filters {
+    display:none
+}
+#game-over-screen #player-name-input {
+    width:100%;
+    box-sizing:border-box;
+    border:0;
+    border-bottom:1px solid var(--menu-muted);
+    background:none;
+    font:18px MenuText;
+    padding:10px 0;
+    color:white;
+    border-radius:0;
+    margin:0;
+    box-shadow:none
+}
+#game-over-screen #submit-score-btn {
+    border:0;
+    color:var(--menu-muted);
+    font-size:14px!important;
+    padding:8px 0!important;
+    min-height:44px;
+    background:none;
+    margin:0;
+    transform:none
+}
+#game-over-screen .game-over-buttons-group {
+    display:flex;
+    flex-direction:column-reverse;
+    width:90%;
+    gap:12px;
+    margin:0;
+    align-items:stretch
+}
+#game-over-screen #game-over-armory-btn {
+    border:0;
+    background:none;
+    font-size:18px
+}
+.result-best {
+    margin-top:20px;
+    text-align:center;
+    color:var(--menu-muted);
+    width:90%;
+    border-top:1px solid var(--menu-line);
+    padding-top:14px;
+    font-size:13px;
+    letter-spacing:1px
+}
+.result-best strong {
+    display:block;
+    color:var(--menu-white);
+    font-size:20px
+}
+.leaderboard-layout {
+    min-height:max(100dvh,660px);
+    padding-top:12dvh;
+    padding-bottom:30px;
+    display:flex;
+    flex-direction:column;
+    gap:34px;
+    align-items:center
+}
+#leaderboard-screen h1 {
+    font-size:clamp(38px,12vw,56px);
+    margin:0;
+    white-space:nowrap
+}
+#leaderboard-screen .leaderboard-filters {
+    display:flex;
+    width:100%;
+    justify-content:space-between;
+    gap:6px!important;
+    margin:0!important
+}
+#leaderboard-screen .filter-btn {
+    background:none;
+    border:0;
+    border-bottom:1px solid transparent;
+    padding:10px 0;
+    color:var(--menu-muted);
+    font-size:17px;
+    min-height:44px;
+    flex:1
+}
+#leaderboard-screen .filter-btn.active {
+    color:var(--menu-cyan);
+    border-bottom-color:var(--menu-cyan)
+}
+#leaderboard-screen .leaderboard-container {
+    width:100%;
+    max-width:none;
+    max-height:none;
+    border:0;
+    background:none;
+    box-shadow:none;
+    padding:0;
+    margin:0;
+    overflow:visible
+}
+#leaderboard-screen .leaderboard-container h3 {
+    display:none
+}
+#leaderboard-screen #main-leaderboard-list {
+    margin:0;
+    padding:0
+}
+#leaderboard-screen #main-leaderboard-list li {
+    font:18px MenuText;
+    padding:18px 0;
+    border-bottom:1px solid var(--menu-line);
+    background:none;
+    box-shadow:none;
+    gap:12px;
+    color:var(--menu-white)
+}
+#leaderboard-screen #main-leaderboard-list li span {
+    font-family:MenuText;
+    text-shadow:none
+}
+#leaderboard-screen #main-leaderboard-list li span:last-child {
+    color:var(--menu-white)
+}
+#leaderboard-screen #close-leaderboard-btn {
+    margin-top:auto!important;
+    width:90%;
+    background:none;
+    border:0;
+    color:var(--menu-muted)
+}
+/* Second chance, no emergency decoration. */
+#revive-modal {
+    background:rgba(5,7,9,.93);
+    backdrop-filter:blur(5px)
+}
+#revive-modal .revive-card {
+    box-sizing:border-box;
+    width:min(100%,480px);
+    min-height:max(100dvh,620px);
+    border:0;
+    background:none;
+    box-shadow:none;
+    padding:20dvh 30px 60px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:32px;
+    border-radius:0;
+    transform:none;
+    animation:none
+}
+.revive-header-tag {
+    display:none
+}
+#revive-modal .revive-title {
+    font-size:clamp(44px,13vw,60px);
+    margin:0
+}
+#revive-modal .revive-timer-wrapper {
+    width:124px;
+    height:124px;
+    margin:10px 0
+}
+#revive-modal .timer-bg {
+    stroke:var(--menu-line);
+    stroke-width:1
+}
+#revive-modal .timer-bar {
+    stroke:var(--menu-cyan);
+    stroke-width:1.2;
+    filter:none
+}
+#revive-modal .revive-number {
+    font:500 56px MenuText;
+    color:var(--menu-white);
+    text-shadow:none
+}
+#revive-modal .revive-text {
+    background:none;
+    border:0;
+    padding:0;
+    margin:0;
+    color:var(--menu-muted);
+    font:18px/1.7 MenuText;
+    box-shadow:none;
+    max-width:260px
+}
+#revive-modal .revive-action-btn {
+    width:100%;
+    font-size:20px
+}
+#revive-modal .revive-dismiss-btn {
+    border:0;
+    background:none;
+    color:var(--menu-muted);
+    font-size:17px;
+    min-height:44px;
+    margin:0
+}
+/* Armory: a quiet two-column collection with a single selected-item preview. */
+#armory-modal {
+    background:var(--menu-bg)
+}
+#armory-modal .armory-panel {
+    width:min(100%,620px);
+    height:100dvh;
+    max-height:none;
+    max-width:620px;
+    border:0;
+    border-radius:0;
+    background:var(--menu-bg);
+    box-shadow:none;
+    font-family:MenuText;
+    margin:auto;
+    overflow:hidden
+}
+#armory-modal .armory-header {
+    border:0;
+    background:none;
+    flex-wrap:nowrap;
+    padding:max(25px,env(safe-area-inset-top)) 24px 18px;
+    gap:8px
+}
+#armory-modal .armory-title {
+    font-size:clamp(28px,8.5vw,42px);
+    margin:0;
+    white-space:nowrap
+}
+.armory-subtitle {
+    display:none
+}
+#armory-modal .armory-top-right {
+    gap:8px;
+    margin-left:auto;
+    flex-shrink:0
+}
+#armory-modal #header-watch-ad-coin-btn {
+    display:none
+}
+#armory-modal .armory-coin-badge {
+    background:none;
+    border:0;
+    padding:0;
+    gap:4px;
+    box-shadow:none
+}
+#armory-modal #armory-coin-balance {
+    color:var(--menu-gold);
+    font:600 18px MenuText
+}
+#armory-modal .armory-close-btn {
+    border:0;
+    background:none;
+    color:var(--menu-muted);
+    width:32px;
+    height:44px;
+    min-width:32px;
+    box-shadow:none;
+    font:300 36px MenuText
+}
+#armory-modal .armory-tabs {
+    display:flex;
+    background:none;
+    gap:6px;
+    padding:0 24px;
+    overflow:visible;
+    justify-content:space-between;
+    border-bottom:1px solid var(--menu-line)
+}
+#armory-modal .armory-tab-btn {
+    flex:1;
+    flex-shrink:1;
+    min-width:0;
+    font-size:14px;
+    padding:12px 0;
+    border:0;
+    border-bottom:2px solid transparent;
+    background:none;
+    box-shadow:none;
+    border-radius:0;
+    color:var(--menu-muted);
+    letter-spacing:1px
+}
+#armory-modal .armory-tab-btn.active {
+    color:var(--menu-cyan);
+    border-bottom-color:var(--menu-cyan);
+    background:none;
+    text-shadow:none;
+    box-shadow:none
+}
+#armory-modal .armory-content {
+    background:none;
+    padding:16px 24px max(30px,env(safe-area-inset-bottom));
+    overflow-y:auto;
+    overflow-x:hidden
+}
+#armory-modal .armory-hangar-deck {
+    border:0;
+    border-radius:0;
+    background:none;
+    box-shadow:none;
+    margin:0 0 20px;
+    overflow:visible
+}
+#armory-modal .hangar-canvas-wrap {
+    height:170px;
+    background:none;
+    border:0;
+    position:relative;
+    overflow:visible;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-start
+}
+#armory-modal #hangar-preview-canvas {
+    display:block;
+    width:100%;
+    height:130px;
+    position:static
+}
+#armory-modal .hangar-hud-overlay {
+    position:static;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+    background:none;
+    padding:0;
+    pointer-events:auto
+}
+.hangar-tag {
+    display:none
+}
+#armory-modal .hangar-preview-info {
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+    max-width:100%
+}
+#armory-modal .hangar-preview-title {
+    font:600 18px MenuText;
+    color:var(--menu-white)!important;
+    max-width:100%;
+    text-shadow:none
+}
+#armory-modal .hangar-preview-badge {
+    font:14px MenuText;
+    border:0;
+    background:none;
+    padding:0;
+    color:var(--menu-muted);
+    box-shadow:none
+}
+#armory-modal .hangar-quick-equip-btn {
+    position:fixed;
+    bottom:max(20px,env(safe-area-inset-bottom));
+    left:50%;
+    transform:translateX(-50%);
+    width:min(calc(100% - 48px),572px);
+    border:1px solid var(--menu-pink);
+    padding:13px;
+    background:var(--menu-bg);
+    font:600 22px MenuText;
+    color:var(--menu-white);
+    min-height:52px;
+    z-index:2
+}
+#armory-modal .armory-grid {
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:15px 18px;
+    padding-bottom:70px
+}
+#armory-modal .armory-item-card {
+    padding:0 0 10px;
+    border:0;
+    border-bottom:1px solid transparent;
+    border-radius:0;
+    background:none!important;
+    box-shadow:none!important;
+    min-height:125px;
+    opacity:1;
+    transform:none!important;
+    cursor:pointer;
+    position:relative;
+    overflow:hidden
+}
+#armory-modal .armory-item-card::before,#armory-modal .armory-item-card::after {
+    display:none
+}
+#armory-modal .armory-item-card.is-inspecting {
+    border-bottom-color:var(--menu-cyan)
+}
+#armory-modal .card-icon-area {
+    height:85px;
+    width:100%;
+    border:0;
+    background:none;
+    margin:0;
+    box-shadow:none;
+    display:grid;
+    place-items:center
+}
+#armory-modal .card-item-canvas {
+    position:static;
+    width:100%;
+    height:auto;
+    max-height:110px;
+    display:block;
+    object-fit:contain
+}
+#armory-modal .card-info {
+    padding:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center
+}
+#armory-modal .card-title {
+    font:600 16px MenuText;
+    color:var(--menu-white);
+    text-shadow:none;
+    margin:8px 0 4px;
+    text-align:center;
+    letter-spacing:.5px;
+    border:0;
+    padding:0
+}
+#armory-modal .card-rarity-tag {
+    font:13px MenuText;
+    color:var(--menu-muted);
+    border:0;
+    padding:0;
+    background:none;
+    margin:0;
+    letter-spacing:1px;
+    text-align:center
+}
+#armory-modal .card-top-row {
+    order:3;
+    justify-content:center;
+    position:absolute;
+    bottom:0;
+    left:0;
+    right:0;
+    margin:0
+}
+#armory-modal .card-desc,#armory-modal .equipped-pill,#armory-modal .card-action {
+    display:none
+}
+.collection-lock {
+    position:absolute;
+    top:55px;
+    right:8px;
+    color:var(--menu-muted);
+    pointer-events:none
+}
+#armory-modal .armory-item-card.locked .card-title {
+    color:var(--menu-muted)
+}
+#armory-modal .armory-store-container {
+    gap:0
+}
+#armory-modal .store-airdrop-banner {
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:12px;
+    padding:4px 0 20px;
+    margin:0;
+    background:none;
+    border:0;
+    border-bottom:1px solid var(--menu-line);
+    border-radius:0;
+    box-shadow:none
+}
+.airdrop-left,.airdrop-glow {
+    display:none
+}
+#armory-modal .airdrop-actions {
+    display:flex;
+    flex-wrap:nowrap;
+    gap:16px;
+    width:100%;
+    justify-content:space-between
+}
+#armory-modal .airdrop-ad-btn {
+    border:0;
+    background:none;
+    box-shadow:none;
+    padding:8px 0;
+    flex:1;
+    min-width:0;
+    color:var(--menu-gold);
+    justify-content:center;
+    min-height:44px
+}
+#armory-modal .airdrop-btn-text strong {
+    font:600 15px MenuText
+}
+#armory-modal .airdrop-btn-text small {
+    font:12px MenuText;
+    color:var(--menu-muted);
+    letter-spacing:1px
+}
+#armory-modal .store-section-header {
+    border:0;
+    margin:30px 0 18px!important;
+    padding:0;
+    min-height:0
+}
+#armory-modal .store-section-title {
+    color:var(--menu-muted);
+    font:500 16px MenuText;
+    letter-spacing:1.5px;
+    margin:0
+}
+#armory-modal .store-section-badge {
+    display:none
+}
+#armory-modal .packs-grid {
+    display:flex;
+    flex-direction:column;
+    gap:0
+}
+#armory-modal .cipher-pack-card {
+    position:relative;
+    display:grid;
+    grid-template-columns:70px minmax(0,1fr) auto;
+    grid-template-rows:auto auto auto;
+    gap:4px 16px;
+    align-items:center;
+    min-height:132px;
+    background:none;
+    border:0;
+    border-bottom:1px solid var(--menu-line);
+    box-shadow:none;
+    border-radius:0;
+    padding:18px 0;
+    margin:0;
+    overflow:visible;
+    transform:none
+}
+#armory-modal .cipher-pack-card::before,#armory-modal .cipher-pack-card::after {
+    display:none
+}
+#armory-modal .pack-visual {
+    grid-column:1;
+    grid-row:1/4;
+    width:70px;
+    height:76px;
+    margin:0;
+    background:none
+}
+#armory-modal .pack-pod-canvas {
+    display:block;
+    position:static;
+    width:70px;
+    height:76px
+}
+#armory-modal .pack-name {
+    grid-column:2;
+    grid-row:1;
+    font:600 21px MenuText;
+    color:var(--menu-white);
+    text-shadow:none;
+    letter-spacing:1px;
+    margin:0;
+    text-align:left
+}
+#armory-modal .pack-badge {
+    grid-column:2;
+    grid-row:2;
+    position:static;
+    transform:none;
+    background:none;
+    border:0;
+    color:var(--menu-muted);
+    font:13px MenuText;
+    letter-spacing:1px;
+    padding:0;
+    text-align:left
+}
+#armory-modal .pack-guarantee {
+    display:none
+}
+#armory-modal .pack-cost-row {
+    grid-column:2;
+    grid-row:3;
+    justify-content:flex-start;
+    gap:4px;
+    margin:0;
+    padding:0;
+    border:0;
+    background:none;
+    box-shadow:none;
+    color:var(--menu-gold);
+    font:18px MenuText
+}
+#armory-modal .cost-val {
+    font:600 18px MenuText;
+    color:var(--menu-gold);
+    text-shadow:none
+}
+#armory-modal .pack-btn-stack {
+    grid-column:3;
+    grid-row:1/4;
+    width:72px
+}
+#armory-modal :is(.pack-decrypt-btn,.pack-need-coins-btn) {
+    border:0;
+    background:none;
+    color:var(--menu-white);
+    font:600 17px MenuText;
+    padding:8px 0;
+    width:100%;
+    min-height:44px
+}
+#armory-modal .pack-need-coins-btn {
+    font-size:12px;
+    color:var(--menu-gold)
+}
+#armory-modal .premium-offers-grid,#armory-modal .coin-offers-grid {
+    display:flex;
+    flex-direction:column;
+    gap:22px
+}
+#armory-modal .premium-offer-card,#armory-modal .coin-offer-card {
+    padding:0 0 22px;
+    border:0;
+    border-bottom:1px solid var(--menu-line);
+    border-radius:0;
+    background:none;
+    box-shadow:none;
+    transform:none
+}
+#armory-modal .offer-badge,#armory-modal .coin-badge-pill {
+    position:static;
+    background:none;
+    border:0;
+    transform:none;
+    padding:0;
+    color:var(--menu-gold);
+    font:13px MenuText;
+    letter-spacing:1px;
+    margin-bottom:6px
+}
+#armory-modal .offer-title {
+    font:600 23px MenuText;
+    color:white;
+    margin:0 0 8px;
+    text-shadow:none
+}
+#armory-modal .offer-desc {
+    font:16px/1.5 MenuText;
+    margin:0 0 10px;
+    text-align:left
+}
+#armory-modal .offer-benefits-list {
+    display:none
+}
+#armory-modal .offer-buy-btn,#armory-modal .coin-buy-btn {
+    border:1px solid var(--menu-pink);
+    font:600 17px MenuText;
+    min-height:44px;
+    width:100%;
+    margin:0
+}
+#armory-modal .coin-offer-amount {
+    font:600 30px MenuText;
+    color:var(--menu-gold);
+    justify-content:flex-start;
+    gap:10px
+}
+#armory-modal .coin-offer-name {
+    font:16px MenuText;
+    color:var(--menu-muted);
+    margin:6px 0 14px
+}
+/* Daily rewards, wheel and quests are full portrait pages, not framed popups. */
+:is(#daily-reward-modal,#lucky-spin-modal,#quest-panel-modal) {
+    display:flex;
+    padding:0;
+    background:var(--menu-bg)
+}
+:is(.dr-card,.ls-card,.quest-panel-card) {
+    width:min(100%,480px);
+    max-width:480px;
+    box-sizing:border-box;
+    min-height:max(100dvh,740px);
+    margin:0 auto;
+    border:0;
+    border-radius:0;
+    background:none;
+    box-shadow:none;
+    padding:70px 28px 36px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    transform:none;
+    animation:none
+}
+:is(.dr-title,.ls-title,.quest-panel-title) {
+    font-size:clamp(36px,11vw,50px);
+    margin:0;
+    text-align:center;
+    white-space:nowrap;
+    display:block
+}
+:is(.dr-title,.ls-title,.quest-panel-title) svg,.quest-panel-title .title-icon-slot {
+    display:none
+}
+.dr-header {
+    display:flex;
+    flex-direction:column-reverse;
+    gap:12px;
+    align-items:center;
+    width:100%;
+    margin:0 0 42px
+}
+.dr-streak-badge {
+    background:none;
+    border:0;
+    color:var(--menu-gold);
+    font:600 19px MenuText;
+    padding:0;
+    letter-spacing:2px;
+    box-shadow:none
+}
+.dr-streak-badge svg {
+    display:none
+}
+.dr-days-grid {
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:26px 8px;
+    width:100%;
+    margin:0 0 46px
+}
+.dr-day {
+    padding:0;
+    border:0;
+    background:none;
+    border-radius:0;
+    box-shadow:none;
+    min-width:0
+}
+.dr-day.current,.dr-day.claimed {
+    background:none;
+    border:0;
+    box-shadow:none
+}
+.dr-day-num {
+    display:inline-block;
+    font:600 15px MenuText;
+    letter-spacing:1px;
+    color:var(--menu-muted);
+    margin:0 0 14px;
+    padding-bottom:6px;
+    border-bottom:1px solid transparent
+}
+.dr-day.current .dr-day-num {
+    color:white;
+    border-bottom-color:var(--menu-cyan)
+}
+.dr-day-icon {
+    height:30px;
+    display:grid;
+    place-items:center;
+    margin:0 0 10px;
+    filter:none;
+    color:var(--menu-gold)
+}
+.dr-day-icon svg {
+    width:28px;
+    height:28px;
+    filter:none
+}
+.dr-day-label {
+    font:14px/1.25 MenuText;
+    color:var(--menu-muted);
+    overflow-wrap:anywhere
+}
+.dr-reward-highlight {
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    border:0;
+    background:none;
+    box-shadow:none;
+    padding:0;
+    margin:0 0 36px;
+    width:100%
+}
+.dr-reward-icon svg {
+    width:54px;
+    height:54px;
+    filter:none
+}
+.dr-reward-text {
+    font:600 26px MenuText;
+    color:white;
+    text-shadow:none
+}
+.dr-actions {
+    width:90%;
+    gap:20px;
+    display:flex;
+    flex-direction:column;
+    margin:0
+}
+.dr-actions .dr-double-btn {
+    border:0;
+    background:none;
+    color:var(--menu-gold);
+    font-size:16px;
+    box-shadow:none
+}
+.dr-double-btn svg {
+    display:none
+}
+:is(.dr-close-btn,.ls-close-btn,.quest-close-btn) {
+    margin-top:auto!important;
+    width:100%;
+    padding:14px 0;
+    background:none!important;
+    border:0!important;
+    border-top:1px solid var(--menu-line)!important;
+    color:var(--menu-muted)!important;
+    font:600 18px MenuText;
+    min-height:48px;
+    box-shadow:none!important
+}
+.ls-card {
+    padding-top:12dvh;
+    gap:32px
+}
+.ls-title {
+    margin:0 0 10px
+}
+.ls-wheel-container {
+    width:100%;
+    max-width:300px;
+    height:auto;
+    aspect-ratio:1;
+    margin:0 auto 20px;
+    position:relative
+}
+#ls-wheel-canvas {
+    display:block;
+    position:static;
+    width:100%;
+    height:100%;
+    filter:none
+}
+.ls-pointer {
+    top:-8px;
+    filter:none
+}
+.ls-pointer svg {
+    filter:none!important
+}
+.ls-actions {
+    width:90%;
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+    margin:0
+}
+.ls-actions .ls-ad-spin-btn {
+    background:none;
+    border:0;
+    color:var(--menu-muted);
+    font-size:17px
+}
+.ls-result {
+    background:none;
+    border:0;
+    padding:0;
+    box-shadow:none;
+    margin:0;
+    color:var(--menu-gold)
+}
+.ls-result-text {
+    font:600 22px MenuText;
+    color:var(--menu-gold)
+}
+.ls-free-used,.ls-ad-used {
+    color:var(--menu-muted);
+    font:16px MenuText
+}
+.quest-panel-card {
+    padding-top:9dvh;
+    gap:38px
+}
+#quest-panel-content {
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    flex:1;
+    gap:0
+}
+.quest-row {
+    border:0;
+    border-bottom:1px solid var(--menu-line);
+    border-radius:0;
+    padding:22px 0;
+    margin:0;
+    background:none;
+    box-shadow:none;
+    gap:14px;
+    display:flex;
+    align-items:center
+}
+.quest-row.quest-done {
+    border-color:var(--menu-line);
+    background:none
+}
+.quest-icon-wrap {
+    width:32px;
+    min-width:32px;
+    height:32px;
+    border:0;
+    background:none;
+    box-shadow:none;
+    color:var(--menu-cyan);
+    padding:0
+}
+.quest-icon-wrap svg {
+    width:28px;
+    height:28px;
+    filter:none
+}
+.quest-info {
+    min-width:0;
+    flex:1
+}
+.quest-title {
+    font:600 19px MenuText;
+    color:white;
+    text-transform:uppercase
+}
+.quest-progress-bar {
+    height:3px;
+    background:#20252d;
+    border:0;
+    border-radius:0;
+    margin:8px 0
+}
+.quest-progress-fill,.quest-done .quest-progress-fill {
+    background:var(--menu-cyan);
+    box-shadow:none;
+    border-radius:0
+}
+.quest-progress-text {
+    font:14px MenuText;
+    color:var(--menu-muted)
+}
+.quest-reward {
+    color:var(--menu-gold);
+    font:600 19px MenuText;
+    white-space:nowrap
+}
+.quest-coin-badge {
+    display:flex;
+    gap:4px;
+    align-items:center
+}
+.quest-bonus-row {
+    margin-top:auto;
+    padding:28px 0 0;
+    border:0;
+    border-top:1px solid var(--menu-line);
+    background:none;
+    box-shadow:none;
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+    text-align:center
+}
+.quest-bonus-row span {
+    font:17px MenuText;
+    color:var(--menu-gold)
+}
+.quest-bonus-row .quest-bonus-btn {
+    width:100%;
+    font-size:18px;
+    border-color:var(--menu-line);
+    color:var(--menu-muted)
+}
+/* Decrypt / reveal retains the original procedural graphics and text scramble. */
+#pack-opening-modal {
+    display:flex;
+    background:var(--menu-bg)
+}
+.pack-opening-card {
+    width:min(100%,480px);
+    min-height:max(100dvh,680px);
+    max-width:480px;
+    box-sizing:border-box;
+    border:0;
+    border-radius:0;
+    background:none;
+    box-shadow:none;
+    padding:70px 30px 40px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:25px;
+    margin:0 auto;
+    transform:none;
+    overflow:visible
+}
+.pack-opening-card.stage-shaking {
+    animation:none
+}
+.decrypt-pack-title {
+    font:600 20px MenuText;
+    color:white;
+    letter-spacing:2px;
+    margin:0 0 40px
+}
+.shaking-chest-visual {
+    position:relative;
+    width:180px;
+    height:180px;
+    display:grid;
+    place-items:center;
+    margin:0 0 40px
+}
+#unboxing-shaking-canvas {
+    position:static;
+    width:180px;
+    height:180px;
+    filter:none
+}
+.concept-scan {
+    position:absolute;
+    left:-20px;
+    right:-20px;
+    height:1px;
+    background:var(--menu-cyan);
+    opacity:.7;
+    top:35%;
+    animation:concept-scan 1s ease-in-out infinite alternate
+}
+@keyframes concept-scan {
+    to {
+        top:70%;
+        opacity:.35
+    }
+}
+.opening-headline {
+    font:500 20px MenuText;
+    letter-spacing:2px;
+    margin:0;
+    color:white;
+    text-align:center
+}
+.decrypt-progress {
+    height:2px;
+    width:80%;
+    background:#3c321a;
+    overflow:hidden
+}
+.decrypt-progress::before {
+    content:'';
+    display:block;
+    height:100%;
+    background:var(--menu-gold);
+    animation:concept-progress 1.05s linear forwards
+}
+@keyframes concept-progress {
+    from {
+        width:0
+    }
+    to {
+        width:100%
+    }
+}
+.decrypt-code {
+    font:14px monospace;
+    color:var(--menu-muted);
+    letter-spacing:3px
+}
+.reveal-category-pill {
+    order:0;
+    border:0;
+    background:none;
+    font:16px MenuText;
+    color:var(--menu-muted);
+    letter-spacing:3px;
+    position:static;
+    padding:0;
+    margin:0
+}
+.reveal-headline {
+    order:1;
+    font-size:clamp(38px,12vw,54px);
+    margin:0 0 20px;
+    text-align:center
+}
+.reveal-icon-stage {
+    order:2;
+    width:100%;
+    height:180px;
+    background:none;
+    border:0;
+    box-shadow:none;
+    margin:0;
+    padding:0;
+    display:flex;
+    justify-content:center;
+    align-items:center
+}
+#reveal-canvas {
+    position:static;
+    width:260px;
+    height:180px;
+    filter:none
+}
+.reveal-item-title {
+    order:3;
+    font:600 30px MenuText;
+    color:white;
+    text-shadow:none;
+    transform:none;
+    letter-spacing:1px;
+    margin:0;
+    text-align:center
+}
+.reveal-rarity-banner {
+    order:4;
+    position:static;
+    transform:none;
+    padding:0;
+    background:none!important;
+    border:0;
+    color:var(--menu-cyan);
+    font:600 16px MenuText;
+    letter-spacing:3px;
+    margin:-16px 0 0
+}
+.reveal-rarity-banner.rarity-epic {
+    color:#bf5fff
+}
+.reveal-rarity-banner.rarity-legendary {
+    color:var(--menu-gold)
+}
+.reveal-item-desc {
+    order:5;
+    font:17px/1.5 MenuText;
+    margin:0!important;
+    max-width:300px;
+    text-align:center
+}
+.reveal-actions-stack {
+    order:6;
+    display:flex;
+    flex-direction:column;
+    gap:22px;
+    width:100%;
+    margin:12px 0 0
+}
+.reveal-actions-stack .reveal-ad-again-btn {
+    background:none;
+    border:0;
+    font-size:17px;
+    color:var(--menu-muted)
+}
+.reveal-close-text-btn {
+    border:0;
+    background:none;
+    min-height:44px;
+    color:var(--menu-muted);
+    font:17px MenuText;
+    padding:8px
+}
+/* Perk selection is a menu;
+combat rendering and effects keep their existing styles. */
+#levelup-screen {
+    background:rgba(5,7,9,.96);
+    display:flex
+}
+.perk-layout {
+    min-height:max(100dvh,740px);
+    padding-top:12dvh;
+    padding-bottom:40px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:26px
+}
+#levelup-screen h2 {
+    font-size:clamp(37px,12vw,54px);
+    margin:0;
+    white-space:nowrap
+}
+#levelup-screen p[data-i18n=choose_perk] {
+    font-size:19px;
+    letter-spacing:1px;
+    margin:0;
+    display:block
+}
+#levelup-screen .menu-core {
+    margin:4px 0 12px
+}
+#levelup-screen .perk-container {
+    width:100%;
+    max-width:none;
+    display:flex;
+    flex-direction:column;
+    gap:22px;
+    padding:0;
+    margin:0
+}
+#levelup-screen .perk-card {
+    width:100%;
+    max-width:none;
+    min-width:0;
+    min-height:80px;
+    box-sizing:border-box;
+    background:none;
+    border:1px solid var(--menu-line);
+    border-radius:0;
+    padding:16px 20px;
+    box-shadow:none;
+    transform:none;
+    clip-path:none;
+    overflow:hidden;
+    --perk-theme:var(--menu-cyan)
+}
+#levelup-screen .perk-card:first-child {
+    border-color:var(--menu-cyan)
+}
+#levelup-screen .perk-card::before {
+    display:none
+}
+#levelup-screen .perk-card-top {
+    display:flex;
+    align-items:center;
+    gap:18px;
+    margin:0;
+    flex-direction:row
+}
+#levelup-screen .perk-icon-slot {
+    width:48px;
+    min-width:48px;
+    height:46px;
+    background:none;
+    border:0;
+    border-right:1px solid var(--menu-line);
+    border-radius:0;
+    box-shadow:none;
+    padding:0 14px 0 0;
+    transform:none
+}
+#levelup-screen .perk-icon-slot svg {
+    width:32px;
+    height:32px;
+    filter:none
+}
+#levelup-screen .perk-info-wrap {
+    padding:0;
+    flex:1;
+    min-width:0
+}
+#levelup-screen .perk-title {
+    font:600 22px MenuText;
+    color:white;
+    text-shadow:none;
+    letter-spacing:.5px;
+    margin:0;
+    text-align:left
+}
+#levelup-screen .perk-desc {
+    font:17px/1.35 MenuText;
+    color:var(--menu-muted);
+    margin:3px 0 0;
+    text-align:left;
+    background:none;
+    border:0;
+    box-shadow:none
+}
+#levelup-screen .perk-actions-row {
+    width:95%;
+    margin:10px 0 0;
+    gap:0
+}
+#levelup-screen .perk-reroll-btn {
+    width:100%;
+    border:1px solid var(--menu-pink);
+    background:none;
+    color:var(--menu-pink);
+    padding:12px;
+    font:600 18px MenuText;
+    box-shadow:none;
+    min-height:48px
+}
+#levelup-screen .reroll-ad-badge,#levelup-screen .reroll-icon-slot,#levelup-screen .perk-reroll-hint,#levelup-screen .perk-reroll-btn::before {
+    display:none
+}
+.armory-toast {
+    font:16px MenuText;
+    border:1px solid var(--menu-line);
+    border-radius:0;
+    background:var(--menu-bg);
+    box-shadow:none;
+    color:var(--menu-white);
+    max-width:calc(100% - 40px);
+    box-sizing:border-box
+}
+@media(max-width:350px) {
+    .menu-shell {
+        padding-left:20px;
+        padding-right:20px
+    }
+    #armory-modal .armory-header {
+        padding-left:16px;
+        padding-right:12px
+    }
+    #armory-modal .armory-title {
+        font-size:27px
+    }
+    #armory-modal .armory-tabs {
+        padding:0 16px
+    }
+    #armory-modal .armory-tab-btn {
+        font-size:12px;
+        letter-spacing:.2px
+    }
+    #armory-modal .armory-content {
+        padding-left:16px;
+        padding-right:16px
+    }
+    .quest-title {
+        font-size:16px
+    }
+    .quest-reward {
+        font-size:16px
+    }
+    .dr-days-grid {
+        gap:22px 4px
+    }
+    .dr-day-label {
+        font-size:12px
+    }
+    #start-screen .engage-btn {
+        font-size:11px
+    }
+    #start-screen .menu-secondary button {
+        font-size:16px
+    }
+}
+@media(min-width:700px) {
+    #start-screen h1 {
+        font-size:68px
+    }
+    #armory-modal .armory-header {
+        padding-top:32px
+    }
+    #armory-modal .armory-content {
+        padding-top:24px
+    }
+    #armory-modal .card-icon-area {
+        height:145px
+    }
+    #armory-modal .armory-item-card {
+        min-height:205px
+    }
+}
+@media(prefers-reduced-motion:reduce) {
+    .concept-scan {
+        animation:none
+    }
+    .decrypt-progress::before {
+        animation:none;
+        width:100%
+    }
+}
+/* Neutralize legacy !important arcade fills only on the redesigned menus. */
+#daily-reward-modal :is(.dr-claim-btn,.dr-double-btn),#lucky-spin-modal :is(.ls-spin-btn,.ls-ad-spin-btn),#quest-panel-modal .quest-bonus-btn,#pack-opening-modal :is(.reveal-equip-now-btn,.reveal-ad-again-btn) {
+    background:transparent!important;
+    border:1px solid var(--menu-pink)!important;
+    color:var(--menu-white)!important;
+    box-shadow:none!important;
+    transform:none!important;
+    font:600 22px MenuText!important;
+    padding:12px 16px!important
+}
+#daily-reward-modal .dr-double-btn,#lucky-spin-modal .ls-ad-spin-btn,#pack-opening-modal .reveal-ad-again-btn {
+    border:0!important;
+    font-size:17px!important;
+    color:var(--menu-muted)!important
+}
+#daily-reward-modal .dr-double-btn {
+    color:var(--menu-gold)!important
+}
+#quest-panel-modal .quest-bonus-btn {
+    border-color:var(--menu-line)!important;
+    font-size:17px!important;
+    color:var(--menu-muted)!important
+}
+#game-over-screen .leaderboard-filters {
+    display:none!important
+}
+#game-over-screen .result-level {
+    text-transform:uppercase
+}
+#pause-menu .pause-layout {
+    padding-top:min(18dvh,150px);
+    gap:24px;
+    justify-content:flex-start
+}
+#pause-menu h2 {
+    margin:0 0 10px
+}
+#pause-menu .pause-options {
+    align-items:stretch
+}
+#pause-menu .toggle-container {
+    width:100%;
+    box-sizing:border-box;
+    text-transform:uppercase;
+    flex-shrink:0
+}
+#pause-menu .checkmark:before {
+    transform:none
+}
+#pause-menu #current-track-name {
+    white-space:nowrap;
+    word-spacing:normal;
+    min-width:0;
+    width:auto;
+    max-width:none;
+    text-shadow:none;
+    flex:1;
+    text-align:center;
+    text-transform:uppercase
+}
+#pause-menu .slider-container label {
+    text-shadow:none
+}
+#pause-menu .arrow-btn {
+    flex:0 0 44px;
+    padding:0
+}
+#start-screen #start-coin-amount {
+    font:600 20px MenuText;
+    color:var(--menu-gold)
+}
+#armory-modal .hangar-quick-equip-btn {
+    box-shadow:0 -14px 0 14px var(--menu-bg)
+}
+#lucky-spin-modal #ls-wheel-canvas {
+    border:0;
+    box-shadow:none;
+    background:none
+}
+#armory-modal .offer-details {
+    margin:0 0 16px;
+    font:14px MenuText;
+    color:var(--menu-muted)
+}
+#armory-modal .offer-details summary {
+    cursor:pointer;
+    min-height:36px;
+    display:flex;
+    align-items:center;
+    letter-spacing:1px
+}
+#armory-modal .offer-details[open] .offer-benefits-list {
+    display:flex;
+    color:var(--menu-muted);
+    margin:0;
+    padding:0
+}
+#armory-modal .offer-details .offer-benefits-list li {
+    font:15px/1.5 MenuText
+}
+#armory-modal .armory-hangar-deck {
+    padding:0;
+    margin-bottom:14px;
+}
+#armory-modal .hangar-canvas-wrap {
+    height:150px;
+}
+#armory-modal #hangar-preview-canvas {
+    height:110px;
+}
+/* Match each backing canvas to its displayed area in ArmoryUI. A canvas must
+   not overflow its card or stretch a ship differently on each axis. */
+#armory-modal .hangar-canvas-wrap {height:auto;min-height:0}
+#armory-modal #hangar-preview-canvas {width:100%;height:clamp(100px,22vw,140px);max-width:100%;object-fit:fill}
+#armory-modal .card-icon-area {height:clamp(84px,20vw,140px);min-width:0;display:block;overflow:hidden}
+#armory-modal .card-item-canvas {width:100%;height:100%;max-height:none;min-width:0;min-height:0;object-fit:fill}
+#game-over-screen .results-layout {
+    gap:16px;
+}
+#game-over-screen h1 {
+    margin-bottom:8px;
+}
+#game-over-screen .game-over-coins-banner,#game-over-screen #leaderboard-section {
+    margin-top:0;
+    margin-bottom:0;
+}
+#game-over-screen .result-best {
+    margin-top:12px;
+}
+#armory-modal .airdrop-actions {
+    flex-direction:row;
+}
+#armory-modal .airdrop-ad-btn {
+    width:auto;
+}
+#armory-modal .cipher-pack-card,#armory-modal .armory-item-card {
+    box-sizing:border-box;
+}
+#pause-menu .track-selector {
+    align-items:center
+}
+#pause-menu #music-volume {
+    appearance:none;
+    -webkit-appearance:none;
+    border:0;
+    outline:0;
+    box-shadow:none;
+    border-radius:0;
+    background:var(--menu-line);
+    padding:0
+}
+#pause-menu #music-volume::-webkit-slider-thumb {
+    appearance:none;
+    -webkit-appearance:none;
+    width:13px;
+    height:13px;
+    background:var(--menu-cyan);
+    border:0;
+    border-radius:50%;
+    box-shadow:none
+}
+#pause-menu #music-volume::-moz-range-thumb {
+    width:13px;
+    height:13px;
+    background:var(--menu-cyan);
+    border:0;
+    border-radius:50%;
+    box-shadow:none
+}
+#daily-reward-modal .dr-header {
+    border:0;
+    padding:0;
+    background:none
+}
+#daily-reward-modal .neon-coin-svg {
+    filter:none!important
+}
+#daily-reward-modal .neon-coin-svg circle {
+    fill:none;
+    stroke:var(--menu-gold);
+    stroke-width:1.3
+}
+#daily-reward-modal .neon-coin-svg circle:nth-child(2) {
+    fill:var(--menu-gold);
+    stroke:none;
+    r:6.8
+}
+#daily-reward-modal .neon-coin-svg text {
+    display:none
+}
+#lucky-spin-modal .ls-wheel-container {
+    border:0;
+    box-shadow:none;
+    border-radius:0;
+    background:none
+}
+.quest-bonus-row {
+    border-radius:0
+}
+/* Long translated headings wrap naturally on smaller devices. */
+:is(#pause-menu,#leaderboard-screen,#levelup-screen) :is(h1,h2),.dr-title,.ls-title,.quest-panel-title {
+    white-space:normal;
+    overflow-wrap:anywhere;
+    max-width:100%
+}

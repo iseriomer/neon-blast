@@ -24,7 +24,17 @@ class DailyRewardManager {
 
     static init() {
         this.load();
-        this.checkAndShow();
+        // First-time players reach the game before encountering a reward popup.
+        if (this.state.totalLogins > 0) this.checkAndShow();
+        if (!this.hasClaimedToday()) {
+            const button = document.getElementById('daily-rewards-btn');
+            if (button && !button.querySelector('.reward-ready-dot')) {
+                const dot = document.createElement('span');
+                dot.className = 'reward-ready-dot';
+                dot.setAttribute('aria-hidden', 'true');
+                button.appendChild(dot);
+            }
+        }
     }
 
     static load() {
@@ -103,19 +113,19 @@ class DailyRewardManager {
             const isCurrent = (i === dayIndex);
             const isPast = (i < dayIndex) || (alreadyClaimed && i === dayIndex);
             const statusClass = (alreadyClaimed && isCurrent) ? 'claimed' : (isCurrent ? 'current' : (isPast ? 'claimed' : 'locked'));
-            const daySvg = isPast ? checkIcon : getIcon(r.iconKey, 20);
+            const daySvg = isPast ? checkIcon : r.special ? getIcon('crate', 28) : getNeonCoinSVG(28);
 
             daysHTML += `
                 <div class="dr-day ${statusClass}">
                     <div class="dr-day-num">${t('daily_day_badge', { day: i + 1 })}</div>
                     <div class="dr-day-icon">${daySvg}</div>
-                    <div class="dr-day-label">${this.getRewardLabel(r)}</div>
+                    <div class="dr-day-label">${r.special ? this.getRewardLabel(r) : r.coins.toLocaleString(Localization.currentLang)}</div>
                 </div>
             `;
         }
 
         const streakIcon = getIcon('fire', 16);
-        const rewardHighlightSvg = getIcon(reward.iconKey, 34);
+        const rewardHighlightSvg = reward.special ? getIcon('crate', 54) : getNeonCoinSVG(54);
         const boltSvg = getIcon('lightning', 18);
 
         modal.innerHTML = `
@@ -222,7 +232,8 @@ class DailyRewardManager {
         this.save();
 
         // Close modal with feedback
-        if (typeof playSound === 'function') playSound('levelup');
+        document.querySelector('#daily-rewards-btn .reward-ready-dot')?.remove();
+        if (window.MenuAudio) MenuAudio.play('reward');
         const modal = document.getElementById('daily-reward-modal');
         if (modal) modal.classList.add('hidden');
 

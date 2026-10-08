@@ -7,6 +7,10 @@
     <title>Neon Blast</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="armory.css">
+    <link rel="stylesheet" href="menus.css">
+    <link rel="stylesheet" href="menu-viewport.css">
+    <link rel="stylesheet" href="experience.css">
+    <link rel="stylesheet" href="button-surfaces.css">
 </head>
 
 <body>
@@ -37,10 +41,48 @@
     </div>
 
     <!-- Pause Menu (Hidden by default) -->
-    <div id="pause-menu" class="hidden">
-        <h2 data-i18n="paused">PAUSED</h2>
-        <div class="pause-options">
-            <div style="display:flex; justify-content:center; margin-bottom:15px;">
+<div id="pause-menu" class="hidden">
+<div class="menu-shell pause-layout">
+<h2 data-i18n="paused">PAUSED</h2>
+<div class="pause-options">
+<label class="toggle-container">
+                <input type="checkbox" id="sfx-toggle" checked>
+                <span class="checkmark"></span>
+                <span data-i18n="sfx">SFX</span>
+            </label>
+<label class="toggle-container">
+                <input type="checkbox" id="music-toggle">
+                <span class="checkmark"></span>
+                <span data-i18n="music">Music</span>
+            </label>
+<div class="track-selector">
+                <button id="prev-track-btn" class="arrow-btn">❮</button>
+                <span id="current-track-name">Track Name</span>
+                <button id="next-track-btn" class="arrow-btn">❯</button>
+            </div>
+<div class="slider-container" style="display: flex; flex-direction: column; width: 100%; margin: 10px 0;">
+                <label for="music-volume" style="font-size: 0.8rem; margin-bottom: 5px;" data-i18n="music_volume">Music
+                    Volume</label>
+                <input type="range" id="music-volume" min="0" max="1" step="0.1" value="0.6"
+                    style="width: 100%; cursor: pointer;">
+            </div>
+<label class="toggle-container">
+                <input type="checkbox" id="screenshake-toggle">
+                <span class="checkmark"></span>
+                <span data-i18n="screen_shake">Screen Shake</span>
+            </label>
+<label class="toggle-container">
+                <input type="checkbox" id="joystick-toggle">
+                <span class="checkmark"></span>
+                <span data-i18n="joystick">Joystick Mode</span>
+            </label>
+<label class="toggle-container">
+                <input type="checkbox" id="fps-toggle">
+                <span class="checkmark"></span>
+                <span data-i18n="show_fps">Show FPS</span>
+            </label>
+</div><button class="main-btn" id="resume-btn" data-i18n="resume_btn">RESUME</button>
+<div class="menu-languages">
                 <button onclick="Localization.setLanguage('tr')"
                     style="background:#222; border:1px solid #00ffff; color:#00ffff; cursor:pointer; padding:5px 10px; margin:0 5px;">TR</button>
                 <button onclick="Localization.setLanguage('en')"
@@ -54,49 +96,13 @@
                 <button onclick="Localization.setLanguage('it')"
                     style="background:#222; border:1px solid #00ffff; color:#00ffff; cursor:pointer; padding:5px 10px; margin:0 5px;">IT</button>
             </div>
-            <label class="toggle-container">
-                <input type="checkbox" id="fps-toggle">
-                <span class="checkmark"></span>
-                <span data-i18n="show_fps">Show FPS</span>
-            </label>
-            <label class="toggle-container">
-                <input type="checkbox" id="sfx-toggle" checked>
-                <span class="checkmark"></span>
-                <span data-i18n="sfx">SFX</span>
-            </label>
-            <label class="toggle-container">
-                <input type="checkbox" id="screenshake-toggle">
-                <span class="checkmark"></span>
-                <span data-i18n="screen_shake">Screen Shake</span>
-            </label>
-            <label class="toggle-container">
-                <input type="checkbox" id="joystick-toggle">
-                <span class="checkmark"></span>
-                <span data-i18n="joystick">Joystick Mode</span>
-            </label>
-            <label class="toggle-container">
-                <input type="checkbox" id="music-toggle">
-                <span class="checkmark"></span>
-                <span data-i18n="music">Music</span>
-            </label>
-            <div class="track-selector">
-                <button id="prev-track-btn" class="arrow-btn">❮</button>
-                <span id="current-track-name">Track Name</span>
-                <button id="next-track-btn" class="arrow-btn">❯</button>
-            </div>
-            <div class="slider-container" style="display: flex; flex-direction: column; width: 100%; margin: 10px 0;">
-                <label for="music-volume" style="font-size: 0.8rem; margin-bottom: 5px;" data-i18n="music_volume">Music
-                    Volume</label>
-                <input type="range" id="music-volume" min="0" max="1" step="0.1" value="0.6"
-                    style="width: 100%; cursor: pointer;">
-            </div>
-        </div>
-        <button class="main-btn" id="resume-btn" data-i18n="resume_btn">RESUME</button>
-    </div>
+</div></div>
 
     <div id="start-screen">
+        <div class="start-layout">
         <h1>NEON BLAST</h1>
-        <p data-i18n="start_desc">Protect the center. Destroy enemies.<br>Fill the XP bar to EVOLVE.</p>
+        <div class="menu-core" aria-hidden="true"></div>
+        <p data-i18n="menu_tagline">Protect the center. Destroy enemies.<br>Fill the XP bar to EVOLVE.</p>
 
         <div class="start-coin-display">
             <span class="coin-icon-slot">
@@ -107,13 +113,15 @@
                 </svg>
             </span>
             <span id="start-coin-amount">0</span>
-            <span class="coin-label">NEON COINS</span>
+            <span class="coin-label" data-i18n="currency_name">NEON COINS</span>
         </div>
 
         <button class="main-btn" id="start-btn" data-i18n="start_btn">START GAME</button>
+        <div class="menu-secondary">
         <button class="main-btn armory-menu-btn" id="armory-btn" data-i18n="armory_btn">CEPHANELİK</button>
         <button class="main-btn" id="leaderboard-btn" data-i18n="leaderboard_btn">LEADERBOARD</button>
 
+        </div>
         <!-- Engagement Buttons -->
         <div class="start-engagement-row">
             <button class="engage-btn" id="daily-rewards-btn">
@@ -136,7 +144,8 @@
             </button>
         </div>
 
-        <div class="lang-selector" style="margin-top: 20px;">
+        <button id="player-options-btn" data-i18n="player_options">YARDIM VE SEÇENEKLER</button>
+        <div class="lang-selector menu-languages" style="margin-top: 20px;">
             <button onclick="Localization.setLanguage('tr')"
                 style="background:none; border:1px solid #00ffff; color:#00ffff; cursor:pointer; padding:5px 10px; margin:0 5px;">TR</button>
             <button onclick="Localization.setLanguage('en')"
@@ -150,12 +159,13 @@
             <button onclick="Localization.setLanguage('it')"
                 style="background:none; border:1px solid #00ffff; color:#00ffff; cursor:pointer; padding:5px 10px; margin:0 5px;">IT</button>
         </div>
+            </div>
     </div>
 
     <!-- Leaderboard Screen (New) -->
-    <div id="leaderboard-screen" class="hidden"
-        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5,5,10,0.98); flex-direction: column; align-items: center; justify-content: center; z-index: 25;">
-        <h1 style="color: #00ffff;">LEADERBOARD</h1>
+    <div id="leaderboard-screen" class="hidden">
+        <div class="menu-shell leaderboard-layout">
+<h1 data-i18n="leaderboard_btn">LEADERBOARD</h1>
 
         <div class="leaderboard-filters" style="display: flex; gap: 10px; margin-bottom: 10px; margin-top: 10px;">
             <button id="lb-filter-all" class="filter-btn" data-i18n="lb_all_time">ALL TIME</button>
@@ -169,14 +179,19 @@
                 <li>Loading...</li>
             </ul>
         </div>
-        <button class="main-btn" id="close-leaderboard-btn" style="margin-top: 30px;">BACK</button>
+        <button class="main-btn" id="close-leaderboard-btn" data-i18n="back_btn" style="margin-top: 30px;">BACK</button>
+    </div>
     </div>
 
     <!-- Game Over Screen -->
     <div id="game-over-screen" class="hidden">
+<div class="menu-shell results-layout">
         <h1 style="color: #ff0055; -webkit-text-fill-color: #ff0055; text-shadow: 5px 5px 0 #800000;"
             data-i18n="game_over">GAME OVER</h1>
-        <p id="final-score">Score: 0</p>
+        <p id="final-score">0</p>
+<span class="result-score-label" data-i18n="score">SKOR</span>
+<p class="result-level"><span data-i18n="level">SEVİYE</span> <strong id="result-level-value">1</strong></p>
+<p id="result-run-detail"></p>
 
         <!-- Round End Coin Summary & 2X Rewarded Ad Button -->
         <div id="game-over-coins" class="game-over-coins-banner" style="display: none;">
@@ -188,19 +203,22 @@
                         <text x="12" y="16" text-anchor="middle" font-size="11" font-weight="900" fill="#ffffff" font-family="'Segoe UI', Roboto, sans-serif">N</text>
                     </svg>
                 </span>
-                <span id="earned-coins-amount">+0</span>
+                <span id="earned-coins-amount">+0</span><span data-i18n="coins_earned">NEON COIN</span>
             </div>
             <button class="double-coins-ad-btn" id="double-coins-btn">
                 <span class="btn-ad-icon-slot"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="vertical-align: middle; filter: drop-shadow(0 0 6px #fbbf24);"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" fill="#fbbf24" stroke="#d97706" stroke-width="1.5" stroke-linejoin="round"/></svg></span> <span data-i18n="double_coins">2X COINS (WATCH AD)</span>
             </button>
+            <p id="double-coins-hint" class="reward-value-hint"></p>
         </div>
 
         <div id="leaderboard-section">
+            <div class="result-submit-row">
             <input type="text" id="player-name-input" placeholder="ENTER INITIALS" maxlength="10"
                 data-i18n="enter_initials">
             <button class="main-btn" id="submit-score-btn" style="padding: 10px 30px; font-size: 1rem;"
                 data-i18n="save_score">SAVE
                 SCORE</button>
+            </div>
 
             <div class="leaderboard-filters"
                 style="display: flex; gap: 10px; margin-bottom: 10px; margin-top: 10px; justify-content: center;">
@@ -210,7 +228,7 @@
             </div>
 
             <div class="leaderboard-container">
-                <h3>TOP 10 PLAYERS</h3>
+                <h3 data-i18n="leaderboard_btn">LEADERBOARD</h3>
                 <ul id="leaderboard-list">
                     <li data-i18n="loading">Loading...</li>
                 </ul>
@@ -221,6 +239,8 @@
             <button class="main-btn armory-menu-btn" id="game-over-armory-btn" data-i18n="armory_btn">CEPHANELİK</button>
             <button class="main-btn" id="restart-btn" data-i18n="play_again">PLAY AGAIN</button>
         </div>
+    <div class="result-best"><span data-i18n="menu_best_score">EN İYİ SKOR</span><strong id="result-best-value">0</strong></div>
+</div>
     </div>
 
     <!-- Revive / Second Chance Modal -->
@@ -272,7 +292,7 @@
             <!-- Armory Nav Tabs -->
             <div class="armory-tabs">
                 <button class="armory-tab-btn cipher-tab active" data-tab="store" data-i18n="tab_store">MAĞAZA</button>
-                <button class="armory-tab-btn" data-tab="cores" data-i18n="tab_cores">ÇEKİRDEK & GEMİ</button>
+                <button class="armory-tab-btn" data-tab="cores" data-i18n="menu_tab_cores">ÇEKİRDEK & GEMİ</button>
                 <button class="armory-tab-btn" data-tab="projectiles" data-i18n="tab_projectiles">MERMİLER</button>
                 <button class="armory-tab-btn" data-tab="backgrounds" data-i18n="tab_backgrounds">ARKA PLAN</button>
             </div>
@@ -282,7 +302,7 @@
                 <!-- Live Hologram Hangar / Test Rig -->
                 <div id="armory-hangar-deck" class="armory-hangar-deck hidden">
                     <div class="hangar-canvas-wrap">
-                        <canvas id="hangar-preview-canvas" width="600" height="150"></canvas>
+                        <canvas id="hangar-preview-canvas" width="360" height="120"></canvas>
                         <div class="hangar-hud-overlay">
                             <div class="hangar-tag" data-i18n="hangar_tag">TEST PİSTİ</div>
                             <div class="hangar-preview-info">
@@ -385,8 +405,10 @@
 
     <!-- Level Up / Perk Selection Screen -->
     <div id="levelup-screen" class="hidden">
+<div class="menu-shell perk-layout">
         <h2 data-i18n="level_up">LEVEL UP!</h2>
         <p data-i18n="choose_perk">Choose a perk:</p>
+        <div class="menu-core" aria-hidden="true"></div>
         <div class="perk-container" id="perk-list"></div>
         <div class="perk-actions-row">
             <button class="perk-reroll-btn" id="perk-reroll-btn" type="button">
@@ -410,6 +432,7 @@
                 Kısa bir reklam izleyerek 3 farklı özellik çek (mevcutlar elenir)
             </div>
         </div>
+    </div>
     </div>
 
     <!-- Admin Panel -->
@@ -441,6 +464,22 @@
 
     <canvas id="gameCanvas"></canvas>
 
+    <div id="player-options-modal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="player-options-title">
+        <div class="player-options-card">
+            <h2 id="player-options-title" data-i18n="how_to_play">NASIL OYNANIR</h2>
+            <ol><li id="aim-instructions" data-i18n="aim_touch"></li><li data-i18n="core_stays"></li><li data-i18n="evolve_guide"></li></ol>
+            <label><input type="checkbox" id="options-sfx-toggle" checked><span data-i18n="options_sound">Ses efektleri</span></label>
+            <label><input type="checkbox" id="analytics-choice"><span data-i18n="analytics_choice"></span></label>
+            <small data-i18n="analytics_note"></small>
+            <div class="options-links">
+                <a href="https://sites.google.com/view/neon-blast-privacy-policy/home" target="_blank" rel="noopener" data-i18n="privacy_policy">Gizlilik politikası</a>
+                <button id="ad-privacy-options" class="hidden" data-i18n="ad_privacy_options"></button>
+                <button id="restore-purchases-btn" class="hidden" data-i18n="restore_purchases"></button>
+            </div>
+            <button class="main-btn" id="player-options-close" data-i18n="close_btn">KAPAT</button>
+        </div>
+    </div>
+
     <!-- Load Firebase Leaderboard -->
     <script type="module" src="game/leaderboard.js"></script>
 
@@ -451,8 +490,12 @@
     <!-- 1. Constants and utilities first -->
     <script src="game/constants.js"></script>
     <script src="game/audio.js"></script>
+    <script src="game/menu-audio.js"></script>
     <script src="game/lang.js"></script>
     <script src="game/store-translations.js"></script>
+    <script src="game/experience-translations.js"></script>
+    <script src="game/telemetry.js"></script>
+    <script src="game/experience.js"></script>
     <script src="game/ui-icons.js"></script>
 
     <!-- 2. NEW: Performance profiler -->
@@ -464,6 +507,7 @@
     <!-- Monetization & Cosmetics Systems -->
     <script src="game/managers/AdManager.js"></script>
     <script src="game/managers/CosmeticsManager.js"></script>
+    <script src="game/cosmetic-visuals.js"></script>
     <script src="game/managers/PremiumStoreManager.js"></script>
     <script src="game/managers/DailyRewardManager.js"></script>
     <script src="game/managers/QuestManager.js"></script>
@@ -526,9 +570,11 @@
     <script src="game/admin.js"></script>
     <script src="game/managers/SaveManager.js"></script>
     <script src="game/navigation.js"></script>
+    <script src="game/menus.js"></script>
 
     <script>
         // Initialize systems
+        PlayerOptions.init();
         // Admin panel only in dev mode (URL has ?dev=1)
         if (window.location.search.includes('dev=1')) {
             initAdminPanel();
@@ -538,8 +584,8 @@
         }
 
         // Initialize monetization managers
-        if (typeof AdManager !== 'undefined') AdManager.init();
         if (typeof PremiumStoreManager !== 'undefined') PremiumStoreManager.init();
+        if (typeof AdManager !== 'undefined') AdManager.preload();
         if (typeof DailyRewardManager !== 'undefined') DailyRewardManager.init();
         if (typeof QuestManager !== 'undefined') QuestManager.init();
         if (typeof LuckySpinManager !== 'undefined') LuckySpinManager.init();

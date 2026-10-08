@@ -22,6 +22,16 @@ class CosmeticsManager {
 
     // ITEM DATABASE - Crisp, minimal, aesthetic
     static ITEMS = {
+        "core_raptor": {"id": "core_raptor", "type": "core", "categoryName": "ÇEKİRDEK", "name": "Yırtıcı", "rarity": "RARE", "description": "Geriye açılan kanatlar ve çift iyon motoru.", "color": "#38bdf8"},
+        "core_manta": {"id": "core_manta", "type": "core", "categoryName": "ÇEKİRDEK", "name": "Manta", "rarity": "EPIC", "description": "Geniş kanatlar ve titreşen enerji düğümleri.", "color": "#2dd4bf"},
+        "core_seraph": {"id": "core_seraph", "type": "core", "categoryName": "ÇEKİRDEK", "name": "Seraf", "rarity": "EPIC", "description": "Bölünmüş bıçak kanatlar ve ışıldayan enerji yolları.", "color": "#fbbf24"},
+        "core_eclipse": {"id": "core_eclipse", "type": "core", "categoryName": "ÇEKİRDEK", "name": "Tutulma", "rarity": "LEGENDARY", "description": "Dönen hale içinde zırhlı önleme gemisi.", "color": "#a78bfa"},
+        "core_monarch": {"id": "core_monarch", "type": "core", "categoryName": "ÇEKİRDEK", "name": "Hükümdar", "rarity": "LEGENDARY", "description": "Taçlı komuta gemisi ve ağır kanat zırhı.", "color": "#fb7185"},
+        "proj_comet": {"id": "proj_comet", "type": "projectile", "categoryName": "MERMİ", "name": "Kuyruklu Yıldız", "rarity": "RARE", "description": "Sönen kuyruklu parlak enerji çekirdeği.", "color": "#38bdf8"},
+        "proj_helix": {"id": "proj_helix", "type": "projectile", "categoryName": "MERMİ", "name": "Çift Sarmal", "rarity": "EPIC", "description": "Atışın etrafında örülen iki enerji şeridi.", "color": "#2dd4bf"},
+        "proj_razor": {"id": "proj_razor", "type": "projectile", "categoryName": "MERMİ", "name": "Jilet Disk", "rarity": "EPIC", "description": "Dönen üç bıçaklı enerji diski.", "color": "#fbbf24"},
+        "proj_nova": {"id": "proj_nova", "type": "projectile", "categoryName": "MERMİ", "name": "Nova", "rarity": "LEGENDARY", "description": "Işıldayan halka çevresinde dönen yıldız uçları.", "color": "#a78bfa"},
+        "proj_lance": {"id": "proj_lance", "type": "projectile", "categoryName": "MERMİ", "name": "İyon Mızrağı", "rarity": "LEGENDARY", "description": "Çatallı enerji izine sahip uzun mızrak.", "color": "#fb7185"},
         // --- GEMİ ÇEKİRDEKLERİ (CORES) ---
         'core_default': {
             id: 'core_default',
@@ -326,23 +336,16 @@ class CosmeticsManager {
             window.BackgroundManager.applyCosmeticBackground(itemId);
         }
 
-        // Live update in-game player and projectile styles immediately without requiring restart!
+        // Equip changes geometry only. Perks own playerStats.color and shot colours.
         if (normalized === 'core') {
-            const item = this.ITEMS[itemId];
             if (typeof player !== 'undefined') {
                 player.skin = itemId;
             }
-            if (item && item.color && typeof gameState !== 'undefined' && gameState.playerStats) {
-                gameState.playerStats.color = item.color;
-                if (typeof updateXPBarColor === 'function') updateXPBarColor(item.color);
-            }
         } else if (normalized === 'projectile') {
-            const item = this.ITEMS[itemId];
             if (typeof projectilePool !== 'undefined') {
                 const active = projectilePool.getActive();
                 for (let i = 0; i < active.length; i++) {
                     active[i].skinId = itemId;
-                    if (item && item.color) active[i].color = item.color;
                 }
             }
         }

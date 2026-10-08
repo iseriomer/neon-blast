@@ -154,6 +154,36 @@ class SpawnManager {
         });
     }
 
+    static fitsBuild(perk, stats = gameState.playerStats) {
+        const dependencies = {
+            pulse_accelerator: stats.pulseCore, pulse_payload: stats.pulseCore,
+            cryo_fracture: stats.freeze > 0, demolition_matrix: stats.explosiveRadius > 0,
+            critical_cascade: stats.critChance > 0,
+            chain_lightning_count: stats.chainLightning > 0, chain_lightning_damage: stats.chainLightning > 0,
+            laser_damage: stats.laserBeam > 0, orbital_size: stats.orbitals > 0,
+            electric_aura_damage: stats.electricAura, electric_aura_rate: stats.electricAura, electric_aura_area: stats.electricAura
+        };
+        return !!dependencies[perk.id];
+    }
+
+    static choosePerks(candidates) {
+        const shuffled = [...candidates];
+        // Fisher-Yates avoids the positional bias of a random sort comparator.
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        const firstPick = gameState.level <= 2 && !gameState.takenPerks.length;
+        const offensive = new Set(['rapid_fire', 'machine_gun', 'double_shot', 'shotgun']);
+        const anchor = firstPick ? shuffled.find(perk => offensive.has(perk.id))
+            : Math.random() < .6 ? shuffled.find(perk => this.fitsBuild(perk)) : null;
+        if (anchor) {
+            const index = shuffled.indexOf(anchor);
+            [shuffled[0], shuffled[index]] = [shuffled[index], shuffled[0]];
+        }
+        return shuffled.slice(0, 3);
+    }
+
     static rollPerks(excludedPerkIds = []) {
         SpawnManager.clearAllIntervals();
         perkListEl.innerHTML = '';
@@ -167,8 +197,7 @@ class SpawnManager {
             candidates = candidates.concat(others);
         }
 
-        const shuffled = candidates.sort(() => 0.5 - Math.random());
-        const selectedPerks = shuffled.slice(0, 3);
+        const selectedPerks = SpawnManager.choosePerks(candidates);
         SpawnManager.currentOfferedPerks = selectedPerks;
 
         // Create card elements
@@ -251,6 +280,7 @@ class SpawnManager {
                 card.innerHTML = `
                     <div class="perk-card-top">
                         <div class="perk-icon-slot">${iconSvg}</div>
+                        ${SpawnManager.fitsBuild(finalPerk) ? `<span class="perk-fit">${Localization.t('perk_build_fit')}</span>` : ''}
                     </div>
                     <div class="perk-info-wrap">
                         <div class="perk-title">${Localization.t(finalPerk.title)}</div>
@@ -324,6 +354,7 @@ class SpawnManager {
 
         playSound('perk_select');
         gameState.takenPerks.push(perk.id);
+        if (window.GameTelemetry) GameTelemetry.track('perk_picked', { perk_id: perk.id, level: gameState.level });
         if (typeof QuestManager !== 'undefined') {
             QuestManager.trackEvent('perks_selected', 1);
         }

@@ -34,6 +34,13 @@ class InputManager {
                     timestamp: Date.now()
                 });
             }
+            // A quick tap can begin and end between frames. Fire immediately,
+            // like mouse input, then let update() handle continuous aiming.
+            if (!gameState.isStarting && !gameState.isDying && e.changedTouches.length) {
+                const touch = e.changedTouches[e.changedTouches.length - 1];
+                if (window.FirstRunGuide) FirstRunGuide.onAim();
+                shoot(touch.clientX, touch.clientY, gameState);
+            }
         });
 
         CANVAS.addEventListener('touchmove', (e) => {
@@ -78,6 +85,7 @@ class InputManager {
             if (e.target !== CANVAS || e.button !== 0) return;
             if (!gameState.gameActive || gameState.isPaused) return;
             isMouseDown = true;
+            if (window.FirstRunGuide) FirstRunGuide.onAim();
             mouseX = e.clientX;
             mouseY = e.clientY;
             // Immediate shot on click is fine, but continuous holding is handled in update()
@@ -118,6 +126,7 @@ class InputManager {
             const aimDistance = 500;
             const targetX = player.x + window.joystick.vector.x * aimDistance;
             const targetY = player.y + window.joystick.vector.y * aimDistance;
+            if (window.FirstRunGuide) FirstRunGuide.onAim();
             shoot(targetX, targetY, gameState);
             return;
         }
@@ -136,6 +145,7 @@ class InputManager {
             }
 
             if (latestTouch) {
+                if (window.FirstRunGuide) FirstRunGuide.onAim();
                 shoot(latestTouch.x, latestTouch.y, gameState);
                 return;
             }
@@ -143,6 +153,7 @@ class InputManager {
 
         // 3. Mouse Priority
         if (isMouseDown) {
+            if (window.FirstRunGuide) FirstRunGuide.onAim();
             shoot(mouseX, mouseY, gameState);
         }
     }

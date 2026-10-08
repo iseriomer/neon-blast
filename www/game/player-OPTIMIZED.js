@@ -24,7 +24,7 @@ function drawPlayer(playerStats, lastShotTime) {
     const color = playerStats.color || '#00ffff';
 
     function isStarshipCore(skin) {
-        return skin === 'core_dragon' || skin === 'core_aurora' || skin === 'core_void_king';
+        return CosmeticVisuals.isShip(skin);
     }
     window.isStarshipCore = isStarshipCore;
 
@@ -181,7 +181,8 @@ function shoot(targetX, targetY, gameState) {
 
 // Global Procedural Core & Starship Renderer
 function drawSpacecraftHull(ctx, coreSkin, color, r, t, isHangar = false) {
-    const isShip = (typeof isStarshipCore === 'function') ? isStarshipCore(coreSkin) : (coreSkin === 'core_dragon' || coreSkin === 'core_aurora' || coreSkin === 'core_void_king');
+    if (CosmeticVisuals.drawShip(ctx, coreSkin, color, r, t)) return;
+    const isShip = CosmeticVisuals.isShip(coreSkin);
 
     // 1. PREMIUM STARSHIPS (Aerodynamic Combat Hulls with Plasma Thrusters)
     if (isShip) {
@@ -206,7 +207,7 @@ function drawSpacecraftHull(ctx, coreSkin, color, r, t, isHangar = false) {
 
         switch (coreSkin) {
             case 'core_dragon': {
-                drawDualThrusters(r * 0.6, '#ff4500');
+                drawDualThrusters(r * 0.6, color);
                 // Cybernetic Dragon Starfighter Hull
                 ctx.fillStyle = color;
                 ctx.beginPath();
@@ -226,7 +227,7 @@ function drawSpacecraftHull(ctx, coreSkin, color, r, t, isHangar = false) {
                 ctx.fill();
 
                 // Dragon Spine & Cockpit
-                ctx.strokeStyle = '#ffd700';
+                ctx.strokeStyle = color;
                 ctx.lineWidth = 2;
                 ctx.beginPath();
                 ctx.moveTo(r * 1.7, 0); ctx.lineTo(-r * 0.6, 0);
@@ -240,7 +241,7 @@ function drawSpacecraftHull(ctx, coreSkin, color, r, t, isHangar = false) {
             }
 
             case 'core_aurora': {
-                drawDualThrusters(r * 0.55, '#00ff88');
+                drawDualThrusters(r * 0.55, color);
                 // Aurora Stealth Interceptor Starship
                 ctx.fillStyle = color;
                 ctx.beginPath();
@@ -256,7 +257,7 @@ function drawSpacecraftHull(ctx, coreSkin, color, r, t, isHangar = false) {
                 ctx.fill();
 
                 // Aurora Glow Strip
-                ctx.strokeStyle = '#00f0ff';
+                ctx.strokeStyle = color;
                 ctx.lineWidth = 1.8;
                 ctx.beginPath();
                 ctx.moveTo(r * 1.3, 0);
@@ -274,7 +275,7 @@ function drawSpacecraftHull(ctx, coreSkin, color, r, t, isHangar = false) {
             }
 
             case 'core_void_king': {
-                drawDualThrusters(r * 0.75, '#c084fc');
+                drawDualThrusters(r * 0.75, color);
                 // Void Dreadnought / Flagship Hull
                 ctx.fillStyle = color;
                 ctx.beginPath();
@@ -292,7 +293,7 @@ function drawSpacecraftHull(ctx, coreSkin, color, r, t, isHangar = false) {
                 ctx.fill();
 
                 // Crown Wings
-                ctx.fillStyle = '#ffd700';
+                ctx.fillStyle = color;
                 ctx.beginPath();
                 ctx.moveTo(r * 0.9, -r * 0.55);
                 ctx.lineTo(r * 1.25, -r * 0.75);
@@ -312,7 +313,7 @@ function drawSpacecraftHull(ctx, coreSkin, color, r, t, isHangar = false) {
                 ctx.beginPath();
                 ctx.arc(0, 0, r * 0.48, 0, Math.PI * 2);
                 ctx.fill();
-                ctx.strokeStyle = '#c084fc';
+                ctx.strokeStyle = color;
                 ctx.lineWidth = 2;
                 ctx.stroke();
 
@@ -404,8 +405,8 @@ function drawSpacecraftHull(ctx, coreSkin, color, r, t, isHangar = false) {
             ctx.save();
             ctx.rotate(t * 1.5);
             const grad = ctx.createRadialGradient(0, 0, r * 0.5, 0, 0, r * 1.6);
-            grad.addColorStop(0, 'rgba(184, 68, 255, 0.95)');
-            grad.addColorStop(0.7, 'rgba(0, 240, 255, 0.5)');
+            grad.addColorStop(0, CosmeticVisuals.alpha(color, 0.95));
+            grad.addColorStop(0.7, CosmeticVisuals.alpha(color, 0.5));
             grad.addColorStop(1, 'transparent');
             ctx.fillStyle = grad;
             ctx.beginPath();
@@ -424,7 +425,7 @@ function drawSpacecraftHull(ctx, coreSkin, color, r, t, isHangar = false) {
 
             // Merkez karanlýk madde çekirdek noktasý
             ctx.fillStyle = '#060114';
-            ctx.strokeStyle = '#d946ef';
+            ctx.strokeStyle = color;
             ctx.lineWidth = 2.2;
             ctx.beginPath();
             ctx.arc(0, 0, r * 0.8, 0, Math.PI * 2);
@@ -442,7 +443,7 @@ function drawSpacecraftHull(ctx, coreSkin, color, r, t, isHangar = false) {
             // Sabit nokta çekirdek + altýn saat mekanizmasý & ibreler
             ctx.save();
             ctx.rotate(t * 0.6);
-            ctx.strokeStyle = '#ffd700';
+            ctx.strokeStyle = color;
             ctx.lineWidth = 2;
             for (let i = 0; i < 8; i++) {
                 const a = (Math.PI * 2 / 8) * i;
@@ -474,12 +475,12 @@ function drawSpacecraftHull(ctx, coreSkin, color, r, t, isHangar = false) {
         case 'core_glitch': {
             // Sabit nokta çekirdek + RGB kromatik aberasyon & parazit çizgileri
             const jitter = (Math.floor(Date.now() / 90) % 2 === 0) ? (Math.random() - 0.5) * 4 : 0;
-            ctx.fillStyle = 'rgba(0, 240, 255, 0.75)';
+            ctx.fillStyle = CosmeticVisuals.alpha(color, 0.75);
             ctx.beginPath();
             ctx.arc(jitter, -jitter, r, 0, Math.PI * 2);
             ctx.fill();
 
-            ctx.fillStyle = 'rgba(255, 0, 100, 0.75)';
+            ctx.fillStyle = CosmeticVisuals.alpha(color, 0.4);
             ctx.beginPath();
             ctx.arc(-jitter, jitter, r * 0.95, 0, Math.PI * 2);
             ctx.fill();
@@ -498,7 +499,7 @@ function drawSpacecraftHull(ctx, coreSkin, color, r, t, isHangar = false) {
         case 'core_solar': {
             // Sabit parlak güneþ noktasý + korona alev saçýlmalarý
             ctx.save();
-            ctx.strokeStyle = '#ff3366';
+            ctx.strokeStyle = color;
             ctx.lineWidth = 2.2;
             for (let i = 0; i < 8; i++) {
                 const a = (Math.PI * 2 / 8) * i + t;
@@ -510,7 +511,7 @@ function drawSpacecraftHull(ctx, coreSkin, color, r, t, isHangar = false) {
             }
             ctx.restore();
 
-            ctx.fillStyle = '#ff8800';
+            ctx.fillStyle = color;
             ctx.beginPath();
             ctx.arc(0, 0, r, 0, Math.PI * 2);
             ctx.fill();

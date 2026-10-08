@@ -1,7 +1,11 @@
 {
   "scripts": {
     "test": "node --test tests/regressions.cjs",
-    "test:browser": "node tests/browser-smoke.cjs"
+    "test:browser": "node tests/browser-smoke.cjs",
+    "test:menus": "node tests/menu-visual.cjs",
+    "test:audio": "node tests/menu-audio.cjs",
+    "test:runtime": "node tests/runtime-readiness.cjs",
+    "test:cosmetics": "node tests/cosmetic-presentation.cjs"
   },
   "dependencies": {
     "@capacitor-community/admob": "^8.1.0",

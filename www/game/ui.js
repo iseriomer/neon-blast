@@ -161,9 +161,12 @@ function animateTextScramble(el, options = {}) {
     const {
         finalColor = null,
         duration = 600 + Math.random() * 400,
-        useSound = true,
+        useSound: requestedSound = true,
         onComplete = null
     } = options;
+
+    // Menu text animation is visual only; preserve the perk-screen sound behavior.
+    const useSound = requestedSound && !el.closest('#start-screen, #pause-menu, #leaderboard-screen, #game-over-screen, #armory-modal, #revive-modal, #daily-reward-modal, #lucky-spin-modal, #quest-panel-modal, #pack-opening-modal, #player-options-modal');
 
     // Reset/Prepare state
     el.classList.add('btn-shuffling');

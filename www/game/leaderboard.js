@@ -3,7 +3,7 @@
 // Firebase kütüphanelerini CDN üzerinden import ediyoruz
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-analytics.js";
+import { getAnalytics, logEvent, setAnalyticsCollectionEnabled, setConsent } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-analytics.js";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -25,7 +25,21 @@ const firebaseConfig = {
 // Firebase'i Başlat
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-try { getAnalytics(app); } catch (error) { console.warn('Analytics unavailable:', error); }
+let analytics = null;
+function updateAnalyticsConsent() {
+    if (!window.GameTelemetry) return;
+    const native = !!(window.Capacitor && window.Capacitor.isNativePlatform());
+    const dev = !native && (['localhost', '127.0.0.1'].includes(location.hostname) || new URLSearchParams(location.search).get('dev') === '1');
+    const enabled = GameTelemetry.hasConsent() && !dev;
+    try {
+        setConsent({ analytics_storage: enabled ? 'granted' : 'denied', ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied' });
+        if (enabled && !analytics) analytics = getAnalytics(app);
+        if (analytics) setAnalyticsCollectionEnabled(analytics, enabled);
+        GameTelemetry.setSender(enabled ? ((name, params) => logEvent(analytics, name, params)) : null);
+    } catch (error) { console.warn('Analytics unavailable:', error); }
+}
+document.addEventListener('neonblast-analytics-consent', updateAnalyticsConsent);
+updateAnalyticsConsent();
 const scoresCollection = collection(db, "scores");
 
 // DOM Elementleri

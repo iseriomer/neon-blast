@@ -135,7 +135,7 @@ class QuestManager {
     }
 
     // Called when a game ends
-    static onGameEnd(level, enemiesKilled, bossesKilled, coinsEarned, perksCount) {
+    static onGameEnd(level, enemiesKilled, bossesKilled, coinsEarned, perksCount, activeRunMs) {
         this.trackEvent('games_played', 1);
         this.trackEvent('max_level', level);
         this.trackEvent('enemies_killed', enemiesKilled);
@@ -143,7 +143,9 @@ class QuestManager {
         this.trackEvent('coins_earned', coinsEarned);
         // Perks are tracked immediately when selected; do not count them again here.
 
-        if (this.session.gameStartTime > 0) {
+        if (Number.isFinite(activeRunMs)) {
+            this.trackEvent('survive_seconds', Math.floor(Math.max(0, activeRunMs) / 1000));
+        } else if (this.session.gameStartTime > 0) {
             const seconds = Math.floor((Date.now() - this.session.gameStartTime) / 1000);
             this.trackEvent('survive_seconds', seconds);
         }
@@ -200,7 +202,7 @@ class QuestManager {
                 <div class="quest-bonus-row">
                     <span class="bonus-tag">${getIcon('star', 18)} ${t('all_quests_completed')}</span>
                     <button class="main-btn quest-bonus-btn" id="quest-bonus-claim">
-                        ${t('quest_bonus_ad', { coins: 150 })}
+                        ${t('quest_bonus_ad', { coins: 400 })}
                     </button>
                 </div>
             `;
@@ -210,6 +212,8 @@ class QuestManager {
                     <span>${getIcon('check', 18)} ${t('quest_bonus_claimed')}</span>
                 </div>
             `;
+        } else {
+            html += `<div class="quest-bonus-row"><span>${t('menu_quest_remaining')}</span><button class="main-btn quest-bonus-btn" disabled>${t('quest_bonus_ad', { coins: 400 })}</button></div>`;
         }
 
         container.innerHTML = html;
@@ -229,7 +233,7 @@ class QuestManager {
                             if (typeof CosmeticsManager !== 'undefined') {
                                 CosmeticsManager.addCoins(400);
                             }
-                            if (typeof playSound === 'function') playSound('levelup');
+                            if (window.MenuAudio) MenuAudio.play('reward');
                             this.renderQuestPanel();
                         }
                     });

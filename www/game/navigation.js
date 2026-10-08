@@ -13,9 +13,15 @@
         }
     };
     const load = timeframe => {
+        for (const [filter, value] of [['all','all'], ['monthly','monthly'], ['weekly','weekly']]) {
+            for (const suffix of ['', '-go']) {
+                document.getElementById(`lb-filter-${filter}${suffix}`)?.classList.toggle('active', value === timeframe);
+            }
+        }
         if (window.loadLeaderboard) window.loadLeaderboard(timeframe);
         else offline();
     };
+    window.refreshMenuLeaderboard = () => load('all');
     document.getElementById('leaderboard-btn').addEventListener('click', () => {
         screen.classList.remove('hidden');
         screen.style.display = 'flex';

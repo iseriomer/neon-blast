@@ -57,6 +57,7 @@ function harness(native = true) {
         Capacitor: { isNativePlatform: () => native, Plugins: { AdMob: plugin } },
         localStorage: { getItem: key => storage.get(key) || null, setItem: (key, value) => storage.set(key, value) },
         document: {
+            querySelector: () => null,
             getElementById: id => elements.get(id),
             createElement: () => ({ style: {}, classList: { add() {}, remove() {} }, setAttribute() {} }),
             body: { appendChild: el => elements.set(el.id, el) }
@@ -84,6 +85,60 @@ test('native reward stays locked until dismissal and is delivered exactly once',
     assert.equal(rewards, 1);
     assert.equal(cancelled, 0);
     assert.equal(h.manager.isAdPlaying, false);
+});
+test('background preload shares requests and showing uses the prepared ad', async () => {
+    const h = harness();
+    let loads = 0, shows = 0;
+    h.plugin.prepareRewardVideoAd = async () => { loads++; };
+    h.plugin.showRewardVideoAd = async () => { shows++; };
+    await Promise.all([h.manager.preload(), h.manager.preload()]);
+    assert.equal(loads, 1);
+    assert.equal(h.manager.isAdPlaying, false);
+    assert.equal(h.manager.isReady('rewarded'), true);
+    h.manager.showRewardedAd(() => {});
+    await tick();
+    assert.equal(loads, 1);
+    assert.equal(shows, 1);
+    assert.equal(h.manager.isReady('rewarded'), false);
+    h.emit('onRewardedVideoAdShowed');
+    h.emit('onRewardedVideoAdDismissed');
+    await tick();
+    assert.equal(loads, 2);
+    assert.equal(h.manager.isReady('rewarded'), true);
+});
+test('expired cached ad reloads and failed preload can be retried without rewards', async () => {
+    const h = harness();
+    let loads = 0;
+    h.plugin.prepareRewardVideoAd = async () => { if (++loads === 1) throw new Error('offline'); };
+    await h.manager.preload();
+    assert.equal(h.manager.isReady('rewarded'), false);
+    assert.equal(h.manager.isAdPlaying, false);
+    await h.manager.preload();
+    assert.equal(h.manager.isReady('rewarded'), true);
+    h.manager._cache.rewarded.readyAt = Date.now() - h.manager.CONFIG.cacheLifetimeMs - 1;
+    await h.manager.preload();
+    assert.equal(loads, 3);
+    assert.equal(h.manager.isReady('rewarded'), true);
+});
+test('interstitial eligibility excludes short games, cooldown, missing ads and VIP', () => {
+    const h = harness();
+    let now = 1000000;
+    h.context.Date = { now: () => now };
+    h.manager._cache.interstitial.readyAt = now;
+    for (let i = 0; i < 10; i++) assert.equal(h.manager.shouldShowAfterRun(44000), false);
+    assert.equal(h.manager._eligibleRuns, 0);
+    assert.equal(h.manager.shouldShowAfterRun(45000), false);
+    assert.equal(h.manager.shouldShowAfterRun(45000), false);
+    assert.equal(h.manager.shouldShowAfterRun(45000), true);
+    h.manager._lastFullscreenAt = now;
+    assert.equal(h.manager.shouldShowAfterRun(45000), false);
+    now += 120001;
+    assert.equal(h.manager.shouldShowAfterRun(45000), true);
+    h.manager._cache.interstitial.readyAt = 0;
+    assert.equal(h.manager.shouldShowAfterRun(45000), false);
+    h.manager._cache.interstitial.readyAt = now;
+    h.context.PremiumStoreManager = { shouldShowInterstitial: () => false };
+    assert.equal(h.manager.shouldShowAfterRun(45000), false);
 });
 test('closing rewarded ad without reward cancels even if show promise resolved', async () => {
     const h = harness();
@@ -220,4 +275,125 @@ test('partial quest progress persists and perks are not counted twice', () => {
     assert.equal(manager.state.quests[0].progress, 1);
     const saved = JSON.parse(h.context.localStorage.getItem(manager.STORAGE_KEY));
     assert.equal(saved.quests[0].progress, 1);
+});
+
+test('survival quest uses active play time and excludes long pauses', () => {
+    const h = harness(false);
+    h.load('managers/DailyRewardManager.js');
+    h.load('managers/QuestManager.js');
+    const manager = h.context.QuestManager;
+    manager.state.lastResetDate = manager.getTodayStr();
+    manager.state.quests = [{ id: 'survive_min', type: 'survive_seconds', progress: 0, targetValue: 120, reward: 100, completed: false }];
+    manager.session.gameStartTime = Date.now() - 600000;
+    manager.onGameEnd(2, 0, 0, 0, 0, 55000);
+    assert.equal(manager.state.quests[0].progress, 55);
+    assert.equal(manager.state.quests[0].completed, false);
+});
+
+test('legacy run saves keep stats; corrupt saves and result screens never resume', () => {
+    const storage = new Map();
+    const state = { gameActive: false, isPaused: true };
+    const context = vm.createContext({
+        console: { log() {}, error() {}, warn() {} }, gameState: state,
+        localStorage: { getItem: key => storage.get(key) || null, setItem: (key, value) => storage.set(key, value), removeItem: key => storage.delete(key) }
+    });
+    context.window = context;
+    vm.runInContext(fs.readFileSync(path.resolve(__dirname, '../www/game/managers/SaveManager.js'), 'utf8'), context);
+    const manager = context.SaveManager;
+    const legacy = { score: 2500, level: 3, nextLevelThreshold: 2800, previousLevelThreshold: 1400, currentLevelStep: 1400, difficultyMultiplier: 1,
+        playerStats: { shotCount: 4, fireRate: 180, shield: 2 }, takenPerks: ['double_shot'], hasRevivedThisRun: true };
+    storage.set(manager.SAVE_KEY, JSON.stringify(legacy));
+    const restored = manager.loadGame();
+    assert.equal(restored.playerStats.shotCount, 4);
+    assert.equal(restored.hasRevivedThisRun, true);
+    assert.equal(restored.activeRunMs, 0);
+    const before = storage.get(manager.SAVE_KEY);
+    manager.saveGame();
+    assert.equal(storage.get(manager.SAVE_KEY), before, 'results screen cannot overwrite saved run');
+    for (const data of ['null', '[]', '{}', '{bad json', JSON.stringify({ ...legacy, score: null })]) {
+        storage.set(manager.SAVE_KEY, data);
+        assert.equal(manager.hasSave(), false);
+        assert.equal(storage.get(manager.SAVE_KEY), data, 'corrupt data preserved for recovery');
+    }
+});
+
+test('native store displays localized prices and restoration preserves the coin balance', async () => {
+    const h = harness(true);
+    h.load('managers/CosmeticsManager.js');
+    h.load('managers/PremiumStoreManager.js');
+    h.context.CdvPurchase = { Platform: { GOOGLE_PLAY: 'android-playstore' }, store: {
+        get: id => id === 'remove_ads' ? { canPurchase: true, pricing: { price: '₺89,99' } } : undefined,
+        restorePurchases: async () => undefined,
+        owned: id => ['remove_ads', 'starter_pack', 'premium_cosmetic_pack'].includes(id)
+    } };
+    const manager = h.context.PremiumStoreManager;
+    assert.equal(manager.getLocalizedProduct('remove_ads').price, '₺89,99');
+    assert.equal(manager.getLocalizedProduct('remove_ads').canPurchase, true);
+    assert.equal(manager.getLocalizedProduct('coin_500').canPurchase, false);
+    const before = h.context.CosmeticsManager.coins;
+    assert.equal(await manager.restorePurchases(), true);
+    assert.equal(await manager.restorePurchases(), true);
+    assert.equal(manager.state.adsRemoved, true);
+    assert.equal(manager.state.starterPackBought, true);
+    assert.equal(h.context.CosmeticsManager.coins, before, 'restore must not mint coins or crates');
+    assert.equal(h.context.CosmeticsManager.isUnlocked('core_dragon'), true);
+});
+
+test('analytics respects opt-in, filters personal data and measures native localhost', () => {
+    for (const native of [false, true]) {
+        const context = vm.createContext({
+            URLSearchParams, location: { search: '', hostname: 'localhost' },
+            localStorage: { getItem: () => null, setItem() {} },
+            CustomEvent: class { constructor(type, init) { this.type = type; this.detail = init.detail; } },
+            document: { dispatchEvent() {} }, Capacitor: { isNativePlatform: () => native }
+        });
+        context.window = context;
+        vm.runInContext(fs.readFileSync(path.resolve(__dirname, '../www/game/telemetry.js'), 'utf8'), context);
+        const sent = [];
+        const manager = context.GameTelemetry;
+        manager.setSender((name, params) => sent.push({ name, params }));
+        manager.track('run_end', { level: 3 });
+        assert.equal(sent.length, 0);
+        manager.setConsent(true);
+        manager.track('run_end', { level: 3, name: 'Player', email: 'person@example.com', score: NaN });
+        assert.equal(sent.length, native ? 1 : 0);
+        if (native) assert.equal(JSON.stringify(sent[0].params), JSON.stringify({ level: 3 }));
+        manager.setConsent(false);
+        manager.track('run_start');
+        assert.equal(sent.length, native ? 1 : 0);
+    }
+});
+
+test('ad privacy changes invalidate preloaded ads and do not grant rewards', async () => {
+    const h = harness(true);
+    h.plugin.requestConsentInfo = async () => ({ canRequestAds: true, privacyOptionsRequirementStatus: 'REQUIRED' });
+    h.plugin.showPrivacyOptionsForm = async () => {};
+    await h.manager.preload();
+    assert.equal(h.manager.privacyOptionsRequired, true);
+    const previousVersion = h.manager._consentVersion;
+    assert.equal(await h.manager.showPrivacyOptions(), true);
+    assert.equal(h.manager._consentVersion, previousVersion + 1);
+    assert.equal(h.manager.isAdPlaying, false);
+});
+
+test('first perk offers include firepower, remain unique and respect reroll exclusions', () => {
+    const h = harness(false);
+    h.context.gameState = { level: 1, takenPerks: [], playerStats: { shotCount: 1, shield: 0, maxShields: 2, laserBeam: 0, chainLightning: 0, orbitals: 0,
+        electricAura: false, pulseCore: false, freeze: 0, explosiveRadius: 0, critChance: 0 } };
+    h.context.MAX_SHOT_COUNT = 15;
+    h.load('perks.js');
+    h.load('managers/SpawnManager.js');
+    const manager = vm.runInContext('SpawnManager', h.context);
+    const offense = new Set(['rapid_fire', 'machine_gun', 'double_shot', 'shotgun']);
+    for (let i = 0; i < 100; i++) {
+        const offer = manager.choosePerks(manager.getAvailablePerks());
+        assert.equal(offer.length, 3);
+        assert.equal(new Set(offer.map(perk => perk.id)).size, 3);
+        assert.ok(offer.some(perk => offense.has(perk.id)));
+        const next = manager.choosePerks(manager.getAvailablePerks().filter(perk => !offer.some(previous => previous.id === perk.id)));
+        assert.equal(next.some(perk => offer.some(previous => previous.id === perk.id)), false);
+    }
+    assert.equal(manager.fitsBuild({ id: 'cryo_fracture' }), false);
+    h.context.gameState.playerStats.freeze = 60;
+    assert.equal(manager.fitsBuild({ id: 'cryo_fracture' }), true);
 });

@@ -3,7 +3,30 @@
 (() => {
     const languages = ['en', 'tr', 'fr', 'es', 'de', 'it'];
     const rows = `
+cosmetic_core_raptor_name|Raptor|Yırtıcı|Rapace|Raptor|Raptor|Rapace
+cosmetic_core_raptor_desc|Swept wings and twin ion engines.|Geriye açılan kanatlar ve çift iyon motoru.|Ailes effilées et deux moteurs ioniques.|Alas afiladas y dos motores iónicos.|Pfeilflügel und zwei Ionentriebwerke.|Ali affilate e due motori ionici.
+cosmetic_core_manta_name|Manta|Manta|Manta|Manta|Manta|Manta
+cosmetic_core_manta_desc|Wide wings with pulsing energy nodes.|Geniş kanatlar ve titreşen enerji düğümleri.|Larges ailes et nœuds d’énergie pulsants.|Alas anchas y nodos de energía pulsantes.|Breite Flügel mit pulsierenden Energieknoten.|Ali ampie e nodi di energia pulsanti.
+cosmetic_core_seraph_name|Seraph|Seraf|Séraphin|Serafín|Seraph|Serafino
+cosmetic_core_seraph_desc|Split blade wings with radiant conduits.|Bölünmüş bıçak kanatlar ve ışıldayan enerji yolları.|Ailes divisées et conduits lumineux.|Alas divididas y conductos radiantes.|Geteilte Klingenflügel und leuchtende Leitungen.|Ali divise e condotti luminosi.
+cosmetic_core_eclipse_name|Eclipse|Tutulma|Éclipse|Eclipse|Eklipse|Eclissi
+cosmetic_core_eclipse_desc|Armoured interceptor inside a rotating halo.|Dönen hale içinde zırhlı önleme gemisi.|Intercepteur blindé dans un halo rotatif.|Interceptor blindado dentro de un halo giratorio.|Gepanzerter Abfangjäger im rotierenden Halo.|Intercettore corazzato in un alone rotante.
+cosmetic_core_monarch_name|Monarch|Hükümdar|Monarque|Monarca|Monarch|Monarca
+cosmetic_core_monarch_desc|Crowned command ship with heavy wing armour.|Taçlı komuta gemisi ve ağır kanat zırhı.|Vaisseau de commandement couronné et ailes blindées.|Nave de mando coronada y alas blindadas.|Gekröntes Kommandoschiff mit Flügelpanzerung.|Nave comando coronata con ali corazzate.
+cosmetic_proj_comet_name|Comet|Kuyruklu Yıldız|Comète|Cometa|Komet|Cometa
+cosmetic_proj_comet_desc|Bright energy seed with a fading comet tail.|Sönen kuyruklu parlak enerji çekirdeği.|Noyau lumineux à traînée de comète.|Núcleo brillante con estela de cometa.|Heller Energiekern mit Kometenschweif.|Nucleo luminoso con coda di cometa.
+cosmetic_proj_helix_name|Double Helix|Çift Sarmal|Double hélice|Doble hélice|Doppelhelix|Doppia elica
+cosmetic_proj_helix_desc|Two energy strands weave around the shot.|Atışın etrafında örülen iki enerji şeridi.|Deux brins d’énergie tressés autour du tir.|Dos hilos de energía rodean el disparo.|Zwei Energiestränge umflechten den Schuss.|Due filamenti di energia avvolgono il colpo.
+cosmetic_proj_razor_name|Razor Disc|Jilet Disk|Disque tranchant|Disco cortante|Klingenscheibe|Disco rasoio
+cosmetic_proj_razor_desc|Spinning three-blade energy disc.|Dönen üç bıçaklı enerji diski.|Disque d’énergie rotatif à trois lames.|Disco de energía giratorio de tres hojas.|Rotierende Energiescheibe mit drei Klingen.|Disco di energia rotante a tre lame.
+cosmetic_proj_nova_name|Nova|Nova|Nova|Nova|Nova|Nova
+cosmetic_proj_nova_desc|Rotating star points around a radiant ring.|Işıldayan halka çevresinde dönen yıldız uçları.|Pointes d’étoile autour d’un anneau lumineux.|Puntas de estrella alrededor de un anillo radiante.|Rotierende Sternspitzen um einen leuchtenden Ring.|Punte stellari attorno a un anello luminoso.
+cosmetic_proj_lance_name|Ion Lance|İyon Mızrağı|Lance ionique|Lanza iónica|Ionenlanze|Lancia ionica
+cosmetic_proj_lance_desc|Long energy spear with a split chevron wake.|Çatallı enerji izine sahip uzun mızrak.|Lance d’énergie et sillage en chevron.|Lanza de energía con estela dividida.|Energiespeer mit geteiltem Schweif.|Lancia di energia con scia divisa.
 rarity_common|COMMON|YAYGIN|COMMUN|COMÚN|GEWÖHNLICH|COMUNE
+double_reward_action|+{coins} EXTRA · WATCH AD|+{coins} EKSTRA · REKLAM İZLE|+{coins} EN PLUS · PUBLICITÉ|+{coins} EXTRA · VER ANUNCIO|+{coins} EXTRA · WERBUNG ANSEHEN|+{coins} EXTRA · GUARDA PUBBLICITÀ
+double_reward_hint|Double this run’s reward: {before} → {after} coins|Bu oyunun ödülünü ikiye katla: {before} → {after} coin|Doublez la récompense : {before} → {after} pièces|Duplica la recompensa: {before} → {after} monedas|Verdopple die Belohnung: {before} → {after} Münzen|Raddoppia la ricompensa: {before} → {after} monete
+revive_desc|Continue this run with full shields, an EMP blast and 3 seconds of protection.|Tam kalkan, EMP patlaması ve 3 saniye koruma ile kaldığın yerden devam et.|Reprenez avec tous les boucliers, une explosion EMP et 3 secondes de protection.|Continúa con escudos completos, una explosión EMP y 3 segundos de protección.|Spiele mit vollen Schilden, einem EMP und 3 Sekunden Schutz weiter.|Continua con scudi completi, un’esplosione EMP e 3 secondi di protezione.
 rarity_rare|RARE|NADİR|RARE|RARO|SELTEN|RARO
 rarity_epic|EPIC|DESTANSI|ÉPIQUE|ÉPICO|EPISCH|EPICO
 rarity_legendary|LEGENDARY|EFSANEVİ|LÉGENDAIRE|LEGENDARIO|LEGENDÄR|LEGGENDARIO

@@ -104,9 +104,12 @@ const ArmoryUI = {
         const quickEquipBtn = document.getElementById('hangar-quick-equip');
         if (quickEquipBtn) {
             quickEquipBtn.addEventListener('click', () => {
-                if (this.inspectedItem && CosmeticsManager.isUnlocked(this.inspectedItem.id)) {
+                if (this.inspectedItem && !CosmeticsManager.isUnlocked(this.inspectedItem.id)) {
+                    this.switchTab('store');
+                    if (window.MenuAudio) MenuAudio.play('select');
+                } else if (this.inspectedItem && CosmeticsManager.isUnlocked(this.inspectedItem.id)) {
                     CosmeticsManager.equip(this.inspectedItem.type, this.inspectedItem.id);
-                    if (typeof playSound === 'function') playSound('shoot');
+                    if (window.MenuAudio) MenuAudio.play('equip');
                     this.showToast(Localization.t('item_equipped_toast', { name: CosmeticsManager.getItemName(this.inspectedItem) }), true);
                     this.renderItems(this.inspectedItem.type);
                     this.updateHangarHUD();
@@ -120,10 +123,10 @@ const ArmoryUI = {
         const coins = CosmeticsManager.coins;
 
         const startCoinEl = document.getElementById('start-coin-amount');
-        if (startCoinEl) startCoinEl.innerText = coins.toLocaleString();
+        if (startCoinEl) startCoinEl.innerText = coins.toLocaleString(Localization.currentLang);
 
         const armoryCoinEl = document.getElementById('armory-coin-balance');
-        if (armoryCoinEl) armoryCoinEl.innerText = coins.toLocaleString();
+        if (armoryCoinEl) armoryCoinEl.innerText = coins.toLocaleString(Localization.currentLang);
     },
 
     showToast(message, isSuccess = true) {
@@ -137,6 +140,7 @@ const ArmoryUI = {
 
         toast.innerHTML = `<span class="toast-msg">${message}</span>`;
         toast.className = `armory-toast show ${isSuccess ? 'toast-success' : 'toast-warn'}`;
+        if (!isSuccess && window.MenuAudio) MenuAudio.play('error');
 
         clearTimeout(this._toastTimer);
         this._toastTimer = setTimeout(() => {
@@ -152,7 +156,7 @@ const ArmoryUI = {
                 CosmeticsManager.addCoins(amount);
                 this.updateCoinBadges();
                 this.showToast(Localization.t('coins_added', { count: amount }), true);
-                if (typeof playSound === 'function') playSound('levelup');
+                if (window.MenuAudio) MenuAudio.play('reward');
                 this.renderCurrentView();
             },
             onDismiss: () => {
@@ -176,13 +180,14 @@ const ArmoryUI = {
     },
 
     openArmory() {
+        if (window.GameTelemetry) GameTelemetry.track('store_open');
         this.testProjectiles = [];
         this.lastShotTime = Date.now();
         this.updateCoinBadges();
         this.switchTab('store');
         const modal = document.getElementById('armory-modal');
         if (modal) modal.classList.remove('hidden');
-        if (typeof playSound === 'function') playSound('levelup');
+        if (window.MenuAudio) MenuAudio.play('open');
         this.startAnimationLoop();
     },
 
@@ -267,15 +272,15 @@ const ArmoryUI = {
                     `</ul>`;
             }
 
-            const buyBtnText = isOwned ? Localization.t('purchased_label') : Localization.t('buy_with_price', { price: prod.price });
+            const buyBtnText = isOwned ? Localization.t('purchased_label') : prod.canPurchase ? Localization.t('buy_with_price', { price: prod.price }) : prod.price;
 
             card.innerHTML = `
                 <div class="offer-badge">${prod.badge || Localization.t('badge_special')}</div>
                 <h4 class="offer-title">${prod.name}</h4>
                 <p class="offer-desc">${prod.description}</p>
-                ${benefitsHtml}
+                ${benefitsHtml ? `<details class="offer-details"><summary data-i18n="menu_pack_contents">${Localization.t('menu_pack_contents')}</summary>${benefitsHtml}</details>` : ''}
                 <div class="offer-footer">
-                    <button class="main-btn offer-buy-btn ${isOwned ? 'owned-btn' : ''}" data-prod-id="${id}" ${isOwned ? 'disabled' : ''}>
+                    <button class="main-btn offer-buy-btn ${isOwned ? 'owned-btn' : ''}" data-prod-id="${id}" ${isOwned || !prod.canPurchase ? 'disabled' : ''}>
                         ${buyBtnText}
                     </button>
                 </div>
@@ -314,7 +319,7 @@ const ArmoryUI = {
                     <span>${prod.coins.toLocaleString(Localization.currentLang)}</span>
                 </div>
                 <div class="coin-offer-name">${prod.name}</div>
-                <button class="main-btn coin-buy-btn" data-prod-id="${id}">
+                <button class="main-btn coin-buy-btn" data-prod-id="${id}" ${prod.canPurchase ? '' : 'disabled'}>
                     ${prod.price}
                 </button>
             `;
@@ -337,6 +342,7 @@ const ArmoryUI = {
     },
 
     updateLanguage() {
+        this.updateCoinBadges();
         this.renderCurrentView();
         const result = this._revealedResult;
         const modal = document.getElementById('pack-opening-modal');
@@ -384,12 +390,9 @@ const ArmoryUI = {
         }
 
         if (quickBtn) {
-            if (isUnlocked && !isEquipped) {
-                quickBtn.innerText = (typeof Localization !== 'undefined' ? Localization.t('btn_equip') : 'KUŞAN');
-                quickBtn.classList.remove('hidden');
-            } else {
-                quickBtn.classList.add('hidden');
-            }
+            quickBtn.classList.remove('hidden');
+            quickBtn.disabled = isEquipped;
+            quickBtn.innerText = Localization.t(isEquipped ? 'btn_equipped' : isUnlocked ? 'btn_equip' : 'tab_store');
         }
     },
 
@@ -410,6 +413,9 @@ const ArmoryUI = {
             const card = document.createElement('div');
             card.className = `armory-item-card rarity-${item.rarity.toLowerCase()} ${isUnlocked ? 'unlocked' : 'locked'} ${isEquipped ? 'is-equipped-active' : ''} ${isInspecting ? 'is-inspecting' : ''}`;
             card.setAttribute('data-id', item.id);
+            card.setAttribute('role', 'button');
+            card.tabIndex = 0;
+            card.setAttribute('aria-label', CosmeticsManager.getItemName(item));
 
             const displayName = CosmeticsManager.getItemName(item);
             const displayDesc = CosmeticsManager.getItemDesc(item);
@@ -419,6 +425,7 @@ const ArmoryUI = {
             const lockedText = typeof Localization !== 'undefined' ? Localization.t('badge_locked') : 'KİLİTLİ';
 
             card.innerHTML = `
+                ${!isUnlocked ? `<span class="collection-lock">${getLockSVG(16)}</span>` : ''}
                 <div class="card-top-row">
                     <span class="card-rarity-tag ${item.rarity.toLowerCase()}">${Localization.t(`rarity_${item.rarity.toLowerCase()}`)}</span>
                     ${isEquipped ? `<span class="equipped-pill">${activeText}</span>` : ''}
@@ -450,6 +457,9 @@ const ArmoryUI = {
                 card.classList.add('is-inspecting');
             });
 
+            card.addEventListener('keydown', event => {
+                if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); card.click(); }
+            });
             grid.appendChild(card);
 
             const cvs = card.querySelector('.card-item-canvas');
@@ -470,7 +480,7 @@ const ArmoryUI = {
                 const id = e.currentTarget.getAttribute('data-id');
                 if (cat && id) {
                     CosmeticsManager.equip(cat, id);
-                    if (typeof playSound === 'function') playSound('shoot');
+                    if (window.MenuAudio) MenuAudio.play('equip');
                     this.inspectedItem = CosmeticsManager.ITEMS[id] || null;
                     this.showToast(Localization.t('item_equipped_toast', { name: CosmeticsManager.getItemName(CosmeticsManager.ITEMS[id]) }), true);
                     this.renderItems(cat);
@@ -604,10 +614,14 @@ const ArmoryUI = {
         // Aşama 1: Titreyen Kapsül Animasyonu
         modal.innerHTML = `
             <div class="pack-opening-card stage-shaking">
+                <h3 class="decrypt-pack-title">${CosmeticsManager.getPackName(CosmeticsManager.CIPHER_PACKS.find(pack => pack.id === packId))}</h3>
                 <div class="shaking-chest-visual">
                     <canvas id="unboxing-shaking-canvas" width="160" height="150"></canvas>
+                    <div class="concept-scan"></div>
                 </div>
                 <h3 class="opening-headline" data-i18n="pack_decrypting">${Localization.t('pack_decrypting')}</h3>
+                <div class="decrypt-progress"></div>
+                <span class="decrypt-code">A7 2F C8 91</span>
             </div>
         `;
 
@@ -617,11 +631,11 @@ const ArmoryUI = {
             this.drawPackGraphic(sCtx, packId, Date.now() * 0.005);
         }
 
-        if (typeof playSound === 'function') playSound('spark_long');
+        if (window.MenuAudio) MenuAudio.play('decrypt');
 
         // Aşama 2: Büyük Patlama ve Yeni Tasarım Kartının Ortaya Çıkışı (1100ms sonra)
         setTimeout(() => {
-            if (typeof playSound === 'function') playSound('levelup');
+            if (window.MenuAudio) MenuAudio.play('reward');
 
             this._revealedResult = result;
             const categoryLabel = Localization.t(`category_${item.type}`);
@@ -629,6 +643,7 @@ const ArmoryUI = {
             modal.innerHTML = `
                 <div class="pack-opening-card stage-revealed">
                     <div class="reveal-category-pill">${categoryLabel}</div>
+                    <h2 class="reveal-headline" data-i18n="menu_new_design">${Localization.t('menu_new_design')}</h2>
                     <div class="reveal-rarity-banner rarity-${item.rarity.toLowerCase()}">${Localization.t(`rarity_${item.rarity.toLowerCase()}`)}</div>
                     
                     <div class="reveal-icon-stage">
@@ -659,6 +674,7 @@ const ArmoryUI = {
                 equipBtn.addEventListener('click', () => {
                     if (CosmeticsManager.isUnlocked(item.id)) {
                         CosmeticsManager.equip(item.type, item.id);
+                        if (window.MenuAudio) MenuAudio.play('equip');
                         const itemName = CosmeticsManager.getItemName(item);
                         const toastMsg = typeof Localization !== 'undefined' ? Localization.t('item_equipped_toast', { name: itemName }) : `${itemName} kuşanıldı`;
                         this.showToast(toastMsg, true);
@@ -753,584 +769,56 @@ const ArmoryUI = {
     // Hangar Holographic Test Rig: real-time preview of ship + projectile firing
     drawHangarPreview(time) {
         const canvas = document.getElementById('hangar-preview-canvas');
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        const w = canvas.width;
-        const h = canvas.height;
-
-        ctx.clearRect(0, 0, w, h);
-
-        // Determine what to preview
-        const previewCore = (this.inspectedItem && this.inspectedItem.type === 'core')
-            ? this.inspectedItem.id
-            : CosmeticsManager.getEquipped('core');
-
-        const previewProj = (this.inspectedItem && this.inspectedItem.type === 'projectile')
-            ? this.inspectedItem.id
-            : CosmeticsManager.getEquipped('projectile');
-
-        const previewBg = (this.inspectedItem && this.inspectedItem.type === 'background')
-            ? this.inspectedItem.id
-            : CosmeticsManager.getEquipped('background');
-
-        // 1. Ambient Background with Smooth Blurred Nebula Atmosphere
-        const bgKey = (previewBg || '').replace('bg_', '');
-        const bgCfg = (window.BackgroundManager && window.BackgroundManager.configs[bgKey])
-            ? window.BackgroundManager.configs[bgKey]
-            : (window.BackgroundManager ? window.BackgroundManager.configs.nebula : null);
-
-        if (bgCfg) {
-            const [br, bg, bb] = bgCfg.base;
-            ctx.fillStyle = `rgb(${br}, ${bg}, ${bb})`;
-            ctx.fillRect(0, 0, w, h);
-
-            if (bgCfg.clouds && bgCfg.clouds.length > 0) {
-                const c1x = w * 0.65 + Math.sin(time * 0.9) * w * 0.14;
-                const c1y = h * 0.45 + Math.cos(time * 0.75) * h * 0.12;
-                const c1r = w * (0.60 + Math.sin(time * 1.1) * 0.12);
-                const hGrad = ctx.createRadialGradient(c1x, c1y, 10, c1x, c1y, c1r);
-                hGrad.addColorStop(0, bgCfg.clouds[0].color);
-                hGrad.addColorStop(0.6, bgCfg.clouds[0].stop);
-                hGrad.addColorStop(1, 'transparent');
-                ctx.fillStyle = hGrad;
-                ctx.fillRect(0, 0, w, h);
-
-                if (bgCfg.clouds[1]) {
-                    const c2x = w * 0.25 + Math.cos(time * 0.8) * w * 0.10;
-                    const c2y = h * 0.60 + Math.sin(time * 0.95) * h * 0.10;
-                    const c2r = w * (0.45 + Math.cos(time * 1.0) * 0.10);
-                    const hGrad2 = ctx.createRadialGradient(c2x, c2y, 5, c2x, c2y, c2r);
-                    hGrad2.addColorStop(0, bgCfg.clouds[1].color);
-                    hGrad2.addColorStop(1, 'transparent');
-                    ctx.fillStyle = hGrad2;
-                    ctx.fillRect(0, 0, w, h);
-                }
-            }
-        } else {
-            ctx.fillStyle = '#060410';
-            ctx.fillRect(0, 0, w, h);
-        }
-
-        // 2. Holographic Landing Grid
-        const cx = w * 0.28;
-        const cy = h * 0.52;
-
-        ctx.strokeStyle = 'rgba(0, 240, 255, 0.15)';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.arc(cx, cy, 46, 0, Math.PI * 2);
-        ctx.stroke();
-
-        ctx.strokeStyle = 'rgba(0, 240, 255, 0.3)';
-        ctx.beginPath();
-        ctx.arc(cx, cy, 40, time * 0.5, time * 0.5 + Math.PI * 1.2);
-        ctx.stroke();
-
-        // 3. Firing range line to the right
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-        ctx.setLineDash([4, 6]);
-        ctx.beginPath();
-        ctx.moveTo(cx + 40, cy);
-        ctx.lineTo(w - 20, cy);
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        // 4. Update and draw test projectiles
-        const now = Date.now();
-        if (now - this.lastShotTime > 420) {
-            this.testProjectiles.push({
-                x: cx + 24,
-                y: cy,
-                vx: 5.5,
-                color: CosmeticsManager.ITEMS[previewProj]?.color || '#00ffff'
-            });
-            this.lastShotTime = now;
-        }
-
-        for (let i = this.testProjectiles.length - 1; i >= 0; i--) {
-            const p = this.testProjectiles[i];
-            p.x += p.vx;
-
-            // Draw projectile based on preview skin
-            ctx.save();
-            ctx.translate(p.x, p.y);
-            this.drawProjectileInstance(ctx, previewProj, p.color, time);
-            ctx.restore();
-
-            if (p.x > w - 10) {
-                this.testProjectiles.splice(i, 1);
-            }
-        }
-
-        // 5. Draw the Floating Spacecraft Hull
-        const floatY = cy + Math.sin(time * 3) * 3;
-        ctx.save();
-        ctx.translate(cx, floatY);
-        if (typeof window.drawSpacecraftHull === 'function') {
-            const shipColor = CosmeticsManager.ITEMS[previewCore]?.color || '#00f0ff';
-            window.drawSpacecraftHull(ctx, previewCore, shipColor, 20, time, true);
-        } else {
-            this.drawCoreInstance(ctx, previewCore, time, false);
-        }
-        ctx.restore();
+        if (!canvas || !this.inspectedItem) return;
+        this.drawItemGraphic(canvas.getContext('2d'), this.inspectedItem, true, false, time, 1.6);
     },
 
-    // Draw single Core/Spacecraft in canvas context
     drawCoreInstance(ctx, coreId, time, isLocked = false) {
         const item = CosmeticsManager.ITEMS[coreId] || CosmeticsManager.ITEMS.core_default;
         const color = isLocked ? '#475569' : (item.color || '#00ffff');
-        const r = 18;
-
-        if (typeof window.drawSpacecraftHull === 'function') {
-            ctx.save();
-            if (isLocked) ctx.globalAlpha = 0.55;
-            window.drawSpacecraftHull(ctx, coreId, color, r, time, true);
-            ctx.restore();
-            return;
-        }
-
-        if (isLocked) {
-            ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
-            ctx.strokeStyle = 'rgba(148, 163, 184, 0.3)';
-            ctx.lineWidth = 1.5;
-            ctx.beginPath();
-            ctx.arc(0, 0, r, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.stroke();
-            return;
-        }
-
-        switch (coreId) {
-            case 'core_prism': {
-                ctx.rotate(time * 0.8);
-                const sides = 6;
-                ctx.beginPath();
-                for (let i = 0; i < sides; i++) {
-                    const a = (Math.PI * 2 / sides) * i;
-                    const px = Math.cos(a) * r;
-                    const py = Math.sin(a) * r;
-                    if (i === 0) ctx.moveTo(px, py);
-                    else ctx.lineTo(px, py);
-                }
-                ctx.closePath();
-                ctx.fillStyle = color;
-                ctx.shadowColor = color;
-                ctx.shadowBlur = 12;
-                ctx.fill();
-
-                // Facet lines
-                ctx.shadowBlur = 0;
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
-                ctx.lineWidth = 1.2;
-                ctx.beginPath();
-                for (let i = 0; i < sides; i++) {
-                    const a = (Math.PI * 2 / sides) * i;
-                    ctx.moveTo(0, 0);
-                    ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
-                }
-                ctx.stroke();
-
-                // Center diamond
-                ctx.fillStyle = '#ffffff';
-                ctx.beginPath();
-                ctx.arc(0, 0, r * 0.35, 0, Math.PI * 2);
-                ctx.fill();
-                break;
-            }
-
-            case 'core_pulsar': {
-                const pulse = 1 + Math.sin(time * 4) * 0.08;
-                ctx.shadowColor = color;
-                ctx.shadowBlur = 14;
-
-                ctx.lineWidth = 2.2;
-                ctx.strokeStyle = color;
-                ctx.beginPath();
-                ctx.ellipse(0, 0, r * 1.25 * pulse, r * 0.45, time * 1.5, 0, Math.PI * 2);
-                ctx.stroke();
-
-                ctx.strokeStyle = '#ffffff';
-                ctx.beginPath();
-                ctx.ellipse(0, 0, r * 1.25 * pulse, r * 0.45, -time * 1.5, 0, Math.PI * 2);
-                ctx.stroke();
-
-                ctx.fillStyle = '#ffffff';
-                ctx.beginPath();
-                ctx.arc(0, 0, r * 0.65 * pulse, 0, Math.PI * 2);
-                ctx.fill();
-                break;
-            }
-
-            case 'core_singularity': {
-                ctx.rotate(time * 1.4);
-                const grad = ctx.createRadialGradient(0, 0, r * 0.4, 0, 0, r * 1.4);
-                grad.addColorStop(0, 'rgba(184, 68, 255, 0.95)');
-                grad.addColorStop(0.7, 'rgba(0, 240, 255, 0.6)');
-                grad.addColorStop(1, 'transparent');
-
-                ctx.fillStyle = grad;
-                ctx.beginPath();
-                ctx.arc(0, 0, r * 1.4, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Swirl Jets
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
-                ctx.lineWidth = 1.8;
-                for (let i = 0; i < 4; i++) {
-                    const off = (Math.PI / 2) * i;
-                    ctx.beginPath();
-                    ctx.arc(0, 0, r * 0.9, off, off + 0.85);
-                    ctx.stroke();
-                }
-
-                // Black Event Horizon
-                ctx.fillStyle = '#04020a';
-                ctx.strokeStyle = '#d946ef';
-                ctx.lineWidth = 1.5;
-                ctx.beginPath();
-                ctx.arc(0, 0, r * 0.55, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.stroke();
-                break;
-            }
-
-            case 'core_chrono': {
-                ctx.rotate(time * 0.5);
-                ctx.fillStyle = color;
-                ctx.shadowColor = color;
-                ctx.shadowBlur = 10;
-                ctx.beginPath();
-                ctx.arc(0, 0, r, 0, Math.PI * 2);
-                ctx.fill();
-
-                ctx.shadowBlur = 0;
-                ctx.strokeStyle = '#ffd700';
-                ctx.lineWidth = 2;
-                for (let i = 0; i < 8; i++) {
-                    const a = (Math.PI * 2 / 8) * i;
-                    ctx.beginPath();
-                    ctx.moveTo(Math.cos(a) * (r * 0.65), Math.sin(a) * (r * 0.65));
-                    ctx.lineTo(Math.cos(a) * (r * 1.05), Math.sin(a) * (r * 1.05));
-                    ctx.stroke();
-                }
-
-                ctx.fillStyle = '#170f03';
-                ctx.beginPath();
-                ctx.arc(0, 0, r * 0.45, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Needles
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 1.6;
-                ctx.beginPath();
-                ctx.moveTo(0, 0);
-                ctx.lineTo(Math.cos(-time * 2.5) * (r * 0.35), Math.sin(-time * 2.5) * (r * 0.35));
-                ctx.moveTo(0, 0);
-                ctx.lineTo(Math.cos(time * 1.2) * (r * 0.4), Math.sin(time * 1.2) * (r * 0.4));
-                ctx.stroke();
-                break;
-            }
-
-            case 'core_glitch': {
-                const jitter = (Math.floor(Date.now() / 80) % 2 === 0) ? (Math.random() - 0.5) * 3 : 0;
-                ctx.fillStyle = 'rgba(0, 240, 255, 0.75)';
-                ctx.beginPath();
-                ctx.arc(jitter, -jitter, r, 0, Math.PI * 2);
-                ctx.fill();
-
-                ctx.fillStyle = 'rgba(255, 0, 100, 0.75)';
-                ctx.beginPath();
-                ctx.arc(-jitter, jitter, r * 0.95, 0, Math.PI * 2);
-                ctx.fill();
-
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 1;
-                for (let y = -r; y <= r; y += 6) {
-                    ctx.beginPath();
-                    ctx.moveTo(-r * 0.7, y);
-                    ctx.lineTo(r * 0.7, y);
-                    ctx.stroke();
-                }
-                break;
-            }
-
-            case 'core_solar': {
-                ctx.shadowColor = '#ff5500';
-                ctx.shadowBlur = 18;
-                ctx.fillStyle = '#ff8800';
-                ctx.beginPath();
-                ctx.arc(0, 0, r * 0.85, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Corona flares
-                ctx.strokeStyle = '#ff3366';
-                ctx.lineWidth = 2;
-                for (let i = 0; i < 8; i++) {
-                    const a = (Math.PI * 2 / 8) * i + time;
-                    const len = r * (1.1 + Math.sin(time * 4 + i) * 0.2);
-                    ctx.beginPath();
-                    ctx.moveTo(Math.cos(a) * (r * 0.8), Math.sin(a) * (r * 0.8));
-                    ctx.lineTo(Math.cos(a) * len, Math.sin(a) * len);
-                    ctx.stroke();
-                }
-
-                ctx.fillStyle = '#ffffff';
-                ctx.beginPath();
-                ctx.arc(0, 0, r * 0.4, 0, Math.PI * 2);
-                ctx.fill();
-                break;
-            }
-
-            case 'core_dragon': {
-                const pulse = 1 + Math.sin(time * 4) * 0.08;
-                ctx.fillStyle = color;
-                ctx.beginPath();
-                ctx.moveTo(0, -r * 1.35 * pulse);
-                ctx.quadraticCurveTo(r * 0.8, -r * 0.7, r * 1.2, -r * 0.1);
-                ctx.quadraticCurveTo(r * 0.6, -r * 0.2, 0, 0);
-                ctx.quadraticCurveTo(-r * 0.6, -r * 0.2, -r * 1.2, -r * 0.1);
-                ctx.quadraticCurveTo(-r * 0.8, -r * 0.7, 0, -r * 1.35 * pulse);
-                ctx.closePath();
-                ctx.fill();
-
-                ctx.beginPath();
-                ctx.arc(0, 0, r * 0.75, 0, Math.PI * 2);
-                ctx.fillStyle = '#ff2200';
-                ctx.fill();
-
-                ctx.fillStyle = '#ffea00';
-                ctx.beginPath();
-                ctx.ellipse(0, 0, r * 0.35, r * 0.55 * pulse, 0, 0, Math.PI * 2);
-                ctx.fill();
-
-                ctx.fillStyle = '#ffffff';
-                ctx.beginPath();
-                ctx.arc(0, 0, r * 0.2, 0, Math.PI * 2);
-                ctx.fill();
-                break;
-            }
-
-            case 'core_aurora': {
-                ctx.rotate(time * 0.6);
-                for (let i = 0; i < 3; i++) {
-                    const off = (Math.PI * 2 / 3) * i;
-                    const waveR = r * (0.85 + Math.sin(time * 3 + i) * 0.15);
-                    ctx.strokeStyle = (i === 0) ? '#00ff88' : (i === 1) ? '#00e5ff' : '#a855f7';
-                    ctx.lineWidth = 2.5;
-                    ctx.beginPath();
-                    ctx.arc(0, 0, waveR, off, off + Math.PI * 0.9);
-                    ctx.stroke();
-                }
-
-                ctx.fillStyle = '#00ffcc';
-                ctx.beginPath();
-                ctx.arc(0, 0, r * 0.5, 0, Math.PI * 2);
-                ctx.fill();
-
-                ctx.fillStyle = '#ffffff';
-                ctx.beginPath();
-                ctx.arc(0, 0, r * 0.25, 0, Math.PI * 2);
-                ctx.fill();
-                break;
-            }
-
-            case 'core_void_king': {
-                ctx.rotate(time * 0.3);
-                ctx.fillStyle = color;
-                ctx.beginPath();
-                const points = 5;
-                for (let i = 0; i < points; i++) {
-                    const a = (Math.PI * 2 / points) * i;
-                    const aMid = a + Math.PI / points;
-                    if (i === 0) ctx.moveTo(Math.cos(a) * r * 1.3, Math.sin(a) * r * 1.3);
-                    else ctx.lineTo(Math.cos(a) * r * 1.3, Math.sin(a) * r * 1.3);
-                    ctx.lineTo(Math.cos(aMid) * (r * 0.7), Math.sin(aMid) * (r * 0.7));
-                }
-                ctx.closePath();
-                ctx.fill();
-
-                ctx.beginPath();
-                ctx.arc(0, 0, r * 0.6, 0, Math.PI * 2);
-                ctx.fillStyle = '#080114';
-                ctx.fill();
-                ctx.strokeStyle = '#c084fc';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-
-                ctx.fillStyle = '#ffffff';
-                ctx.beginPath();
-                ctx.arc(0, 0, r * 0.25, 0, Math.PI * 2);
-                ctx.fill();
-                break;
-            }
-
-            default: { // core_default
-                ctx.shadowColor = color;
-                ctx.shadowBlur = 14;
-                ctx.strokeStyle = color;
-                ctx.lineWidth = 2.5;
-                ctx.beginPath();
-                ctx.arc(0, 0, r, 0, Math.PI * 2);
-                ctx.stroke();
-
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 1.6;
-                ctx.beginPath();
-                ctx.arc(0, 0, r * 0.72, 0, Math.PI * 2);
-                ctx.stroke();
-
-                ctx.fillStyle = '#ffffff';
-                ctx.beginPath();
-                ctx.arc(0, 0, r * 0.38, 0, Math.PI * 2);
-                ctx.fill();
-                break;
-            }
-        }
+        ctx.save();
+        if (CosmeticVisuals.isShip(coreId)) ctx.rotate(-Math.PI / 8);
+        drawSpacecraftHull(ctx, coreId, color, 18, time, true);
+        ctx.restore();
     },
 
-    // Draw single Projectile instance in canvas context
     drawProjectileInstance(ctx, projId, color, time) {
-        ctx.fillStyle = color;
-        ctx.shadowColor = color;
-        ctx.shadowBlur = 10;
-
-        switch (projId) {
-            case 'proj_laser':
-                ctx.fillStyle = color;
-                ctx.fillRect(-18, -3, 36, 6);
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(-12, -1.5, 26, 3);
-                break;
-
-            case 'proj_plasma':
-                ctx.strokeStyle = color;
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.arc(0, 0, 8, 0, Math.PI * 2);
-                ctx.stroke();
-                ctx.fillStyle = '#ffffff';
-                ctx.beginPath();
-                ctx.arc(0, 0, 3.5, 0, Math.PI * 2);
-                ctx.fill();
-                break;
-
-            case 'proj_shuriken':
-                ctx.rotate(time * 12);
-                ctx.fillStyle = color;
-                ctx.beginPath();
-                for (let s = 0; s < 4; s++) {
-                    const a = s * (Math.PI / 2);
-                    const aMid = a + Math.PI / 4;
-                    if (s === 0) ctx.moveTo(Math.cos(a) * 11, Math.sin(a) * 11);
-                    else ctx.lineTo(Math.cos(a) * 11, Math.sin(a) * 11);
-                    ctx.lineTo(Math.cos(aMid) * 4, Math.sin(aMid) * 4);
-                }
-                ctx.closePath();
-                ctx.fill();
-                ctx.fillStyle = '#ffffff';
-                ctx.beginPath();
-                ctx.arc(0, 0, 3, 0, Math.PI * 2);
-                ctx.fill();
-                break;
-
-            case 'proj_pixel':
-                ctx.fillStyle = color;
-                ctx.fillRect(-7, -7, 14, 14);
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(-3.5, -3.5, 7, 7);
-                break;
-
-            case 'proj_void':
-                ctx.fillStyle = color;
-                ctx.beginPath();
-                ctx.moveTo(13, 0);
-                ctx.lineTo(-9, -6);
-                ctx.lineTo(-3, 0);
-                ctx.lineTo(-9, 6);
-                ctx.closePath();
-                ctx.fill();
-                ctx.fillStyle = '#ffffff';
-                ctx.beginPath();
-                ctx.arc(0, 0, 2.5, 0, Math.PI * 2);
-                ctx.fill();
-                break;
-
-            case 'proj_storm':
-                ctx.strokeStyle = color;
-                ctx.lineWidth = 2.5;
-                ctx.beginPath();
-                ctx.moveTo(-14, 0);
-                ctx.lineTo(-5, -5);
-                ctx.lineTo(0, 4);
-                ctx.lineTo(14, 0);
-                ctx.stroke();
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 1.2;
-                ctx.stroke();
-                ctx.fillStyle = '#ffffff';
-                ctx.beginPath();
-                ctx.arc(6, 0, 3, 0, Math.PI * 2);
-                ctx.fill();
-                break;
-
-            case 'proj_phoenix':
-                ctx.fillStyle = color;
-                ctx.beginPath();
-                ctx.moveTo(14, 0);
-                ctx.quadraticCurveTo(0, -8, -10, -5);
-                ctx.lineTo(-5, 0);
-                ctx.lineTo(-10, 5);
-                ctx.quadraticCurveTo(0, 8, 14, 0);
-                ctx.closePath();
-                ctx.fill();
-                ctx.fillStyle = '#fff7cc';
-                ctx.beginPath();
-                ctx.arc(0, 0, 3.5, 0, Math.PI * 2);
-                ctx.fill();
-                break;
-
-            default: // proj_default
-                ctx.beginPath();
-                ctx.arc(0, 0, 6.5, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.fillStyle = '#ffffff';
-                ctx.beginPath();
-                ctx.arc(0, 0, 3, 0, Math.PI * 2);
-                ctx.fill();
-                break;
-        }
+        CosmeticVisuals.drawProjectile(ctx, projId, color || '#00ffff', 7, time);
     },
 
-    // Procedural Card Canvas Generator: Renders each item in crisp vector style
-    drawItemGraphic(ctx, item, isUnlocked, isEquipped, time) {
-        const w = ctx.canvas.width;
-        const h = ctx.canvas.height;
-        ctx.clearRect(0, 0, w, h);
+    preparePreviewCanvas(ctx) {
+        if (!ctx) return null;
+        const canvas = ctx.canvas;
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;
+        if (!width || !height) return null;
+        const density = Math.min(window.devicePixelRatio || 1, 2);
+        const pixelWidth = Math.max(1, Math.round(width * density));
+        const pixelHeight = Math.max(1, Math.round(height * density));
+        if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
+            canvas.width = pixelWidth;
+            canvas.height = pixelHeight;
+        }
+        // Draw in CSS pixels, with the same scale on both axes.
+        ctx.setTransform(density, 0, 0, density, 0, 0);
+        ctx.clearRect(0, 0, width, height);
+        return { width, height };
+    },
+
+    drawItemGraphic(ctx, item, isUnlocked, isEquipped, time, previewScale = 1) {
+        const size = this.preparePreviewCanvas(ctx);
+        if (!size) return;
+        const { width: w, height: h } = size;
 
         const cx = w / 2;
         const cy = h / 2;
-
-        // Background grid pattern
-        ctx.fillStyle = 'rgba(12, 10, 25, 0.95)';
-        ctx.fillRect(0, 0, w, h);
-
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        for (let x = 0; x <= w; x += 20) {
-            ctx.moveTo(x, 0);
-            ctx.lineTo(x, h);
-        }
-        for (let y = 0; y <= h; y += 20) {
-            ctx.moveTo(0, y);
-            ctx.lineTo(w, y);
-        }
-        ctx.stroke();
+        const scale = Math.max(0.1, Math.min(previewScale * 1.5, (w - 20) / 100, (h - 16) / 76));
 
         // If LOCKED: render holographic silhouette + padlock
         if (!isUnlocked) {
             ctx.save();
             ctx.translate(cx, cy);
+            ctx.scale(scale, scale);
 
             // Subtle silhouette of the real item
             ctx.globalAlpha = 0.25;
@@ -1378,6 +866,7 @@ const ArmoryUI = {
         // UNLOCKED: Render crisp, beautiful visual
         ctx.save();
         ctx.translate(cx, cy);
+        ctx.scale(scale, scale);
 
         if (item.type === 'core') {
             this.drawCoreInstance(ctx, item.id, time, false);
@@ -1410,7 +899,7 @@ const ArmoryUI = {
 
         ctx.save();
         ctx.beginPath();
-        ctx.roundRect(pad, pad, bw, bh, 8);
+        ctx.rect(pad, pad, bw, bh);
         ctx.clip();
 
         const bgKey = (bgId || '').replace('bg_', '');
@@ -1484,139 +973,33 @@ const ArmoryUI = {
         ctx.strokeStyle = frameColor;
         ctx.lineWidth = 1.2;
         ctx.beginPath();
-        ctx.roundRect(pad, pad, bw, bh, 8);
+        ctx.rect(pad, pad, bw, bh);
         ctx.stroke();
     },
 
     // Procedural High-Tech Holographic Cipher Pods
     drawPackGraphic(ctx, packId, time) {
-        const w = ctx.canvas.width;
-        const h = ctx.canvas.height;
-        ctx.clearRect(0, 0, w, h);
-
-        const cx = w / 2;
-        const cy = h / 2;
-
-        let primaryColor = '#00f0ff';
-        let secondaryColor = '#38bdf8';
-        let coreColor = 'rgba(0, 240, 255, 0.6)';
-        if (packId === 'pack_quantum') {
-            primaryColor = '#d946ef';
-            secondaryColor = '#f472b6';
-            coreColor = 'rgba(217, 70, 239, 0.65)';
-        } else if (packId === 'pack_void') {
-            primaryColor = '#ffd700';
-            secondaryColor = '#f59e0b';
-            coreColor = 'rgba(255, 215, 0, 0.7)';
-        }
-
+        const size = this.preparePreviewCanvas(ctx);
+        if (!size) return;
+        const { width: w, height: h } = size;
+        const color = packId === 'pack_void' ? '#be76ff' : packId === 'pack_quantum' ? '#ffd45b' : '#bac2cf';
         ctx.save();
-        ctx.translate(cx, cy);
-
-        // 1. Ambient Glow
-        const bgGlow = ctx.createRadialGradient(0, 0, 10, 0, 0, 56);
-        bgGlow.addColorStop(0, coreColor);
-        bgGlow.addColorStop(1, 'transparent');
-        ctx.fillStyle = bgGlow;
-        ctx.fillRect(-60, -60, 120, 120);
-
-        // 2. Holographic Gimbal Rings (3 axes)
-        // Outer Ring
-        ctx.save();
-        ctx.rotate(time * 0.7);
-        ctx.strokeStyle = primaryColor;
-        ctx.lineWidth = 1.8;
-        ctx.shadowColor = primaryColor;
-        ctx.shadowBlur = 10;
-        ctx.beginPath();
-        ctx.ellipse(0, 0, 52, 20, 0, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.restore();
-
-        // Inner Counter-Ring
-        ctx.save();
-        ctx.rotate(-time * 0.95 + 1.2);
-        ctx.strokeStyle = secondaryColor;
-        ctx.lineWidth = 1.4;
-        ctx.beginPath();
-        ctx.ellipse(0, 0, 46, 17, 0, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.restore();
-
-        // Diagonal Laser Ring with dashed ticks
-        ctx.save();
-        ctx.rotate(time * 1.3);
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 1.2;
-        ctx.setLineDash([6, 10]);
-        ctx.beginPath();
-        ctx.ellipse(0, 0, 40, 14, Math.PI / 4, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.setLineDash([]);
-        ctx.restore();
-
-        // 3. Central Armored Pod Capsule Chassis
-        const podW = 34;
-        const podH = 48;
-        const floatY = Math.sin(time * 2.5) * 3;
-
-        ctx.save();
-        ctx.translate(0, floatY);
-
-        // Dark obsidian chassis
-        ctx.fillStyle = '#070512';
-        ctx.strokeStyle = primaryColor;
-        ctx.lineWidth = 2.2;
-        ctx.shadowColor = primaryColor;
-        ctx.shadowBlur = 12;
-        ctx.beginPath();
-        ctx.roundRect(-podW / 2, -podH / 2, podW, podH, 8);
-        ctx.fill();
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-
-        // Metallic corner armor plates
-        ctx.fillStyle = '#1e1b4b';
-        ctx.fillRect(-podW / 2 + 3, -podH / 2 + 3, 6, 6);
-        ctx.fillRect(podW / 2 - 9, -podH / 2 + 3, 6, 6);
-        ctx.fillRect(-podW / 2 + 3, podH / 2 - 9, 6, 6);
-        ctx.fillRect(podW / 2 - 9, podH / 2 - 9, 6, 6);
-
-        // Glowing internal reactor core
-        const coreGrad = ctx.createLinearGradient(0, -podH / 2 + 8, 0, podH / 2 - 8);
-        coreGrad.addColorStop(0, secondaryColor);
-        coreGrad.addColorStop(0.5, '#ffffff');
-        coreGrad.addColorStop(1, primaryColor);
-        ctx.fillStyle = coreGrad;
-        ctx.beginPath();
-        ctx.roundRect(-podW / 2 + 6, -podH / 2 + 8, podW - 12, podH - 16, 5);
-        ctx.fill();
-
-        // Scanning Laser Sweep Line
-        const scanY = -podH / 2 + 10 + ((Math.sin(time * 4) + 1) * 0.5) * (podH - 20);
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
-        ctx.shadowColor = '#ffffff';
-        ctx.shadowBlur = 6;
-        ctx.beginPath();
-        ctx.moveTo(-podW / 2 + 4, scanY);
-        ctx.lineTo(podW / 2 - 4, scanY);
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-
-        // High-tech emitter cross ticks
-        ctx.strokeStyle = primaryColor;
+        ctx.translate(w / 2, h / 2);
+        const r = Math.min(w, h) * .30;
+        const points = [[0,-r], [r,-r*.45], [r,r*.65], [0,r*1.15], [-r,r*.65], [-r,-r*.45]];
+        ctx.strokeStyle = color;
         ctx.lineWidth = 1.5;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 4;
         ctx.beginPath();
-        ctx.moveTo(0, -podH / 2);
-        ctx.lineTo(0, -podH / 2 - 4);
-        ctx.moveTo(0, podH / 2);
-        ctx.lineTo(0, podH / 2 + 4);
+        points.forEach(([x,y],i) => i ? ctx.lineTo(x,y) : ctx.moveTo(x,y));
+        ctx.closePath();
+        ctx.moveTo(-r,-r*.45);ctx.lineTo(0,r*.1);ctx.lineTo(r,-r*.45);
+        ctx.moveTo(0,r*.1);ctx.lineTo(0,r*1.15);
         ctx.stroke();
-
-        ctx.restore();
         ctx.restore();
     }
+
 };
 
 window.ArmoryUI = ArmoryUI;

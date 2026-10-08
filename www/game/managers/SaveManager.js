@@ -4,7 +4,7 @@ class SaveManager {
     static SAVE_KEY = 'neonblast_save_data_v1';
 
     static saveGame() {
-        if (!gameState.gameActive && !gameState.isPaused) return; // Don't save if game over or not started
+        if (!gameState.gameActive) return; // A paused results screen must never become a resumable run.
 
         const data = {
             score: gameState.score,
@@ -16,6 +16,9 @@ class SaveManager {
             playerStats: gameState.playerStats,
             takenPerks: gameState.takenPerks,
             hasRevivedThisRun: !!gameState.hasRevivedThisRun,
+            activeRunMs: gameState.activeRunMs || 0,
+            totalEnemiesKilled: gameState.totalEnemiesKilled || 0,
+            totalBossesKilled: gameState.totalBossesKilled || 0,
 
             // Save Boss State if active
             bossActive: gameState.bossActive,
@@ -50,6 +53,23 @@ class SaveManager {
             if (!serialized) return null;
 
             const data = JSON.parse(serialized);
+            if (!data || typeof data !== 'object' || Array.isArray(data)) return null;
+            for (const key of ['score', 'level', 'nextLevelThreshold', 'previousLevelThreshold', 'currentLevelStep', 'difficultyMultiplier']) {
+                if (!Number.isFinite(data[key]) || data[key] < 0) return null;
+            }
+            if (data.level < 1 || data.currentLevelStep <= 0 || data.nextLevelThreshold <= data.previousLevelThreshold) return null;
+            if (!data.playerStats || typeof data.playerStats !== 'object' || Array.isArray(data.playerStats)) return null;
+            // Preserve the v1 format and valid legacy stats; reject corrupt numeric stats.
+            if (Object.values(data.playerStats).some(value => typeof value === 'number' && !Number.isFinite(value))) return null;
+            if (typeof DEFAULT_PLAYER_STATS !== 'undefined') {
+                for (const [key, value] of Object.entries(DEFAULT_PLAYER_STATS)) {
+                    if (typeof value === 'number' && key in data.playerStats && !Number.isFinite(data.playerStats[key])) data.playerStats[key] = value;
+                }
+            }
+            data.takenPerks = Array.isArray(data.takenPerks) ? data.takenPerks.filter(id => typeof id === 'string') : [];
+            for (const key of ['activeRunMs', 'totalEnemiesKilled', 'totalBossesKilled']) {
+                data[key] = Number.isFinite(data[key]) && data[key] >= 0 ? data[key] : 0;
+            }
             console.log('Game Loaded', data);
             return data;
         } catch (e) {
@@ -59,12 +79,12 @@ class SaveManager {
     }
 
     static clearSave() {
-        localStorage.removeItem(this.SAVE_KEY);
+        try { localStorage.removeItem(this.SAVE_KEY); } catch (e) { console.warn('Save removal unavailable:', e); }
         console.log('Save Data Cleared');
     }
 
     static hasSave() {
-        return !!localStorage.getItem(this.SAVE_KEY);
+        return !!this.loadGame();
     }
 }
 
