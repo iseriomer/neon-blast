@@ -21,6 +21,5 @@
 #result-run-detail {font:500 13px/1.3 MenuText,sans-serif;color:#94a5b0;margin:0;flex-shrink:0;text-align:center}
 #result-run-detail .record {color:#00efff}
 .reward-ready-dot {display:inline-block;width:6px;height:6px;border-radius:50%;background:#00efff;margin-left:5px;vertical-align:middle}
-#levelup-screen .perk-fit {display:block;font:500 9px/1.3 MenuText,sans-serif;color:#a6e9ed;letter-spacing:.04em;text-align:center;margin-top:4px}
 @media(max-height:650px) {#result-run-detail{font-size:11px}#player-options-btn{min-height:28px;font-size:12px}.player-options-card{font-size:15px}.player-options-card h2{font-size:25px;margin-bottom:8px}}
 @media(prefers-reduced-motion:reduce) {#first-run-hint{transition:none}}

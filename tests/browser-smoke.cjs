@@ -34,7 +34,7 @@ const server = http.createServer((req, res) => {
         await page.evaluate(() => { document.getElementById('start-screen').scrollTop = 0; });
         await page.waitForFunction(() => !document.querySelector('#start-screen .btn-shuffling'));
         assert.equal(await page.locator('#daily-reward-modal').isVisible(), false, 'new players start without a reward popup');
-        await page.locator('#player-options-btn').click();
+        await page.locator('#hub-settings').click();
         assert.equal(await page.locator('#player-options-modal').isVisible(), true);
         assert.equal(await page.locator('#analytics-choice').isChecked(), false);
         await page.locator('#options-sfx-toggle').uncheck();
@@ -43,11 +43,11 @@ const server = http.createServer((req, res) => {
         await page.reload();
         await page.waitForTimeout(1000);
         assert.equal(await page.evaluate(() => getSFXEnabled()), false, 'sound preference survives reload');
-        await page.locator('#player-options-btn').click();
+        await page.locator('#hub-settings').click();
         await page.locator('#options-sfx-toggle').check();
         await page.locator('#player-options-close').click();
         await page.screenshot({ path: path.resolve(__dirname, '../artifacts/ui-menu.png') });
-        await page.locator('#armory-btn').click();
+        await page.locator( '[data-hub-tab="armory"]' ).click();
         assert.equal(await page.evaluate(() => ArmoryUI.currentTab), 'store');
         assert.equal(await page.locator('#armory-store-view').isVisible(), true);
         await page.locator('[data-tab="cores"]').click();
@@ -78,7 +78,7 @@ const server = http.createServer((req, res) => {
                 }
                 ArmoryUI.switchTab('store');
                 const titles = [...document.querySelectorAll('.offer-title')].map(el => el.textContent);
-                const ids = ['remove_ads', 'starter_pack', 'premium_cosmetic_pack'];
+                const ids = ['starter_pack', 'premium_cosmetic_pack'];
                 ids.forEach((id, index) => {
                     const p = PremiumStoreManager.getLocalizedProduct(id);
                     if (titles[index] !== p.name) failures.push(id);
@@ -113,7 +113,7 @@ const server = http.createServer((req, res) => {
             Localization.setLanguage('de');
         });
         await page.waitForTimeout(150);
-        assert.equal(await page.locator('#start-btn').innerText(), await page.evaluate(() => Localization.t(document.getElementById('start-btn').dataset.i18n)));
+        assert.equal(await page.locator('#start-btn').innerText(), await page.evaluate(() => document.getElementById('start-btn').dataset.originalText));
         await page.evaluate(() => Localization.setLanguage('en'));
         await page.locator('#airdrop-free-coins-btn').click();
         await page.locator('#ad-cancel-btn').click();
@@ -173,7 +173,7 @@ const server = http.createServer((req, res) => {
             for (const tab of ['cores', 'projectiles', 'backgrounds']) ArmoryUI.switchTab(tab);
             ArmoryUI.closeArmory();
         });
-        await page.locator('#leaderboard-btn').click();
+        await page.locator( '[data-hub-tab="leaderboard"]' ).click();
         assert.equal(await page.locator('#leaderboard-screen').isVisible(), true);
         await page.locator('#close-leaderboard-btn').click();
         await page.locator('#start-btn').click();
@@ -197,15 +197,17 @@ const server = http.createServer((req, res) => {
         await page.locator('#ad-collect-btn').click();
         assert.equal(await page.evaluate(() => gameState.hasRevivedThisRun && !gameState.isPaused), true);
         assert.equal(await page.evaluate(() => gameState.playerStats.shield), 2);
-        await page.evaluate(() => gameOver());
+        await page.evaluate(() => { gameState.level=LevelDirector.config().bossAtEvolution;LevelProgress.encounter(false);BossManager.activeBoss.die(); });
+        await page.locator('#win-hub-btn').click();
         assert.equal(await page.locator('#double-coins-hint').innerText(), await page.evaluate(() => Localization.t('double_reward_hint', { before: window.lastEarnedCoins, after: window.lastEarnedCoins * 2 })));
         await page.waitForFunction(() => !document.querySelector('#game-over-screen .btn-shuffling'));
         await page.screenshot({ path: path.resolve(__dirname, '../artifacts/ui-results.png') });
         await page.locator('#double-coins-btn').click();
         await page.locator('#ad-collect-btn').click();
         assert.equal(await page.locator('#double-coins-btn').isDisabled(), true);
-        await page.locator('#restart-btn').click();
-        await page.evaluate(() => gameOver());
+        await page.locator('#start-btn').click();
+        await page.evaluate(() => { gameState.level=LevelDirector.config().bossAtEvolution;LevelProgress.encounter(false);BossManager.activeBoss.die(); });
+        await page.locator('#win-hub-btn').click();
         assert.equal(await page.locator('#double-coins-btn').isDisabled(), false);
         const resetFailures = await page.evaluate(() => {
             Localization.setLanguage('fr');
@@ -218,7 +220,7 @@ const server = http.createServer((req, res) => {
         await page.waitForTimeout(1000);
         if (await page.locator('#dr-close-btn').isVisible()) await page.locator('#dr-close-btn').click();
         const before = await page.evaluate(() => CosmeticsManager.coins);
-        await page.locator('#armory-btn').click();
+        await page.locator( '[data-hub-tab="armory"]' ).click();
         await page.locator('#airdrop-free-coins-btn').click();
         assert.equal(await page.evaluate(() => CosmeticsManager.coins), before);
         assert.equal(await page.locator('#neon-ad-loading-overlay').isVisible(), false);

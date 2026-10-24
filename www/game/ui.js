@@ -47,7 +47,7 @@ let currentLevelDisplayed = 1;
 
 function updateLevelIndicator(level) {
     currentLevelDisplayed = level;
-    levelEl.innerText = `${Localization.t('level')}: ${level}`;
+    levelEl.innerText = typeof level === 'number' ? `EVOLUTION ${level}` : level;
 }
 
 // FPS Counter
@@ -84,7 +84,7 @@ function showLevelUpAnimation() {
 
     const levelUpAnim = document.createElement('div');
     levelUpAnim.id = 'levelup-floating-text';
-    levelUpAnim.innerText = Localization.t('level_up');
+    levelUpAnim.innerText = 'EVOLUTION';
 
     // Dynamic styles for the element
     levelUpAnim.style.cssText = `

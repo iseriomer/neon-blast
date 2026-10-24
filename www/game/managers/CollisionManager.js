@@ -100,9 +100,7 @@ class CollisionManager {
                     continue;
                 }
 
-                const isBlackHoleActive = typeof blackHole !== 'undefined' && blackHole !== null;
-
-                if (gameState.playerStats.shield > 0 && !isBlackHoleActive) {
+                if (gameState.playerStats.shield > 0) {
                     gameState.playerStats.shield--;
                     updateShieldIndicator(gameState.playerStats.shield);
                     CTX.fillStyle = 'rgba(0, 255, 255, 0.3)';
@@ -261,7 +259,6 @@ class CollisionManager {
         const legacyBosses = [
             { ref: 'boss', color: '#8a2be2' },
             { ref: 'boss2', color: '#00ffff' },
-            { ref: 'boss3', color: '#00ff88', hasEntities: true },
             { ref: 'boss4', color: '#00ff88', hasSplitCores: true },
             { ref: 'boss5', color: null, hasClockMinions: true }, // color from getPhaseColor()
             { ref: 'boss6', color: null, hasVoidOrbitals: true }, // VOID REAPER - color from getPhaseColor()
@@ -401,7 +398,7 @@ class CollisionManager {
             const minDist = core.radius + projectile.radius;
 
             if (distSq < minDist * minDist) {
-                let damage = 15;
+                let damage = 15 * (gameState.playerStats.permanentDamageMultiplier || 1);
                 if (gameState.playerStats.sniper) damage *= 2;
 
                 boss4.takeDamage(damage);
@@ -430,7 +427,7 @@ class CollisionManager {
             const minDist = minion.radius + projectile.radius;
 
             if (distSq < minDist * minDist) {
-                let damage = gameState.playerStats.sniper ? 2 : 1;
+                let damage = (gameState.playerStats.sniper ? 2 : 1) * (gameState.playerStats.permanentDamageMultiplier || 1);
                 minion.hp -= damage;
                 spawnParticles(minion.x, minion.y, 3, 2, boss5.getPhaseColor());
                 playSound('hit');
@@ -461,7 +458,7 @@ class CollisionManager {
             const minDist = arm.radius + projectile.radius;
 
             if (distSq < minDist * minDist) {
-                let damage = gameState.playerStats.sniper ? 2 : 1;
+                let damage = (gameState.playerStats.sniper ? 2 : 1) * (gameState.playerStats.permanentDamageMultiplier || 1);
                 arm.hp -= damage;
                 spawnParticles(arm.x, arm.y, 3, 2, boss8.getPhaseColor());
                 playSound('hit');
@@ -492,7 +489,7 @@ class CollisionManager {
             const minDist = node.radius + projectile.radius;
 
             if (distSq < minDist * minDist) {
-                let damage = gameState.playerStats.sniper ? 2 : 1;
+                let damage = (gameState.playerStats.sniper ? 2 : 1) * (gameState.playerStats.permanentDamageMultiplier || 1);
                 node.hp -= damage;
                 spawnParticles(node.x, node.y, 3, 2, boss9.getPhaseColor());
                 playSound('hit');
@@ -623,7 +620,7 @@ class CollisionManager {
 
         for (let c = 0; c < chainCount; c++) {
             const target = chainTargets[c].enemy;
-            target.hp -= (gameState.playerStats.chainLightningDamage || 1);
+            target.hp -= MetaProgress.passiveDamage(gameState.playerStats.chainLightningDamage || 1);
 
             if (typeof spawnChainLightning === 'function') {
                 spawnChainLightning(sourceEnemy.x, sourceEnemy.y, target.x, target.y);

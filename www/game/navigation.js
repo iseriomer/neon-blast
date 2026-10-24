@@ -37,13 +37,19 @@
         if (!window.fetchLeaderboard) ArmoryUI.showToast(Localization.t('lb_connection_error'), false);
     });
     window.addEventListener('keydown', event => {
-        if (event.key !== 'Escape' || AdManager.isAdPlaying) return;
-        const visible = ['pack-opening-modal', 'armory-modal', 'daily-reward-modal', 'lucky-spin-modal', 'quest-panel-modal', 'leaderboard-screen']
+        if (event.key !== 'Escape' || window.AdManager?.isAdPlaying) return;
+        if (document.body.classList.contains('win-open') || document.body.classList.contains('lose-open')) return;
+        const visible = ['player-options-modal', 'pack-opening-modal', 'daily-reward-modal', 'lucky-spin-modal', 'quest-panel-modal', 'armory-modal', 'leaderboard-screen']
             .map(id => document.getElementById(id)).find(el => el && !el.classList.contains('hidden'));
-        if (!visible) return;
+        if (!visible) {
+            if (document.body.classList.contains('hub-open') && window.MainHub && MainHub.getTab() !== 'play') MainHub.select('play');
+            return;
+        }
         event.stopImmediatePropagation();
-        if (visible.id === 'pack-opening-modal') document.getElementById('reveal-close-btn')?.click();
-        else if (visible.id === 'armory-modal') ArmoryUI.closeArmory();
+        if (visible.id === 'player-options-modal') PlayerOptions.close();
+        else if (visible.id === 'pack-opening-modal') document.getElementById('reveal-close-btn')?.click();
+        else if (visible.id === 'armory-modal') { ArmoryUI.closeArmory(); window.MainHub?.select('play'); }
+        else if (visible.id === 'leaderboard-screen' && window.MainHub) MainHub.select('play');
         else visible.classList.add('hidden');
     }, true);
 })();

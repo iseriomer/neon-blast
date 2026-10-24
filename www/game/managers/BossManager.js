@@ -12,7 +12,8 @@ class BossManager {
         const BOSS_REGISTRY = {
             1: typeof boss !== 'undefined' ? boss : null,
             2: typeof boss2 !== 'undefined' ? boss2 : null,
-            3: typeof boss3 !== 'undefined' ? boss3 : null,
+            10: typeof boss10 !== 'undefined' ? boss10 : null,
+            11: typeof boss11 !== 'undefined' ? boss11 : null,
             4: typeof boss4 !== 'undefined' ? boss4 : null,
             5: typeof boss5 !== 'undefined' ? boss5 : null,
             6: typeof boss6 !== 'undefined' ? boss6 : null,
@@ -49,6 +50,8 @@ class BossManager {
         }
 
         const spawnY = selectedBoss.isMiniboss ? (selectedBoss.targetY || 120) : -100;
+        selectedBoss.campaignBossId = bossId;
+        LevelDirector.prepareBoss(selectedBoss, bossId);
         selectedBoss.spawn(CANVAS.width / 2, spawnY);
     }
 
@@ -74,6 +77,7 @@ class BossManager {
     }
 
     static checkPlayerCollision(bossEntity) {
+        if (gameState.godMode || gameState.invulnerableTimer > 0 || gameState.isDying) return;
         const dist = Math.hypot(bossEntity.x - player.x, bossEntity.y - player.y);
 
         // Use generic radius/hitbox
@@ -86,11 +90,12 @@ class BossManager {
                 // This could be moved to BossBase property 'pushForce'
                 let pushForce = 200;
                 if (bossEntity.name === 'NEXUS PRIME') pushForce = 300;
-                if (bossEntity.name === 'THE OMEGA') pushForce = 300;
 
                 const angle = Math.atan2(player.y - bossEntity.y, player.x - bossEntity.x);
                 player.x += Math.cos(angle) * pushForce;
                 player.y += Math.sin(angle) * pushForce;
+                player.x = Math.max(player.radius, Math.min(CANVAS.width - player.radius, player.x));
+                player.y = Math.max(player.radius, Math.min(CANVAS.height - player.radius, player.y));
             } else {
                 startDeathSequence();
             }

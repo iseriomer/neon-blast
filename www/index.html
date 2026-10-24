@@ -5,12 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Neon Blast</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="armory.css">
-    <link rel="stylesheet" href="menus.css">
-    <link rel="stylesheet" href="menu-viewport.css">
-    <link rel="stylesheet" href="experience.css">
-    <link rel="stylesheet" href="button-surfaces.css">
+    <link rel="stylesheet" href="style.css?v=20261009-results2">
+    <link rel="stylesheet" href="armory.css?v=20261009-results2">
+    <link rel="stylesheet" href="menus.css?v=20261009-results2">
+    <link rel="stylesheet" href="menu-viewport.css?v=20261009-results2">
+    <link rel="stylesheet" href="experience.css?v=20261009-results2">
+    <link rel="stylesheet" href="button-surfaces.css?v=20261009-results2">
+    <link rel="stylesheet" href="main-hub.css?v=20261009-results2">
 </head>
 
 <body>
@@ -22,7 +23,7 @@
                 <div id="xp-fill"></div>
             </div>
             <div id="xp-info-row">
-                <div id="level-indicator" data-i18n="level">Level: 1</div>
+                <div id="level-indicator">Level: 1</div>
                 <div id="xp-text">0 / 1000</div>
             </div>
         </div>
@@ -481,96 +482,108 @@
     </div>
 
     <!-- Load Firebase Leaderboard -->
-    <script type="module" src="game/leaderboard.js"></script>
+    <script type="module" src="game/leaderboard.js?v=20261009-balance1"></script>
 
     <!-- CAPACITOR RUNTIME - Load first for mobile builds -->
     <script src="capacitor.js"></script>
 
     <!-- OPTIMIZATION NOTE: Load order is critical! -->
     <!-- 1. Constants and utilities first -->
-    <script src="game/constants.js"></script>
-    <script src="game/audio.js"></script>
-    <script src="game/menu-audio.js"></script>
-    <script src="game/lang.js"></script>
-    <script src="game/store-translations.js"></script>
-    <script src="game/experience-translations.js"></script>
-    <script src="game/telemetry.js"></script>
-    <script src="game/experience.js"></script>
-    <script src="game/ui-icons.js"></script>
+    <script src="game/constants.js?v=20261024-fair2"></script>
+    <script src="game/audio.js?v=20261009-results2"></script>
+    <script src="game/menu-audio.js?v=20261009-results2"></script>
+    <script src="game/lang.js?v=20261009-balance1"></script>
+    <script src="game/store-translations.js?v=20261024-fair2"></script>
+    <script src="game/experience-translations.js?v=20261009-results2"></script>
+    <script src="game/telemetry.js?v=20261009-results2"></script>
+    <script src="game/experience.js?v=20261009-results2"></script>
+    <script src="game/ui-icons.js?v=20261009-results2"></script>
 
     <!-- 2. NEW: Performance profiler -->
-    <script src="game/performance-profiler.js"></script>
+    <script src="game/performance-profiler.js?v=20261009-results2"></script>
 
     <!-- 3. NEW: Spatial grid for collision optimization -->
-    <script src="game/spatial-grid.js"></script>
+    <script src="game/spatial-grid.js?v=20261009-results2"></script>
 
     <!-- Monetization & Cosmetics Systems -->
-    <script src="game/managers/AdManager.js"></script>
-    <script src="game/managers/CosmeticsManager.js"></script>
-    <script src="game/cosmetic-visuals.js"></script>
-    <script src="game/managers/PremiumStoreManager.js"></script>
-    <script src="game/managers/DailyRewardManager.js"></script>
-    <script src="game/managers/QuestManager.js"></script>
-    <script src="game/managers/LuckySpinManager.js"></script>
-    <script src="game/managers/ArmoryUI.js"></script>
+    <script src="game/managers/AdManager.js?v=20261024-fair2"></script>
+    <script src="game/managers/CosmeticsManager.js?v=20261009-results2"></script>
+    <script src="game/cosmetic-visuals.js?v=20261009-results2"></script>
+    <script src="game/managers/PremiumStoreManager.js?v=20261024-fair2"></script>
+    <script src="game/managers/DailyRewardManager.js?v=20261009-results2"></script>
+    <script src="game/managers/QuestManager.js?v=20261009-results2"></script>
+    <script src="game/managers/LuckySpinManager.js?v=20261009-results2"></script>
+    <script src="game/managers/ArmoryUI.js?v=20261024-fair2"></script>
 
     <!-- 4. NEW: Batch renderer -->
-    <script src="game/optimized-renderer.js"></script>
+    <script src="game/optimized-renderer.js?v=20261009-results2"></script>
 
     <!-- 5. Core systems -->
-    <script src="game/objectPool.js"></script>
-    <script src="game/particle.js"></script>
+    <script src="game/objectPool.js?v=20261009-results2"></script>
+    <script src="game/particle.js?v=20261009-results2"></script>
 
     <!-- 6. REPLACE: Optimized projectile system -->
-    <script src="game/projectile-OPTIMIZED.js"></script>
+    <script src="game/projectile-OPTIMIZED.js?v=20261009-results2"></script>
 
     <!-- 7. Original systems -->
-    <script src="game/enemy.js"></script>
+    <script src="game/enemy.js?v=20261009-balance1"></script>
 
     <!-- Audio System -->
-    <script src="game/managers/MusicManager.js"></script>
-    <script src="game/music/Track1.js"></script>
-    <script src="game/music/Track2.js"></script>
-    <script src="game/music/Track3.js"></script>
-    <script src="game/music/Track4.js"></script>
-    <script src="game/music/Track5.js"></script>
-    <script src="game/music/Track6.js"></script>
-    <script src="game/music/Track7.js"></script>
-    <script src="game/music/Track8.js"></script>
+    <script src="game/managers/MusicManager.js?v=20261009-results2"></script>
+    <script src="game/music/Track1.js?v=20261009-results2"></script>
+    <script src="game/music/Track2.js?v=20261009-results2"></script>
+    <script src="game/music/Track3.js?v=20261009-results2"></script>
+    <script src="game/music/Track4.js?v=20261009-results2"></script>
+    <script src="game/music/Track5.js?v=20261009-results2"></script>
+    <script src="game/music/Track6.js?v=20261009-results2"></script>
+    <script src="game/music/Track7.js?v=20261009-results2"></script>
+    <script src="game/music/Track8.js?v=20261009-results2"></script>
 
     <!-- 8. REPLACE: Optimized player -->
-    <script src="game/player-OPTIMIZED.js"></script>
+    <script src="game/player-OPTIMIZED.js?v=20261009-results2"></script>
 
-    <script src="game/perks.js"></script>
-    <script src="game/ui.js"></script>
-    <script src="game/bosses/BossBase.js"></script>
-    <script src="game/boss.js"></script>
-    <script src="game/boss_2.js"></script>
-    <script src="game/boss_3.js"></script>
-    <script src="game/boss_4.js"></script>
-    <script src="game/boss_5.js"></script>
-    <script src="game/boss_6.js"></script>
-    <script src="game/boss_7.js"></script>
-    <script src="game/boss_8.js"></script>
-    <script src="game/boss_9.js"></script>
-    <script src="game/bosses/Miniboss.js"></script>
+    <script src="game/perks.js?v=20261009-balance1"></script>
+    <script src="game/ui.js?v=20261009-results2"></script>
+    <script src="game/bosses/BossBase.js?v=20261009-results2"></script>
+    <script src="game/boss.js?v=20261024-fair2"></script>
+    <script src="game/boss_2.js?v=20261024-fair2"></script>
+
+    <script src="game/boss_4.js?v=20261009-results2"></script>
+    <script src="game/boss_5.js?v=20261009-results2"></script>
+    <script src="game/boss_6.js?v=20261009-results2"></script>
+    <script src="game/boss_7.js?v=20261009-results2"></script>
+    <script src="game/boss_8.js?v=20261009-results2"></script>
+    <script src="game/boss_9.js?v=20261009-results2"></script>
+    <script src="game/bosses/Miniboss.js?v=20261009-balance1"></script>
+    <script src="game/bosses/HelixCitadel.js?v=20261009-results2"></script>
+    <script src="game/bosses/AuroraForge.js?v=20261009-results2"></script>
 
     <!-- NEW: Refactored Managers & Skills -->
-    <script src="game/managers/CollisionManager.js"></script>
-    <script src="game/managers/SpawnManager.js"></script>
-    <script src="game/joystick.js"></script>
-    <script src="game/managers/InputManager.js"></script>
-    <script src="game/managers/BossManager.js"></script>
-    <script src="game/skills/BlackHole.js"></script>
-    <script src="game/skills/Lightning.js"></script>
+    <script src="game/managers/CollisionManager.js?v=20261024-fair2"></script>
+    <script src="game/managers/SpawnManager.js?v=20261024-fair2"></script>
+    <script src="game/joystick.js?v=20261009-results2"></script>
+    <script src="game/managers/InputManager.js?v=20261009-results2"></script>
+    <script src="game/managers/BossManager.js?v=20261024-fair2"></script>
+    <script src="game/skills/BlackHole.js?v=20261024-fair2"></script>
+    <script src="game/skills/Lightning.js?v=20261009-results2"></script>
 
     <!-- 9. REPLACE: Main game loop with all optimizations -->
-    <script src="game/game-OPTIMIZED.js"></script>
-    <script src="game/background.js"></script>
-    <script src="game/admin.js"></script>
-    <script src="game/managers/SaveManager.js"></script>
-    <script src="game/navigation.js"></script>
-    <script src="game/menus.js"></script>
+    <script src="game/game-OPTIMIZED.js?v=20261024-fair2"></script>
+    <script src="game/background.js?v=20261009-results2"></script>
+    <script src="game/admin.js?v=20261009-results2"></script>
+    <script src="game/managers/SaveManager.js?v=20261009-balance1"></script>
+    <script src="game/navigation.js?v=20261009-results2"></script>
+    <script src="game/menus.js?v=20261009-results2"></script>
+    <script src="game/level-config.js?v=20261024-buildtime1"></script>
+    <script src="game/meta-progress.js?v=20261009-balance1"></script>
+    <script src="game/game-balance.js?v=20261024-fair2"></script>
+    <script src="game/remote-config-fields.js?v=20261024-fair2"></script>
+    <script type="module" src="game/remote-config.js?v=20261009-balance2"></script>
+    <script src="game/level-progress.js?v=20261009-balance1"></script>
+    <script src="game/encyclopedia.js?v=20261009-balance1"></script>
+    <script src="game/main-hub.js?v=20261009-results2"></script>
+    <script src="game/level-win.js?v=20261009-results2"></script>
+    <script src="game/level-lose.js?v=20261009-results2"></script>
 
     <script>
         // Initialize systems

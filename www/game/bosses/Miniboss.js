@@ -19,9 +19,9 @@ class Miniboss extends BossBase {
     }
 
     spawn(x, y) {
-        this.maxHp = Math.round(this.baseMaxHp * (1 + Math.max(0, gameState.level - 1) * 0.055));
+        if (!window.LevelDirector) this.maxHp = Math.round(this.baseMaxHp * (1 + Math.max(0, gameState.level - 1) * 0.055));
         this.pendingWaves.length = 0;
-        this.waveCooldown = 100;
+        this.waveCooldown = GameBalance.get('miniboss.initialCooldown');
         this.rotation = 0;
         this.targetY = Math.max(90, Math.min(CANVAS.height * 0.22, 170));
         super.spawn(x, this.targetY);
@@ -40,7 +40,7 @@ class Miniboss extends BossBase {
     }
 
     queueWave() {
-        if (this.activeNodeCount >= 7 || this.pendingWaves.length) return;
+        if (this.activeNodeCount >= GameBalance.get('miniboss.maxNodes') || this.pendingWaves.length) return;
         const hpRatio = this.hp / this.maxHp;
         const count = hpRatio > .66 ? 2 : (hpRatio > .33 ? 3 : 4);
         const points = [];
@@ -53,7 +53,7 @@ class Miniboss extends BossBase {
                 y: player.y + Math.sin(angle) * radius
             });
         }
-        this.pendingWaves.push({ timer: 72, points, type: this.config.nodeType(hpRatio) });
+        this.pendingWaves.push({ timer: GameBalance.get('miniboss.telegraphFrames'), points, type: this.config.nodeType(hpRatio) });
         if (window.playSound) playSound('ui_tick');
     }
 
@@ -63,7 +63,7 @@ class Miniboss extends BossBase {
             const node = enemyPool.get(point.x, point.y, wave.type, gameState.difficultyMultiplier + 1);
             node.isMinibossNode = true;
             node.color = this.color;
-            node.hp = Math.max(node.hp, 2 + Math.floor(gameState.level / 10));
+            node.hp = Math.max(node.hp, GameBalance.get('miniboss.nodeMinimumHp') + Math.floor(gameState.level / 10));
             node.maxHp = node.hp;
             spawnParticles(point.x, point.y, 6, 3, this.color);
         }
@@ -78,7 +78,7 @@ class Miniboss extends BossBase {
         const hpRatio = this.hp / this.maxHp;
         if (this.waveCooldown <= 0) {
             this.queueWave();
-            this.waveCooldown = hpRatio > .66 ? 320 : (hpRatio > .33 ? 260 : 210);
+            this.waveCooldown = hpRatio > .66 ? GameBalance.get('miniboss.waveEarly') : (hpRatio > .33 ? GameBalance.get('miniboss.waveMiddle') : GameBalance.get('miniboss.waveLate'));
         }
         for (let i = this.pendingWaves.length - 1; i >= 0; i--) {
             const wave = this.pendingWaves[i];
@@ -92,7 +92,7 @@ class Miniboss extends BossBase {
 
     takeDamage(amount) {
         // Nodes are an optional priority target, not hard invulnerability.
-        if (this.activeNodeCount > 0) amount *= .58;
+        if (this.activeNodeCount > 0) amount *= GameBalance.get('miniboss.nodeProtectionMultiplier');
         super.takeDamage(amount);
     }
 

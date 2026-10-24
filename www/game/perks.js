@@ -7,7 +7,7 @@ const ALL_PERKS = [
         desc: 'perk_rapid_fire_desc',
         icon: '⚡',
         theme: '#00ffff',
-        apply: (stats) => { stats.fireRate *= 0.8; }
+        apply: (stats) => { stats.fireRate *= GameBalance.get('perks.rapidFireMultiplier'); }
     },
     {
         id: 'machine_gun',
@@ -16,7 +16,7 @@ const ALL_PERKS = [
         icon: '🦾',
         theme: '#ff00ff',
         apply: (stats) => {
-            stats.fireRate *= 0.7;
+            stats.fireRate *= GameBalance.get('perks.machineGunMultiplier');
             stats.spread -= 0.05;
             //if spread is less than 0, set it to 0.02
             if (stats.spread < 0) stats.spread = 0.02;
@@ -30,9 +30,9 @@ const ALL_PERKS = [
         icon: '🎯',
         theme: '#00ff00',
         apply: (stats) => {
-            stats.shotSpeed *= 1.5;
+            stats.shotSpeed *= GameBalance.get('perks.sniperSpeedMultiplier');
             stats.piercing += 1;
-            stats.fireRate *= 1.3;
+            stats.fireRate *= GameBalance.get('perks.sniperFireMultiplier');
         }
     },
     {
@@ -53,7 +53,7 @@ const ALL_PERKS = [
         icon: '❄️',
         theme: '#0088ff',
         apply: (stats) => {
-            stats.freeze += 60;
+            stats.freeze += GameBalance.get('perks.freezeFrames');
             stats.color = '#00ffff';
         }
     },
@@ -63,7 +63,7 @@ const ALL_PERKS = [
         desc: 'perk_knockback_desc',
         icon: '🥊',
         theme: '#ff8800',
-        apply: (stats) => { stats.knockback += 5; } //knockback oyuncudan uzağa doğru olsun her zaman.
+        apply: (stats) => { stats.knockback += GameBalance.get('perks.knockback'); } //knockback oyuncudan uzağa doğru olsun her zaman.
     },
     {
         id: 'side_cannons',
@@ -80,7 +80,7 @@ const ALL_PERKS = [
         desc: 'perk_orbitals_desc',
         icon: '🪐',
         theme: '#8800ff',
-        apply: (stats) => { stats.orbitals += 2; } // orbitals olunca kaç tane yörünge koruma olacağını ayarlar. perk ekranında da örneğin "(şuanki yörünge koruma sayısı) + 1" yörünge koruma olarak yaz.
+        apply: (stats) => { stats.orbitals += GameBalance.get('perks.orbitalCount'); } // orbitals olunca kaç tane yörünge koruma olacağını ayarlar. perk ekranında da örneğin "(şuanki yörünge koruma sayısı) + 1" yörünge koruma olarak yaz.
     },
     {
         id: 'orbital_size',
@@ -155,7 +155,7 @@ const ALL_PERKS = [
         desc: 'perk_giant_bullet_desc',
         icon: '🌑',
         theme: '#eeeeee',
-        apply: (stats) => { stats.shotSize *= 1.3; }
+        apply: (stats) => { stats.shotSize *= GameBalance.get('perks.giantBulletMultiplier'); }
     },
     {
         id: 'shotgun',
@@ -207,7 +207,7 @@ const ALL_PERKS = [
         icon: '🧨',
         theme: '#ff2200',
         apply: (stats) => {
-            stats.explosiveRadius += 40;
+            stats.explosiveRadius += GameBalance.get('perks.explosiveRadius');
             stats.color = '#ff6600';
         }
     },

@@ -30,14 +30,13 @@ class PremiumStoreManager {
         starter_pack: {
             id: 'starter_pack',
             name: 'BAŞLANGIÇ PAKETİ',
-            description: '1000 Neon Coin + 1 Altın Sandık + Özel "Neon Dragon" çekirdeği. SINIRLI SÜRE!',
+            description: '1000 Neon Coin + 1 Altın Sandık + Özel "Neon Dragon" çekirdeği.',
             price: '$1.99',
             priceValue: 1.99,
             type: 'non_consumable',
             iconKey: 'crate',
-            badge: 'SINIRLI SÜRE',
-            benefits: ['1000 Neon Coin', '1 Altın Sandık', '"Neon Dragon" çekirdeği (ÖZEL)'],
-            timeLimit: 72 * 60 * 60 * 1000 // 72 hours
+            badge: '',
+            benefits: ['1000 Neon Coin', '1 Altın Sandık', '"Neon Dragon" çekirdeği (ÖZEL)']
         },
         coin_500: {
             id: 'coin_500',
@@ -103,7 +102,7 @@ class PremiumStoreManager {
         const metadata = {
             remove_ads: ['prod_remove_ads_title', 'prod_remove_ads_desc', 'badge_most_popular',
                 ['benefit_no_interstitials', 'benefit_bonus_coins', 'benefit_vip_badge', 'benefit_rerolls']],
-            starter_pack: ['prod_starter_pack_title', 'prod_starter_pack_desc', 'badge_limited_time',
+            starter_pack: ['prod_starter_pack_title', 'prod_starter_pack_desc', 'badge_special',
                 ['currency_count', 'benefit_gold_crate', 'benefit_dragon_core']],
             premium_cosmetic_pack: ['prod_cosmetic_pack_title', 'prod_cosmetic_pack_desc', 'badge_special',
                 ['benefit_dragon_core', 'benefit_storm_projectile', 'benefit_cyber_background']]
@@ -199,18 +198,9 @@ class PremiumStoreManager {
         }
     }
 
-    // Get remaining time for starter pack offer
+    // null means the optional pack has no expiry or urgency timer.
     static getStarterPackTimeLeft() {
-        if (this.state.starterPackBought) return 0;
-
-        if (!this.state.starterPackFirstSeen) {
-            this.state.starterPackFirstSeen = Date.now();
-            this.save();
-        }
-
-        const elapsed = Date.now() - this.state.starterPackFirstSeen;
-        const remaining = this.PRODUCTS.starter_pack.timeLimit - elapsed;
-        return Math.max(0, remaining);
+        return this.state.starterPackBought ? 0 : null;
     }
 
     static formatTimeLeft(ms) {
@@ -308,7 +298,7 @@ class PremiumStoreManager {
             return;
         }
 
-        if (!AdManager.isDev()) {
+        if (!window.AdManager?.isDev()) {
             ArmoryUI.showToast(this.translate('purchase_native_only'), false);
             return;
         }
@@ -427,11 +417,10 @@ class PremiumStoreManager {
         const starterPack = this.getLocalizedProduct('starter_pack');
         if (!this.state.starterPackBought) {
             const timeLeft = this.getStarterPackTimeLeft();
-            if (timeLeft > 0) {
+            if (timeLeft === null || timeLeft > 0) {
                 html += `
                     <div class="premium-product-card starter-pack-card">
-                        <div class="pp-badge pulse-badge">${t(starterPack.badgeKey || 'badge_limited_time')}</div>
-                        <div class="pp-timer">${timerIcon} ${this.formatTimeLeft(timeLeft)}</div>
+                        <div class="pp-badge">${starterPack.badge}</div>
                         <div class="pp-icon">${getIcon(starterPack.iconKey, 48)}</div>
                         <h3 class="pp-name">${t('prod_starter_pack_title')}</h3>
                         <ul class="pp-benefits">
@@ -447,8 +436,8 @@ class PremiumStoreManager {
 
         // Remove Ads
         const removeAds = this.getLocalizedProduct('remove_ads');
-        html += `
-            <div class="premium-product-card ${this.state.adsRemoved ? 'purchased' : 'featured'}">
+        if (this.state.adsRemoved) html += `
+            <div class="premium-product-card purchased">
                 <div class="pp-badge">${t(removeAds.badgeKey || 'badge_most_popular')}</div>
                 <div class="pp-icon">${getIcon(removeAds.iconKey, 48)}</div>
                 <h3 class="pp-name">${t('prod_remove_ads_title')}</h3>

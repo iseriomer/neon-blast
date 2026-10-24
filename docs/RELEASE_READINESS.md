@@ -1,11 +1,17 @@
 # Neon Blast — güncelleme hazırlığı
 
-8 Ekim 2026. Bu dosya yerel çalışma alanındaki güncellemeyi anlatır. Değişiklikler
-Google Play'e yüklenmedi. Kullanıcı isteğiyle imzalı `2.0.13 / 38` AAB üretildi;
-çıktı `release/neonblast-2.0.13-v38.aab` içindedir. Önceki paketle aynı imzalama
-sertifikası, 597 imzalı giriş, manifest ve 93 güncel oyun dosyası doğrulandı.
+Son paket: **2.0.15 / 40**, `release/neonblast-2.0.15-v40.aab`.
+İmza ve 106 güncel oyun dosyası doğrulandı; Remote Config sayı grupları dahildir.
+Detaylar: `BUILD_2.0.15.md`. Aşağıdaki 2.0.14 / 39 kaydı önceki build geçmişidir.
+
+9 Ekim 2026. Bu dosya yerel çalışma alanındaki güncellemeyi anlatır. Değişiklikler
+Google Play'e yüklenmedi. Kullanıcı isteğiyle imzalı `2.0.14 / 39` AAB üretildi;
+minSdkVersion 24 olarak güncellendi; versionCode 39 korunur.
+Çıktı `release/neonblast-2.0.14-v39-minsdk24.aab` içindedir. Önceki paketle aynı imzalama
+sertifikası, 606 imzalı giriş, manifest ve 102 güncel oyun dosyası doğrulandı.
 Altı test komutu geçti; gerçek Android cihaz kontrolleri aşağıda kalır. Mevcut uygulama kimliği,
-oyuncu kayıt anahtarları, ürün kimlikleri, AdMob birimleri ve ödül değerleri korunur.
+oyuncu kayıt anahtarları, ürün kimlikleri ve AdMob birimleri korunur. Level ödülleri ve kaybetme
+akışı `LEVEL_PROGRESS.md` içinde açıklanır.
 Yayıncı mevcut sürümde reklam ve IAP'nin çalıştığını doğruladı.
 
 Son kozmetik/buton/ses güncellemesi `COSMETICS_AUDIO_UPDATE.md` içindedir:
@@ -71,7 +77,7 @@ Tarayıcı testleri Android cihaz performansı ve gerçek faturalama testi yerin
    verisinin gelmediğini ve tercihi kapatınca gönderimin durduğunu kontrol et.
    Gizlilik politikası/Data safety açıklaması yeni isteğe bağlı kullanım
    ölçümünü açıklamalı; mevcut politika sayfasının gömülü içeriği burada doğrulanamadı.
-6. Bu güncelleme için Gradle `38 / 2.0.13` olarak ayarlandı; önceki yerel
+6. Bu güncelleme için Gradle `39 / 2.0.14` olarak ayarlandı; önceki yerel
    AAB `37 / 2.0.12` idi. Play Console'daki en yüksek kod hesap üzerinden
    doğrulanmadı; paket yüklenirken sürüm uygunluğu kontrol edilmelidir.
 7. Android build istendiğinde DEVELOPMENT.md'deki imzalı build akışını kullan;

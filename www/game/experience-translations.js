@@ -3,7 +3,6 @@
     const rows = {
         player_options: ['YARDIM VE SEÇENEKLER', 'HELP & OPTIONS', 'AIDE ET OPTIONS', 'AYUDA Y OPCIONES', 'HILFE UND OPTIONEN', 'AIUTO E OPZIONI'],
         continue_saved: ['DEVAM ET', 'CONTINUE', 'CONTINUER', 'CONTINUAR', 'FORTSETZEN', 'CONTINUA'],
-        perk_build_fit: ['UYUMLU', 'SYNERGY', 'SYNERGIE', 'SINERGIA', 'SYNERGIE', 'SINERGIA'],
         how_to_play: ['NASIL OYNANIR', 'HOW TO PLAY', 'COMMENT JOUER', 'CÓMO JUGAR', 'SO SPIELST DU', 'COME GIOCARE'],
         aim_touch: ['Basılı tut ve düşmanlara nişan al.', 'Hold your finger down and aim at enemies.', 'Maintiens ton doigt et vise les ennemis.', 'Mantén el dedo y apunta a los enemigos.', 'Halte den Finger gedrückt und ziele auf Gegner.', 'Tieni premuto e mira ai nemici.'],
         aim_mouse: ['Fareyi basılı tut ve düşmanlara nişan al.', 'Hold the mouse button and aim at enemies.', 'Maintiens le clic et vise les ennemis.', 'Mantén el clic y apunta a los enemigos.', 'Halte die Maustaste gedrückt und ziele auf Gegner.', 'Tieni premuto il mouse e mira ai nemici.'],

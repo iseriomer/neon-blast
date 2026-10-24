@@ -17,13 +17,7 @@ class SpawnManager {
         // Clear any existing interval to prevent duplicates (Leak fix)
         if (gameState.spawnInterval) clearInterval(gameState.spawnInterval);
 
-        let spawnRate = 1000 - (gameState.difficultyMultiplier * 50);
-        if (gameState.level >= 10) spawnRate = 1000 - (gameState.difficultyMultiplier * 110);
-        if (gameState.level >= 20) spawnRate = 1000 - (gameState.difficultyMultiplier * 160);
-        if (gameState.level >= 30) spawnRate = 1000 - (gameState.difficultyMultiplier * 220);
-        if (gameState.level >= 40) spawnRate = 1000 - (gameState.difficultyMultiplier * 280);
-        if (gameState.level >= 45) spawnRate = 1000 - (gameState.difficultyMultiplier * 400);
-        if (spawnRate < 200) spawnRate = 200;
+        const spawnRate = LevelDirector.spawnInterval(gameState.difficultyMultiplier);
 
         gameState.spawnInterval = setInterval(() => {
             if (gameState.isPaused || !gameState.gameActive) return;
@@ -31,13 +25,13 @@ class SpawnManager {
             let type = ENEMY_TYPES.BASIC;
             const rand = Math.random();
 
-            if (gameState.difficultyMultiplier > 5 && rand < 0.04 && gameState.activeHealerCount < 3) type = ENEMY_TYPES.HEALER; // Rare spawn (Max 3)
-            else if (gameState.level > 50 && rand < 0.08) type = ENEMY_TYPES.SUPERTANK; // After level 50
-            else if (gameState.difficultyMultiplier > 4 && rand < 0.15 && gameState.activeSpawnerCount < 3) type = ENEMY_TYPES.SPAWNER;
-            else if (gameState.difficultyMultiplier > 3 && rand < 0.25) type = ENEMY_TYPES.SPLITTER;
-            else if (gameState.difficultyMultiplier > 2 && rand < 0.35) type = ENEMY_TYPES.TANK;
-            else if (gameState.difficultyMultiplier > 3 && rand < 0.5) type = ENEMY_TYPES.DASHER;
-            else if (gameState.difficultyMultiplier > 1 && rand < 0.6) type = ENEMY_TYPES.SPEEDSTER;
+            for (const [id, rule] of Object.entries(GameBalance.get('spawning'))) {
+                const count = id === 'HEALER' ? gameState.activeHealerCount : id === 'SPAWNER' ? gameState.activeSpawnerCount : 0;
+                if (gameState.difficultyMultiplier > rule.difficulty && rand < rule.chance && (rule.cap === undefined || count < rule.cap)) {
+                    type = ENEMY_TYPES[id];
+                    break;
+                }
+            }
 
             const radius = type.radius;
             let x, y;
@@ -54,58 +48,9 @@ class SpawnManager {
     }
 
     static triggerLevelUp(isFromBossDeath = false) {
-        // --- BOSS SCHEDULE ---
-        // Minibosses bridge the long gaps without requiring player movement.
-        const isFromBoss = isFromBossDeath || (typeof gameState !== 'undefined' && gameState.justDefeatedBoss);
-        if (typeof gameState !== 'undefined') gameState.justDefeatedBoss = false;
-
-        if (!isFromBoss) {
-            if (gameState.level === 4 && !gameState.bossActive) { startBossFight(101); return; }
-            if (gameState.level === 14 && !gameState.bossActive) { startBossFight(102); return; }
-            if (gameState.level === 24 && !gameState.bossActive) { startBossFight(103); return; }
-            if (gameState.level === 34 && !gameState.bossActive) { startBossFight(102); return; }
-            if (gameState.level === 47 && !gameState.bossActive) { startBossFight(103); return; }
-        // Level 10: OMEGA CORE (Boss 1)
-        if (gameState.level === 9 && !gameState.bossActive) {
-            startBossFight(1);
-            return;
-        }
-        // Level 20: THE SWARM (Boss 4)
-        if (gameState.level === 19 && !gameState.bossActive) {
-            startBossFight(2);
-            return;
-        }
-        // Level 30: NEXUS PRIME (Boss 2)
-        if (gameState.level === 29 && !gameState.bossActive) {
-            startBossFight(4);
-            return;
-        }
-        // Level 40: CHRONOS (Boss 5)
-        if (gameState.level === 39 && !gameState.bossActive) {
-            startBossFight(5);
-            return;
-        }
-        // Level 45: VOID REAPER (Boss 6) - FINAL BOSS
-        if (gameState.level === 44 && !gameState.bossActive) {
-            startBossFight(6);
-            return;
-        }
-        // Level 50: THE OMEGA (Boss 3)
-        if (gameState.level === 49 && !gameState.bossActive) {
-            startBossFight(7);
-            return;
-        }
-        // Level 55: THE SINGULARITY (Boss 7) - TRUE FINAL BOSS
-        if (gameState.level === 54 && !gameState.bossActive) {
-            startBossFight(8);
-            return;
-        }
-        // Level 60: THE GALAXY DEVOURER (Boss 8) - ULTIMATE CHALLENGE
-        if (gameState.level === 59 && !gameState.bossActive) {
-            startBossFight(9);
-            return;
-        }
-        }
+        const isFromBoss = isFromBossDeath || gameState.justDefeatedBoss;
+        gameState.justDefeatedBoss = false;
+        if (LevelProgress.encounter(isFromBoss)) return;
 
         gameState.isPaused = true;
         clearInterval(gameState.spawnInterval);
@@ -176,7 +121,7 @@ class SpawnManager {
         const firstPick = gameState.level <= 2 && !gameState.takenPerks.length;
         const offensive = new Set(['rapid_fire', 'machine_gun', 'double_shot', 'shotgun']);
         const anchor = firstPick ? shuffled.find(perk => offensive.has(perk.id))
-            : Math.random() < .6 ? shuffled.find(perk => this.fitsBuild(perk)) : null;
+            : Math.random() < GameBalance.get('perks.synergyChance') ? shuffled.find(perk => this.fitsBuild(perk)) : null;
         if (anchor) {
             const index = shuffled.indexOf(anchor);
             [shuffled[0], shuffled[index]] = [shuffled[index], shuffled[0]];
@@ -261,12 +206,7 @@ class SpawnManager {
                 const card = cardElements[index];
                 if (!card) return;
 
-                let displayDesc = Localization.t(finalPerk.desc);
-                if (finalPerk.id === 'orbitals') {
-                    displayDesc = Localization.t('perk_orbitals_desc_dynamic', { value: gameState.playerStats.orbitals });
-                } else if (finalPerk.id === 'split_shot') {
-                    displayDesc = Localization.t('perk_split_shot_desc_dynamic', { value: gameState.playerStats.splitShotCount });
-                }
+                const displayDesc = GameBalance.perkDescription(finalPerk, gameState.playerStats);
 
                 if (finalPerk.theme) {
                     card.style.setProperty('--perk-theme', finalPerk.theme);
@@ -280,7 +220,6 @@ class SpawnManager {
                 card.innerHTML = `
                     <div class="perk-card-top">
                         <div class="perk-icon-slot">${iconSvg}</div>
-                        ${SpawnManager.fitsBuild(finalPerk) ? `<span class="perk-fit">${Localization.t('perk_build_fit')}</span>` : ''}
                     </div>
                     <div class="perk-info-wrap">
                         <div class="perk-title">${Localization.t(finalPerk.title)}</div>
@@ -288,6 +227,7 @@ class SpawnManager {
                     </div>
                 `;
 
+                if (card.isConnected) window.Encyclopedia?.discoverPerk(finalPerk);
                 card.classList.remove('perk-shuffling');
                 card.classList.add('locked-in');
                 playSound('ui_lock');
@@ -305,44 +245,36 @@ class SpawnManager {
         const rerollHint = document.getElementById('perk-reroll-hint');
 
         if (rerollBtn) {
-            const isVip = (typeof PremiumStoreManager !== 'undefined' && !PremiumStoreManager.shouldShowInterstitial());
+            const isVip = typeof PremiumStoreManager !== 'undefined' && !PremiumStoreManager.shouldShowInterstitial();
             if (rerollText) {
-                rerollText.innerText = isVip
-                    ? Localization.t('perk_reroll_vip_label')
-                    : Localization.t('perk_reroll_ad_label');
+                rerollText.dataset.i18n = isVip ? 'perk_reroll_vip_label' : 'perk_reroll_ad_label';
+                rerollText.innerText = Localization.t(rerollText.dataset.i18n);
             }
             if (rerollTag) {
-                if (isVip) {
-                    rerollTag.innerText = Localization.t('tag_vip');
-                    rerollTag.classList.add('free');
-                } else {
-                    rerollTag.innerText = Localization.t('tag_ad');
-                    rerollTag.classList.remove('free');
-                }
+                rerollTag.dataset.i18n = isVip ? 'tag_vip' : 'tag_ad';
+                rerollTag.innerText = Localization.t(rerollTag.dataset.i18n);
+                rerollTag.classList.toggle('free', isVip);
             }
             if (rerollHint) {
-                rerollHint.innerText = isVip
-                    ? Localization.t('perk_reroll_hint_vip')
-                    : Localization.t('perk_reroll_hint');
+                rerollHint.dataset.i18n = isVip ? 'perk_reroll_hint_vip' : 'perk_reroll_hint';
+                rerollHint.innerText = Localization.t(rerollHint.dataset.i18n);
             }
             rerollBtn.disabled = false;
             rerollBtn.onclick = () => {
+                if (!gameState.isPaused || !gameState.gameActive || window.AdManager?.isAdPlaying) return;
                 rerollBtn.disabled = true;
                 const currentIds = SpawnManager.currentOfferedPerks.map(p => p.id);
-                const executeReroll = () => {
-                    SpawnManager.rollPerks(currentIds);
-                };
-
                 if (isVip) {
-                    executeReroll();
+                    SpawnManager.rollPerks(currentIds);
                 } else if (typeof AdManager !== 'undefined') {
                     AdManager.showRewardedAd({
                         rewardType: 'PERK_REROLL',
-                        onSuccess: () => executeReroll(),
+                        onSuccess: () => SpawnManager.rollPerks(currentIds),
                         onDismiss: () => { rerollBtn.disabled = false; }
                     });
                 } else {
-                    executeReroll();
+                    rerollBtn.disabled = false;
+                    ArmoryUI.showToast(Localization.t('ad_unavailable'), false);
                 }
             };
         }
@@ -361,10 +293,12 @@ class SpawnManager {
         perk.apply(gameState.playerStats);
         gameState.level++;
         if (typeof gameState !== 'undefined') gameState.justDefeatedBoss = false;
-        gameState.currentLevelStep = Math.floor(gameState.currentLevelStep * 1.1) + 200;
+        const progression = LevelDirector.progression();
+        gameState.currentLevelStep = Math.floor(gameState.currentLevelStep * progression.stepGrowth) + progression.stepAddition;
         gameState.previousLevelThreshold = gameState.nextLevelThreshold;
         gameState.nextLevelThreshold += gameState.currentLevelStep;
         gameState.difficultyMultiplier += 0.5;
+        if (window.LevelProgress) LevelProgress.afterPerk();
 
         updateLevelIndicator(gameState.level);
         updateShieldIndicator(gameState.playerStats.shield);

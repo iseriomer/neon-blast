@@ -95,7 +95,7 @@ class BossNexus extends BossBase {
 
         // Standard Float
         this.floatY = Math.sin(Date.now() / 500) * 30;
-        const targetX = CANVAS.width / 2 + Math.cos(Date.now() / 1500) * 150;
+        const targetX = CANVAS.width / 2 + Math.cos(Date.now() / 1500) * Math.min(150, CANVAS.width * .24);
         const targetY = this.getSafeBossY() + this.floatY; // Dynamic Y based on orientation
         this.x += (targetX - this.x) * 0.05 * dt;
         this.y += (targetY - this.y) * 0.05 * dt;
@@ -109,7 +109,7 @@ class BossNexus extends BossBase {
 
         // Attack Logic
         if (this.state === 'IDLE') {
-            if (this.attackTimer > 100) {
+            if (this.attackTimer > 140) {
                 this.chooseAttack(player);
             }
         }
@@ -124,7 +124,7 @@ class BossNexus extends BossBase {
                 this.state = 'IDLE';
                 this.attackTimer = 0;
             }
-            if (this.phase === 2 && this.attackTimer % 15 < 1) {
+            if (this.phase === 2 && this.attackTimer % 45 < 1) {
                 this.fireHomingMissile();
             }
         }
@@ -184,15 +184,17 @@ class BossNexus extends BossBase {
     chooseAttack(player) {
         const rand = Math.random();
         this.state = 'TELEGRAPH';
-        this.telegraphTimer = 60;
+        this.telegraphTimer = 100;
 
         if (rand < 0.33) {
             this.currentAttack = 'WALL_OF_DEATH';
             this.laserLines = [];
-            const safeY = (Math.random() * (CANVAS.height - 200)) + 100;
+            // The player aims but cannot dodge. Keep a real corridor around them.
+            const safeY = player.y;
             for (let i = -5; i < 6; i++) {
-                if (i === 0) continue;
-                this.laserLines.push(safeY + i * 50);
+                const y = safeY + i * 65;
+                if (Math.abs(y - player.y) < player.radius + 45 || y < 0 || y > CANVAS.height) continue;
+                this.laserLines.push(y);
             }
         } else if (rand < 0.66) {
             this.currentAttack = 'VOID_ZONES';
@@ -212,7 +214,7 @@ class BossNexus extends BossBase {
                     if (dist > safeDist) valid = true;
                     attempts++;
                 }
-                this.targetPos.push(pos);
+                if (valid) this.targetPos.push(pos);
             }
         } else {
             this.currentAttack = 'CORNER_TRAP';
@@ -232,7 +234,7 @@ class BossNexus extends BossBase {
         }
         else if (this.currentAttack === 'VOID_ZONES') {
             this.targetPos.forEach(pos => {
-                const zone = enemyPool.get(pos.x, pos.y, ENEMY_TYPES.TANK, 26);
+                const zone = enemyPool.get(pos.x, pos.y, ENEMY_TYPES.BASIC, 0);
                 zone.radius = 10;
                 zone.color = '#220033';
                 zone.vx = 0; zone.vy = 0;
@@ -242,7 +244,7 @@ class BossNexus extends BossBase {
                 zone.update = function (player, dt) {
                     if (!this.isChasing) {
                         this.radius += 0.5 * dt;
-                        if (this.radius > 100) {
+                        if (this.radius > 36) {
                             this.isChasing = true;
                             this.color = '#440055';
                             createExplosion(this.x, this.y, 50, 0);
@@ -250,9 +252,9 @@ class BossNexus extends BossBase {
                     }
                     else {
                         const angle = Math.atan2(player.y - this.y, player.x - this.x);
-                        this.x += Math.cos(angle) * 3 * dt;
-                        this.y += Math.sin(angle) * 3 * dt;
-                        this.radius = 100 + Math.sin(Date.now() / 100) * 5;
+                        this.x += Math.cos(angle) * 1.2 * GAME_SCALE * dt;
+                        this.y += Math.sin(angle) * 1.2 * GAME_SCALE * dt;
+                        this.radius = 36;
                     }
 
                     const d = Math.hypot(player.x - this.x, player.y - this.y);
@@ -387,7 +389,7 @@ class BossNexus extends BossBase {
         } else if (this.currentAttack === 'VOID_ZONES') {
             this.targetPos.forEach(p => {
                 CTX.beginPath();
-                CTX.arc(p.x - this.x, p.y - this.y, 50, 0, Math.PI * 2);
+                            CTX.arc(p.x - this.x, p.y - this.y, 36, 0, Math.PI * 2);
                 CTX.stroke();
                 CTX.fillStyle = 'rgba(255, 0, 0, 0.2)';
                 CTX.fill();

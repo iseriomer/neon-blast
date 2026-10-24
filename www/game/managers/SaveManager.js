@@ -19,9 +19,12 @@ class SaveManager {
             activeRunMs: gameState.activeRunMs || 0,
             totalEnemiesKilled: gameState.totalEnemiesKilled || 0,
             totalBossesKilled: gameState.totalBossesKilled || 0,
+            levelProgress: window.LevelProgress ? LevelProgress.saveMeta() : undefined,
+            balance: window.GameBalance ? GameBalance.snapshot() : undefined,
 
             // Save Boss State if active
             bossActive: gameState.bossActive,
+            encounterBossId: window.BossManager?.activeBoss?.campaignBossId,
             // We might need more complex logic for bosses, but for now let's save basic state
             // If a boss is active, we might just want to restart the boss fight or save its HP?
             // For simplicity in V1: If boss is active, we save the state BEFORE the boss fight starts?
@@ -49,7 +52,7 @@ class SaveManager {
 
     static loadGame() {
         try {
-            const serialized = localStorage.getItem(this.SAVE_KEY);
+            const serialized = localStorage.getItem(this.SAVE_KEY) || (window.LevelProgress ? LevelProgress.checkpointJson() : null);
             if (!serialized) return null;
 
             const data = JSON.parse(serialized);
@@ -81,6 +84,7 @@ class SaveManager {
     static clearSave() {
         try { localStorage.removeItem(this.SAVE_KEY); } catch (e) { console.warn('Save removal unavailable:', e); }
         console.log('Save Data Cleared');
+        if (window.LevelProgress) LevelProgress.onRunEnded();
     }
 
     static hasSave() {

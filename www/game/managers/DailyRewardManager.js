@@ -82,7 +82,7 @@ class DailyRewardManager {
 
         // Show after a slight delay so the start screen is visible
         setTimeout(() => {
-            if (!gameState.gameActive && !AdManager.isAdPlaying &&
+            if (!gameState.gameActive && !document.body.classList.contains('win-open') && !document.body.classList.contains('lose-open') && !window.AdManager?.isAdPlaying &&
                 document.getElementById('armory-modal').classList.contains('hidden')) this.showModal();
         }, 800);
     }
@@ -176,7 +176,7 @@ class DailyRewardManager {
                             onDismiss: () => {}
                         });
                     } else {
-                        this.claimReward(true);
+                        ArmoryUI.showToast(Localization.t('ad_unavailable'), false);
                     }
                 });
             }

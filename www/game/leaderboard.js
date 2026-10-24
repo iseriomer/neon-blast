@@ -2,7 +2,7 @@
 
 // Firebase kütüphanelerini CDN üzerinden import ediyoruz
 // Import the functions you need from the SDKs you need
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+import { app } from './firebase-app.js';
 import { getAnalytics, logEvent, setAnalyticsCollectionEnabled, setConsent } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-analytics.js";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -11,19 +11,6 @@ import { getAnalytics, logEvent, setAnalyticsCollectionEnabled, setConsent } fro
 import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs, where } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-    apiKey: "AIzaSyCNqCeXDbc04vuqj8VX0i34NebvcClqUes",
-    authDomain: "neon-blast-8a945.firebaseapp.com",
-    databaseURL: "https://neon-blast-8a945-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "neon-blast-8a945",
-    storageBucket: "neon-blast-8a945.firebasestorage.app",
-    messagingSenderId: "313551328820",
-    appId: "1:313551328820:web:d565525e8b0d5ae26e1c61",
-    measurementId: "G-YCGD0Z8GDM"
-};
-
-// Firebase'i Başlat
-const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 let analytics = null;
 function updateAnalyticsConsent() {

@@ -84,9 +84,11 @@ function updateAndDrawBlackHole(dt) {
     // ────────────────────────────────────────────────────────────────
     // FİZİK & MANTIK (Çekim Gücü)
     // ────────────────────────────────────────────────────────────────
-    const enemies = enemyPool.getActive();
+    // A kill can clear the pool when it ends an encounter. Iterate a snapshot.
+    const enemies = [...enemyPool.getActive()];
     for (let i = enemies.length - 1; i >= 0; i--) {
         const enemy = enemies[i];
+        if (!enemyPool.getActive().includes(enemy)) continue;
         if (enemy.type.name.includes("Boss")) continue; // Bossları çekmesin
 
         const dx = blackHole.x - enemy.x;
@@ -125,7 +127,7 @@ function updateAndDrawBlackHole(dt) {
 
             // Olay Ufku Hasarı
             if (dist < visualRadius) {
-                enemy.hp -= 40 * dt; // Saniyede ~300 hasar
+                enemy.hp -= MetaProgress.passiveDamage(40) * dt; // Saniyede ~300 hasar
                 if (enemy.hp <= 0) handleEnemyDeath(enemy);
             }
         }

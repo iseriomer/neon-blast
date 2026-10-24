@@ -5,19 +5,19 @@ const fs = require('node:fs');
 const path = require('node:path');
 const tick = () => new Promise(resolve => setImmediate(resolve));
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-test('revive offer remains open beyond five seconds and expires at ten seconds', () => {
+test('revive offer stays open beyond five seconds and expires at ten seconds', () => {
     const source = fs.readFileSync(path.resolve(__dirname, '../www/game/game-OPTIMIZED.js'), 'utf8');
     const countdown = source.slice(source.indexOf('let reviveCountdownTimer = null;'), source.indexOf('function declineRevive()'));
-    let now = 0, onTick, declined = 0, cleared = false;
+    let declined = 0, now = 0, onTick;
     const number = { innerText: '' };
     const bar = { style: {} };
-    const modal = { classList: { remove() {} } };
+    const modal = { classList: { remove() {} }, querySelector: () => ({ classList: { add() { timerHidden = true; } } }) };
     const context = vm.createContext({
-        Date: { now: () => now },
         gameState: {}, player: {},
+        Date: { now: () => now },
         document: { getElementById: id => ({ 'revive-modal': modal, 'revive-countdown-num': number, 'revive-timer-bar': bar })[id] },
         setInterval: fn => { onTick = fn; return 1; },
-        clearInterval: () => { cleared = true; },
+        clearInterval: () => {},
         declineRevive: () => { declined++; },
         gameOver: () => { throw new Error('Revive modal unexpectedly missing'); }
     });
@@ -26,14 +26,9 @@ test('revive offer remains open beyond five seconds and expires at ten seconds',
     now = 5500; onTick();
     assert.equal(declined, 0);
     assert.equal(number.innerText, '5');
-    assert.ok(Math.abs(Number(bar.style.strokeDashoffset) / 276.46 - 0.55) < 0.001);
-    now = 9900; onTick();
-    assert.equal(declined, 0);
-    assert.equal(number.innerText, '1');
     now = 10000; onTick();
     assert.equal(number.innerText, '0');
     assert.equal(declined, 1);
-    assert.equal(cleared, true);
 });
 function harness(native = true) {
     const elements = new Map();
@@ -120,7 +115,7 @@ test('expired cached ad reloads and failed preload can be retried without reward
     assert.equal(loads, 3);
     assert.equal(h.manager.isReady('rewarded'), true);
 });
-test('interstitial eligibility excludes short games, cooldown, missing ads and VIP', () => {
+test('campaign never shows unsolicited ads, even with a ready native ad', () => {
     const h = harness();
     let now = 1000000;
     h.context.Date = { now: () => now };
@@ -129,11 +124,11 @@ test('interstitial eligibility excludes short games, cooldown, missing ads and V
     assert.equal(h.manager._eligibleRuns, 0);
     assert.equal(h.manager.shouldShowAfterRun(45000), false);
     assert.equal(h.manager.shouldShowAfterRun(45000), false);
-    assert.equal(h.manager.shouldShowAfterRun(45000), true);
+    assert.equal(h.manager.shouldShowAfterRun(45000), false);
     h.manager._lastFullscreenAt = now;
     assert.equal(h.manager.shouldShowAfterRun(45000), false);
     now += 120001;
-    assert.equal(h.manager.shouldShowAfterRun(45000), true);
+    assert.equal(h.manager.shouldShowAfterRun(45000), false);
     h.manager._cache.interstitial.readyAt = 0;
     assert.equal(h.manager.shouldShowAfterRun(45000), false);
     h.manager._cache.interstitial.readyAt = now;

@@ -117,7 +117,7 @@ class LuckySpinManager {
         const freeBtn = document.getElementById('ls-free-spin');
         if (freeBtn) {
             freeBtn.addEventListener('click', () => {
-                if (this.isSpinning || AdManager.isAdPlaying || !this.hasFreeSpinToday()) return;
+                if (this.isSpinning || window.AdManager?.isAdPlaying || !this.hasFreeSpinToday()) return;
                 this.state.lastFreeSpinDate = this.getTodayStr();
                 this.save();
                 this.executeSpin();
@@ -127,7 +127,7 @@ class LuckySpinManager {
         const adBtn = document.getElementById('ls-ad-spin');
         if (adBtn) {
             adBtn.addEventListener('click', () => {
-                if (this.isSpinning || AdManager.isAdPlaying || !this.canAdSpin()) return;
+                if (this.isSpinning || window.AdManager?.isAdPlaying || !this.canAdSpin()) return;
                 if (typeof AdManager !== 'undefined') {
                     AdManager.showRewardedAd({
                         rewardType: 'LUCKY_SPIN',
@@ -142,10 +142,7 @@ class LuckySpinManager {
                         }
                     });
                 } else {
-                    this.state.adSpinsUsedToday++;
-                    this.state.lastAdSpinDate = this.getTodayStr();
-                    this.save();
-                    this.executeSpin();
+                    ArmoryUI.showToast(Localization.t('ad_unavailable'), false);
                 }
             });
         }

@@ -34,7 +34,7 @@ const server = http.createServer((req, res) => {
             await page.goto(`http://127.0.0.1:${server.address().port}/?dev=1`);
             await page.waitForTimeout(1300);
             assert.equal(await page.locator('#daily-reward-modal').isVisible(), false);
-            await page.locator('#player-options-btn').click();
+            await page.locator('#hub-settings').click();
             for (const lang of ['tr', 'en', 'fr', 'es', 'de', 'it']) {
                 const failures = await page.evaluate(lang => {
                     Localization.setLanguage(lang);
@@ -64,7 +64,7 @@ const server = http.createServer((req, res) => {
                 const bossChecks = await page.evaluate(() => {
                     gameState.isPaused = true;
                     const checks = [];
-                    for (const id of [1, 2, 3, 4, 5, 6, 7, 8, 9, 101, 102, 103]) {
+                    for (const id of [1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 101, 102, 103]) {
                         if (BossManager.activeBoss) BossManager.activeBoss.active = false;
                         CollisionManager.clearBossRegistry();
                         gameState.bossActive = false;
@@ -125,8 +125,8 @@ const server = http.createServer((req, res) => {
                 SaveManager.saveGame();
             });
             assert.equal(await page.evaluate(() => SaveManager.hasSave()), false, 'a completed run cannot return after reopening');
-            assert.ok((await page.locator('#result-run-detail').innerText()).includes('2:03'));
-            assert.ok((await page.locator('#result-run-detail').innerText()).includes('99'));
+            assert.ok((await page.locator('#result-run-detail').textContent()).includes('2:03'));
+            assert.ok((await page.locator('#result-run-detail').textContent()).includes('99'));
             assert.ok(await page.evaluate(() => GameTelemetry.getDebugEvents().some(event => event.name === 'run_resume')));
             await page.waitForFunction(() => !document.querySelector('#game-over-screen .btn-shuffling'));
             await page.screenshot({ path: path.join(output, `results-${viewport.width}.png`) });

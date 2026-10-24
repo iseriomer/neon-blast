@@ -41,7 +41,7 @@ const server = http.createServer((req, res) => {
                 const style = getComputedStyle(node);
                 return [...style].map(key => [key, style.getPropertyValue(key)]).filter(([key]) => !key.startsWith('--'));
             });
-            const sheets = [...document.styleSheets].filter(sheet => /\/(menus|menu-viewport)\.css$/.test(sheet.href || ''));
+            const sheets = [...document.styleSheets].filter(sheet => /\/(menus|menu-viewport)\.css(?:\?.*)?$/.test(sheet.href || ''));
             const before = snapshot(); sheets.forEach(sheet => sheet.disabled = true);
             const after = snapshot(); sheets.forEach(sheet => sheet.disabled = false);
             return JSON.stringify(before) === JSON.stringify(after);
@@ -57,7 +57,7 @@ const server = http.createServer((req, res) => {
             return page.screenshot({ path: path.join(output, name + '.png') });
         };
         await shot('01-ana-menu');
-        await page.click('#armory-btn');
+        await page.click( '[data-hub-tab="armory"]' );
         await shot('07-armory-magaza');
         for (const [tab, name] of [['cores','08-armory-cekirdek'],['projectiles','09-armory-mermiler'],['backgrounds','10-armory-arka-plan']]) {
             await page.click(`[data-tab="${tab}"]`);
@@ -68,8 +68,8 @@ const server = http.createServer((req, res) => {
         await page.click('#hangar-quick-equip');
         assert.equal(await page.evaluate(() => ArmoryUI.currentTab), 'store', 'locked preview opens store');
         await page.click('#close-armory-btn');
-        for (const [button, close, name] of [['daily-rewards-btn','dr-close-btn','11-gunluk-oduller'],['lucky-spin-btn','ls-close-btn','12-sans-carki'],['daily-quests-btn','quest-close-btn','13-gunluk-gorevler'],['leaderboard-btn','close-leaderboard-btn','04-lider-tablosu']]) {
-            await page.click('#' + button); await shot(name); await page.click('#' + close);
+        for (const [button, close, name] of [['daily-rewards-btn','dr-close-btn','11-gunluk-oduller'],['lucky-spin-btn','ls-close-btn','12-sans-carki'],['daily-quests-btn','quest-close-btn','13-gunluk-gorevler'],['[data-hub-tab="leaderboard"]','close-leaderboard-btn','04-lider-tablosu']]) {
+            await page.click(button.startsWith('[') ? button : '#' + button); await shot(name); await page.click('#' + close);
         }
         await page.click('#start-btn');
         await page.waitForTimeout(2500);
@@ -78,28 +78,17 @@ const server = http.createServer((req, res) => {
         await shot('06-revive');
         await page.click('#revive-skip-btn');
         await page.waitForFunction(() => !document.querySelector('#game-over-screen .btn-shuffling'));
-        assert.equal(await page.locator('#game-over-screen .leaderboard-container').isVisible(), true);
-        await page.click('#lb-filter-weekly-go');
-        assert.equal(await page.locator('#lb-filter-weekly-go').evaluate(el => el.classList.contains('active')), true);
-        await page.evaluate(() => {
-            // Render ten realistic rows without contacting or writing to the live database.
-            const list = document.getElementById('leaderboard-list');
-            list.replaceChildren();
-            for (let i = 0; i < 10; i++) {
-                const row = document.createElement('li');
-                const name = document.createElement('span'), score = document.createElement('span');
-                name.textContent = `#${i + 1} PLAYER${i + 1}`;
-                score.textContent = String(987650 - i * 18250);
-                row.append(name, score); list.append(row);
-            }
-        });
-        await shot('05-oyun-sonu');
+        assert.equal(await page.locator('#level-lose-screen').isVisible(), true);
+        await shot('05-lose-screen');
         await page.setViewportSize({width:320,height:568});
-        await shot('19-oyun-sonu-kucuk-telefon');
+        await shot('19-lose-small-phone');
+        await page.click('#lose-menu-btn');
         await page.setViewportSize({width:390,height:844});
-        assert.equal(await page.locator('#final-score').textContent(), await page.evaluate(() => gameState.score.toLocaleString(Localization.currentLang)));
+        await page.click('[data-hub-tab="leaderboard"]');
+        await shot('20-ranking');
+        await page.click('[data-hub-tab="play"]');
         const perkGeometry = await page.evaluate(async () => {
-            gameOverScreen.classList.add('hidden'); levelUpScreen.classList.remove('hidden');
+            MainHub.hide(); startScreen.classList.add('hidden'); gameOverScreen.classList.add('hidden'); levelUpScreen.classList.remove('hidden');
             SpawnManager.rollPerks([]);
             const measure = () => [...document.querySelectorAll('.perk-card')].map(card => {
                 const rect = card.getBoundingClientRect();
@@ -171,16 +160,10 @@ const server = http.createServer((req, res) => {
                         card.querySelector('.perk-title').textContent = Localization.t(longPerks[index].title);
                         card.querySelector('.perk-desc').textContent = Localization.t(longPerks[index].desc);
                     });
-                    for (const id of ['start-screen','pause-menu','game-over-screen','leaderboard-screen','levelup-screen','revive-modal','pack-opening-modal']) {
+                    for (const id of ['start-screen','pause-menu','leaderboard-screen','levelup-screen','revive-modal','pack-opening-modal']) {
                         const el = document.getElementById(id), hidden = el.classList.contains('hidden');
                         el.classList.remove('hidden'); check(id); if (hidden) el.classList.add('hidden');
-                        if (id === 'game-over-screen') {
-                            el.classList.remove('hidden');
-                            const list = document.getElementById('leaderboard-list');
-                            if (list.clientHeight < 28) failures.push('game-over-screen: no visible ranking row');
-                            if (getComputedStyle(list).overflowY !== 'auto') failures.push('game-over-screen: rankings cannot scroll');
-                            if (hidden) el.classList.add('hidden');
-                        }
+
                     }
                     const packModal = document.getElementById('pack-opening-modal');
                     packModal.classList.remove('hidden');
@@ -207,6 +190,6 @@ const server = http.createServer((req, res) => {
             }
         }
         assert.deepEqual(errors, []);
-        console.log('PASS: 15 menu screenshots, locked-item navigation, results, six languages/four phone sizes without menu scrolling, untouched gameplay styles');
+        console.log('PASS: Menu screenshots, locked-item navigation, hub summary, six languages/four phone sizes, perk and crate geometry, untouched combat styles');
     } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; }).finally(() => server.close());

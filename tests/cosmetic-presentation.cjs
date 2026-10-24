@@ -149,7 +149,7 @@ const server = http.createServer((req,res) => {
         await page.screenshot({path:path.join(output,'new-designs.png')});
         await page.evaluate(()=>document.getElementById('cosmetic-gallery').remove());
         await page.setViewportSize({width:390,height:844});
-        await page.click('#armory-btn');
+        await page.click( '[data-hub-tab="armory"]' );
         await page.screenshot({path:path.join(output,'button-surfaces.png')});
         const buttons=await page.evaluate(()=>{
             return [...document.querySelectorAll('#armory-modal button')].filter(el=>el.getClientRects().length).map(el=>{const s=getComputedStyle(el);return {id:el.id||el.className,bg:s.backgroundColor,border:s.borderTopWidth};});
@@ -170,7 +170,7 @@ const server = http.createServer((req,res) => {
             await view.route('https://**',route=>route.abort());
             await view.goto(`http://127.0.0.1:${server.address().port}/?dev=1`);
             await view.waitForTimeout(1000);
-            await view.click('#armory-btn');await view.click('[data-tab="cores"]');
+            await view.click( '[data-hub-tab="armory"]' );await view.click('[data-tab="cores"]');
             const inspect=()=>view.evaluate(()=>{
                 ArmoryUI.stopAnimationLoop();
                 ArmoryUI.inspectedItem=CosmeticsManager.ITEMS.core_default;

@@ -89,6 +89,7 @@ class BossBase {
     }
 
     die() {
+        if (!this.active) return;
         this.active = false;
         document.getElementById('boss-hud').style.display = 'none';
 
@@ -134,6 +135,7 @@ class BossBase {
             enemyPool.releaseAll();
         }
 
+        if (window.LevelProgress && LevelProgress.onBossDefeated(this)) return;
         if (window.triggerLevelUp) triggerLevelUp(true);
     }
 }

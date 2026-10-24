@@ -1,0 +1,1382 @@
+{
+  "parameters": {
+    "game_balance_v1": {
+      "defaultValue": {
+        "value": "{\"version\":1,\"levels\":[{\"mainBoss\":1,\"bossAtEvolution\":9,\"difficultyCurve\":[[1,0.15],[9,0.9]],\"bossHpMultiplier\":0.65,\"goldReward\":162,\"minibosses\":[{\"atEvolution\":6,\"id\":101,\"hpMultiplier\":0.45}]},{\"mainBoss\":2,\"bossAtEvolution\":15,\"difficultyCurve\":[[1,0.3],[15,1.5]],\"bossHpMultiplier\":0.12,\"goldReward\":244,\"minibosses\":[{\"atEvolution\":9,\"id\":101,\"hpMultiplier\":0.55}]},{\"mainBoss\":4,\"bossAtEvolution\":16,\"difficultyCurve\":[[1,0.6],[8,1.4],[16,2.4]],\"bossHpMultiplier\":0.22,\"minibosses\":[{\"atEvolution\":6,\"id\":101,\"hpMultiplier\":0.7},{\"atEvolution\":11,\"id\":102,\"hpMultiplier\":0.65}],\"goldReward\":268},{\"mainBoss\":5,\"bossAtEvolution\":18,\"difficultyCurve\":[[1,1],[18,3.5]],\"bossHpMultiplier\":0.24,\"minibosses\":[{\"atEvolution\":7,\"id\":102,\"hpMultiplier\":0.85},{\"atEvolution\":13,\"id\":101,\"hpMultiplier\":0.9}],\"goldReward\":309},{\"mainBoss\":6,\"bossAtEvolution\":20,\"difficultyCurve\":[[1,2.5],[20,7]],\"bossHpMultiplier\":0.28,\"minibosses\":[{\"atEvolution\":8,\"id\":102},{\"atEvolution\":15,\"id\":103}],\"goldReward\":385},{\"mainBoss\":10,\"bossAtEvolution\":15,\"difficultyCurve\":[[1,3],[15,7.5]],\"bossHpMultiplier\":1,\"minibosses\":[{\"atEvolution\":6,\"id\":103},{\"atEvolution\":11,\"id\":102}],\"goldReward\":333},{\"mainBoss\":7,\"bossAtEvolution\":23,\"difficultyCurve\":[[1,3.5],[23,8.5]],\"bossHpMultiplier\":0.4,\"minibosses\":[{\"atEvolution\":8,\"id\":103},{\"atEvolution\":16,\"id\":102}],\"goldReward\":444},{\"mainBoss\":8,\"bossAtEvolution\":25,\"difficultyCurve\":[[1,4],[25,9.5]],\"bossHpMultiplier\":0.45,\"minibosses\":[{\"atEvolution\":7,\"id\":102},{\"atEvolution\":15,\"id\":103},{\"atEvolution\":21,\"id\":101}],\"goldReward\":483},{\"mainBoss\":9,\"bossAtEvolution\":27,\"difficultyCurve\":[[1,4.5],[27,10.5]],\"bossHpMultiplier\":0.45,\"minibosses\":[{\"atEvolution\":9,\"id\":103},{\"atEvolution\":18,\"id\":102},{\"atEvolution\":23,\"id\":103}],\"goldReward\":522},{\"mainBoss\":11,\"bossAtEvolution\":30,\"difficultyCurve\":[[1,5],[15,8],[30,12]],\"bossHpMultiplier\":1,\"minibosses\":[{\"atEvolution\":8,\"id\":102},{\"atEvolution\":16,\"id\":103},{\"atEvolution\":24,\"id\":103,\"hpMultiplier\":1.5}],\"goldReward\":580}],\"enemies\":{\"BASIC\":{\"hp\":1,\"speed\":1,\"radius\":25,\"score\":50},\"SPEEDSTER\":{\"hp\":0.5,\"speed\":1.9,\"radius\":20,\"score\":100},\"TANK\":{\"hp\":5,\"speed\":0.6,\"radius\":35,\"score\":200},\"DASHER\":{\"hp\":2,\"speed\":1.5,\"radius\":20,\"score\":150},\"SPLITTER\":{\"hp\":3,\"speed\":0.6,\"radius\":35,\"score\":180},\"MINI_SPLITTER\":{\"hp\":0.5,\"speed\":0.9,\"radius\":20,\"score\":30},\"SPAWNER\":{\"hp\":4,\"speed\":0.4,\"radius\":30,\"score\":250},\"HEALER\":{\"hp\":6,\"speed\":0.7,\"radius\":30,\"score\":500},\"SUPERTANK\":{\"hp\":70,\"speed\":0.5,\"radius\":45,\"score\":600}},\"player\":{\"shotCount\":1,\"shotSpeed\":15,\"shotSize\":5,\"piercing\":1,\"fireRate\":400,\"spread\":0.1,\"shield\":0,\"maxShields\":2,\"critChance\":0,\"critMultiplier\":2,\"damageMultiplier\":1,\"bossDamageMultiplier\":1},\"progression\":{\"initialStep\":600,\"stepGrowth\":1.1,\"stepAddition\":200},\"scaling\":{\"spawnBaseMs\":1100,\"spawnMinimumMs\":240,\"spawnDifficulty\":0.25,\"hpLinear\":1,\"hpQuadratic\":0.12,\"enemySpeedDifficulty\":0.05,\"minibossHpDifficulty\":0.12},\"spawning\":{\"HEALER\":{\"difficulty\":5,\"chance\":0.04,\"cap\":3},\"SUPERTANK\":{\"difficulty\":9,\"chance\":0.08},\"SPAWNER\":{\"difficulty\":4,\"chance\":0.15,\"cap\":3},\"SPLITTER\":{\"difficulty\":3,\"chance\":0.25},\"TANK\":{\"difficulty\":2,\"chance\":0.35},\"DASHER\":{\"difficulty\":3,\"chance\":0.5},\"SPEEDSTER\":{\"difficulty\":1,\"chance\":0.6}},\"perks\":{\"rapidFireMultiplier\":0.8,\"machineGunMultiplier\":0.7,\"sniperSpeedMultiplier\":1.5,\"sniperFireMultiplier\":1.3,\"freezeFrames\":60,\"knockback\":5,\"orbitalCount\":2,\"giantBulletMultiplier\":1.3,\"explosiveRadius\":40,\"synergyChance\":0.6},\"meta\":{\"damage\":{\"step\":0.06,\"baseCost\":120},\"speed\":{\"step\":0.025,\"baseCost\":150},\"critical\":{\"step\":0.01,\"baseCost\":150},\"automation\":{\"step\":0.07,\"baseCost\":120}},\"metaCostGrowth\":1.32,\"miniboss\":{\"initialCooldown\":100,\"maxNodes\":7,\"telegraphFrames\":72,\"waveEarly\":320,\"waveMiddle\":260,\"waveLate\":210,\"nodeMinimumHp\":2,\"nodeProtectionMultiplier\":0.58}}"
+      },
+      "valueType": "JSON",
+      "description": "Eski JSON uyumluluğu. Günlük ayarlar için Level, Düşmanlar, Spawn ve Perkler gruplarındaki sayıları düzenle."
+    }
+  },
+  "parameterGroups": {
+    "00 - Denge surumu": {
+      "description": "İstemci denge uyumluluğu.",
+      "parameters": {
+        "balance_revision": {
+          "defaultValue": {
+            "value": "2"
+          },
+          "valueType": "NUMBER",
+          "description": "Bu istemci için 2 olmalı. Eski sunucu ayarlarının yeni başlangıç dengesini geri almasını önler."
+        }
+      }
+    },
+    "01 - Level 1": {
+      "description": "Sayıyı değiştirip Publish changes ile yayınla. Yeni koşuda uygulanır.",
+      "parameters": {
+        "level_1_boss_evolution": {
+          "defaultValue": {
+            "value": "9"
+          },
+          "valueType": "NUMBER",
+          "description": "Ana boss hangi Evolution sonunda gelsin? Büyük sayı = build için daha çok seçim."
+        },
+        "level_1_boss_hp_multiplier": {
+          "defaultValue": {
+            "value": "0.65"
+          },
+          "valueType": "NUMBER",
+          "description": "Ana boss can çarpanı. Küçük sayı = daha kolay boss."
+        },
+        "level_1_gold_reward": {
+          "defaultValue": {
+            "value": "162"
+          },
+          "valueType": "NUMBER",
+          "description": "Level kazanılınca verilen altın."
+        },
+        "level_1_miniboss_1_evolution": {
+          "defaultValue": {
+            "value": "6"
+          },
+          "valueType": "NUMBER",
+          "description": "1. miniboss hangi Evolution sonunda gelsin? Ana boss öncesinde olmalı."
+        },
+        "level_1_miniboss_1_hp_multiplier": {
+          "defaultValue": {
+            "value": "0.45"
+          },
+          "valueType": "NUMBER",
+          "description": "Miniboss can çarpanı. Küçük sayı = daha kolay."
+        },
+        "level_1_difficulty_start": {
+          "defaultValue": {
+            "value": "0.15"
+          },
+          "valueType": "NUMBER",
+          "description": "Başlangıç zorluk (Evolution 1). Küçük sayı = daha az can/hız/yoğunluk."
+        },
+        "level_1_difficulty_end": {
+          "defaultValue": {
+            "value": "0.9"
+          },
+          "valueType": "NUMBER",
+          "description": "Son zorluk (Evolution 9). Küçük sayı = daha az can/hız/yoğunluk."
+        }
+      }
+    },
+    "02 - Level 2": {
+      "description": "Sayıyı değiştirip Publish changes ile yayınla. Yeni koşuda uygulanır.",
+      "parameters": {
+        "level_2_boss_evolution": {
+          "defaultValue": {
+            "value": "15"
+          },
+          "valueType": "NUMBER",
+          "description": "Ana boss hangi Evolution sonunda gelsin? Büyük sayı = build için daha çok seçim."
+        },
+        "level_2_boss_hp_multiplier": {
+          "defaultValue": {
+            "value": "0.12"
+          },
+          "valueType": "NUMBER",
+          "description": "Ana boss can çarpanı. Küçük sayı = daha kolay boss."
+        },
+        "level_2_gold_reward": {
+          "defaultValue": {
+            "value": "244"
+          },
+          "valueType": "NUMBER",
+          "description": "Level kazanılınca verilen altın."
+        },
+        "level_2_miniboss_1_evolution": {
+          "defaultValue": {
+            "value": "9"
+          },
+          "valueType": "NUMBER",
+          "description": "1. miniboss hangi Evolution sonunda gelsin? Ana boss öncesinde olmalı."
+        },
+        "level_2_miniboss_1_hp_multiplier": {
+          "defaultValue": {
+            "value": "0.55"
+          },
+          "valueType": "NUMBER",
+          "description": "Miniboss can çarpanı. Küçük sayı = daha kolay."
+        },
+        "level_2_difficulty_start": {
+          "defaultValue": {
+            "value": "0.3"
+          },
+          "valueType": "NUMBER",
+          "description": "Başlangıç zorluk (Evolution 1). Küçük sayı = daha az can/hız/yoğunluk."
+        },
+        "level_2_difficulty_end": {
+          "defaultValue": {
+            "value": "1.5"
+          },
+          "valueType": "NUMBER",
+          "description": "Son zorluk (Evolution 15). Küçük sayı = daha az can/hız/yoğunluk."
+        }
+      }
+    },
+    "03 - Level 3": {
+      "description": "Sayıyı değiştirip Publish changes ile yayınla. Yeni koşuda uygulanır.",
+      "parameters": {
+        "level_3_boss_evolution": {
+          "defaultValue": {
+            "value": "16"
+          },
+          "valueType": "NUMBER",
+          "description": "Ana boss hangi Evolution sonunda gelsin? Büyük sayı = build için daha çok seçim."
+        },
+        "level_3_boss_hp_multiplier": {
+          "defaultValue": {
+            "value": "0.22"
+          },
+          "valueType": "NUMBER",
+          "description": "Ana boss can çarpanı. Küçük sayı = daha kolay boss."
+        },
+        "level_3_gold_reward": {
+          "defaultValue": {
+            "value": "268"
+          },
+          "valueType": "NUMBER",
+          "description": "Level kazanılınca verilen altın."
+        },
+        "level_3_miniboss_1_evolution": {
+          "defaultValue": {
+            "value": "6"
+          },
+          "valueType": "NUMBER",
+          "description": "1. miniboss hangi Evolution sonunda gelsin? Ana boss öncesinde olmalı."
+        },
+        "level_3_miniboss_1_hp_multiplier": {
+          "defaultValue": {
+            "value": "0.7"
+          },
+          "valueType": "NUMBER",
+          "description": "Miniboss can çarpanı. Küçük sayı = daha kolay."
+        },
+        "level_3_miniboss_2_evolution": {
+          "defaultValue": {
+            "value": "11"
+          },
+          "valueType": "NUMBER",
+          "description": "2. miniboss hangi Evolution sonunda gelsin? Ana boss öncesinde olmalı."
+        },
+        "level_3_miniboss_2_hp_multiplier": {
+          "defaultValue": {
+            "value": "0.65"
+          },
+          "valueType": "NUMBER",
+          "description": "Miniboss can çarpanı. Küçük sayı = daha kolay."
+        },
+        "level_3_difficulty_start": {
+          "defaultValue": {
+            "value": "0.6"
+          },
+          "valueType": "NUMBER",
+          "description": "Başlangıç zorluk (Evolution 1). Küçük sayı = daha az can/hız/yoğunluk."
+        },
+        "level_3_difficulty_point_2": {
+          "defaultValue": {
+            "value": "1.4"
+          },
+          "valueType": "NUMBER",
+          "description": "Ara zorluk (Evolution 8). Küçük sayı = daha az can/hız/yoğunluk."
+        },
+        "level_3_difficulty_end": {
+          "defaultValue": {
+            "value": "2.4"
+          },
+          "valueType": "NUMBER",
+          "description": "Son zorluk (Evolution 16). Küçük sayı = daha az can/hız/yoğunluk."
+        }
+      }
+    },
+    "04 - Level 4": {
+      "description": "Sayıyı değiştirip Publish changes ile yayınla. Yeni koşuda uygulanır.",
+      "parameters": {
+        "level_4_boss_evolution": {
+          "defaultValue": {
+            "value": "18"
+          },
+          "valueType": "NUMBER",
+          "description": "Ana boss hangi Evolution sonunda gelsin? Büyük sayı = build için daha çok seçim."
+        },
+        "level_4_boss_hp_multiplier": {
+          "defaultValue": {
+            "value": "0.24"
+          },
+          "valueType": "NUMBER",
+          "description": "Ana boss can çarpanı. Küçük sayı = daha kolay boss."
+        },
+        "level_4_gold_reward": {
+          "defaultValue": {
+            "value": "309"
+          },
+          "valueType": "NUMBER",
+          "description": "Level kazanılınca verilen altın."
+        },
+        "level_4_miniboss_1_evolution": {
+          "defaultValue": {
+            "value": "7"
+          },
+          "valueType": "NUMBER",
+          "description": "1. miniboss hangi Evolution sonunda gelsin? Ana boss öncesinde olmalı."
+        },
+        "level_4_miniboss_1_hp_multiplier": {
+          "defaultValue": {
+            "value": "0.85"
+          },
+          "valueType": "NUMBER",
+          "description": "Miniboss can çarpanı. Küçük sayı = daha kolay."
+        },
+        "level_4_miniboss_2_evolution": {
+          "defaultValue": {
+            "value": "13"
+          },
+          "valueType": "NUMBER",
+          "description": "2. miniboss hangi Evolution sonunda gelsin? Ana boss öncesinde olmalı."
+        },
+        "level_4_miniboss_2_hp_multiplier": {
+          "defaultValue": {
+            "value": "0.9"
+          },
+          "valueType": "NUMBER",
+          "description": "Miniboss can çarpanı. Küçük sayı = daha kolay."
+        },
+        "level_4_difficulty_start": {
+          "defaultValue": {
+            "value": "1"
+          },
+          "valueType": "NUMBER",
+          "description": "Başlangıç zorluk (Evolution 1). Küçük sayı = daha az can/hız/yoğunluk."
+        },
+        "level_4_difficulty_end": {
+          "defaultValue": {
+            "value": "3.5"
+          },
+          "valueType": "NUMBER",
+          "description": "Son zorluk (Evolution 18). Küçük sayı = daha az can/hız/yoğunluk."
+        }
+      }
+    },
+    "05 - Level 5": {
+      "description": "Sayıyı değiştirip Publish changes ile yayınla. Yeni koşuda uygulanır.",
+      "parameters": {
+        "level_5_boss_evolution": {
+          "defaultValue": {
+            "value": "20"
+          },
+          "valueType": "NUMBER",
+          "description": "Ana boss hangi Evolution sonunda gelsin? Büyük sayı = build için daha çok seçim."
+        },
+        "level_5_boss_hp_multiplier": {
+          "defaultValue": {
+            "value": "0.28"
+          },
+          "valueType": "NUMBER",
+          "description": "Ana boss can çarpanı. Küçük sayı = daha kolay boss."
+        },
+        "level_5_gold_reward": {
+          "defaultValue": {
+            "value": "385"
+          },
+          "valueType": "NUMBER",
+          "description": "Level kazanılınca verilen altın."
+        },
+        "level_5_miniboss_1_evolution": {
+          "defaultValue": {
+            "value": "8"
+          },
+          "valueType": "NUMBER",
+          "description": "1. miniboss hangi Evolution sonunda gelsin? Ana boss öncesinde olmalı."
+        },
+        "level_5_miniboss_2_evolution": {
+          "defaultValue": {
+            "value": "15"
+          },
+          "valueType": "NUMBER",
+          "description": "2. miniboss hangi Evolution sonunda gelsin? Ana boss öncesinde olmalı."
+        },
+        "level_5_difficulty_start": {
+          "defaultValue": {
+            "value": "2.5"
+          },
+          "valueType": "NUMBER",
+          "description": "Başlangıç zorluk (Evolution 1). Küçük sayı = daha az can/hız/yoğunluk."
+        },
+        "level_5_difficulty_end": {
+          "defaultValue": {
+            "value": "7"
+          },
+          "valueType": "NUMBER",
+          "description": "Son zorluk (Evolution 20). Küçük sayı = daha az can/hız/yoğunluk."
+        }
+      }
+    },
+    "06 - Level 6": {
+      "description": "Sayıyı değiştirip Publish changes ile yayınla. Yeni koşuda uygulanır.",
+      "parameters": {
+        "level_6_boss_evolution": {
+          "defaultValue": {
+            "value": "15"
+          },
+          "valueType": "NUMBER",
+          "description": "Ana boss hangi Evolution sonunda gelsin? Büyük sayı = build için daha çok seçim."
+        },
+        "level_6_boss_hp_multiplier": {
+          "defaultValue": {
+            "value": "1"
+          },
+          "valueType": "NUMBER",
+          "description": "Ana boss can çarpanı. Küçük sayı = daha kolay boss."
+        },
+        "level_6_gold_reward": {
+          "defaultValue": {
+            "value": "333"
+          },
+          "valueType": "NUMBER",
+          "description": "Level kazanılınca verilen altın."
+        },
+        "level_6_miniboss_1_evolution": {
+          "defaultValue": {
+            "value": "6"
+          },
+          "valueType": "NUMBER",
+          "description": "1. miniboss hangi Evolution sonunda gelsin? Ana boss öncesinde olmalı."
+        },
+        "level_6_miniboss_2_evolution": {
+          "defaultValue": {
+            "value": "11"
+          },
+          "valueType": "NUMBER",
+          "description": "2. miniboss hangi Evolution sonunda gelsin? Ana boss öncesinde olmalı."
+        },
+        "level_6_difficulty_start": {
+          "defaultValue": {
+            "value": "3"
+          },
+          "valueType": "NUMBER",
+          "description": "Başlangıç zorluk (Evolution 1). Küçük sayı = daha az can/hız/yoğunluk."
+        },
+        "level_6_difficulty_end": {
+          "defaultValue": {
+            "value": "7.5"
+          },
+          "valueType": "NUMBER",
+          "description": "Son zorluk (Evolution 15). Küçük sayı = daha az can/hız/yoğunluk."
+        }
+      }
+    },
+    "07 - Level 7": {
+      "description": "Sayıyı değiştirip Publish changes ile yayınla. Yeni koşuda uygulanır.",
+      "parameters": {
+        "level_7_boss_evolution": {
+          "defaultValue": {
+            "value": "23"
+          },
+          "valueType": "NUMBER",
+          "description": "Ana boss hangi Evolution sonunda gelsin? Büyük sayı = build için daha çok seçim."
+        },
+        "level_7_boss_hp_multiplier": {
+          "defaultValue": {
+            "value": "0.4"
+          },
+          "valueType": "NUMBER",
+          "description": "Ana boss can çarpanı. Küçük sayı = daha kolay boss."
+        },
+        "level_7_gold_reward": {
+          "defaultValue": {
+            "value": "444"
+          },
+          "valueType": "NUMBER",
+          "description": "Level kazanılınca verilen altın."
+        },
+        "level_7_miniboss_1_evolution": {
+          "defaultValue": {
+            "value": "8"
+          },
+          "valueType": "NUMBER",
+          "description": "1. miniboss hangi Evolution sonunda gelsin? Ana boss öncesinde olmalı."
+        },
+        "level_7_miniboss_2_evolution": {
+          "defaultValue": {
+            "value": "16"
+          },
+          "valueType": "NUMBER",
+          "description": "2. miniboss hangi Evolution sonunda gelsin? Ana boss öncesinde olmalı."
+        },
+        "level_7_difficulty_start": {
+          "defaultValue": {
+            "value": "3.5"
+          },
+          "valueType": "NUMBER",
+          "description": "Başlangıç zorluk (Evolution 1). Küçük sayı = daha az can/hız/yoğunluk."
+        },
+        "level_7_difficulty_end": {
+          "defaultValue": {
+            "value": "8.5"
+          },
+          "valueType": "NUMBER",
+          "description": "Son zorluk (Evolution 23). Küçük sayı = daha az can/hız/yoğunluk."
+        }
+      }
+    },
+    "08 - Level 8": {
+      "description": "Sayıyı değiştirip Publish changes ile yayınla. Yeni koşuda uygulanır.",
+      "parameters": {
+        "level_8_boss_evolution": {
+          "defaultValue": {
+            "value": "25"
+          },
+          "valueType": "NUMBER",
+          "description": "Ana boss hangi Evolution sonunda gelsin? Büyük sayı = build için daha çok seçim."
+        },
+        "level_8_boss_hp_multiplier": {
+          "defaultValue": {
+            "value": "0.45"
+          },
+          "valueType": "NUMBER",
+          "description": "Ana boss can çarpanı. Küçük sayı = daha kolay boss."
+        },
+        "level_8_gold_reward": {
+          "defaultValue": {
+            "value": "483"
+          },
+          "valueType": "NUMBER",
+          "description": "Level kazanılınca verilen altın."
+        },
+        "level_8_miniboss_1_evolution": {
+          "defaultValue": {
+            "value": "7"
+          },
+          "valueType": "NUMBER",
+          "description": "1. miniboss hangi Evolution sonunda gelsin? Ana boss öncesinde olmalı."
+        },
+        "level_8_miniboss_2_evolution": {
+          "defaultValue": {
+            "value": "15"
+          },
+          "valueType": "NUMBER",
+          "description": "2. miniboss hangi Evolution sonunda gelsin? Ana boss öncesinde olmalı."
+        },
+        "level_8_miniboss_3_evolution": {
+          "defaultValue": {
+            "value": "21"
+          },
+          "valueType": "NUMBER",
+          "description": "3. miniboss hangi Evolution sonunda gelsin? Ana boss öncesinde olmalı."
+        },
+        "level_8_difficulty_start": {
+          "defaultValue": {
+            "value": "4"
+          },
+          "valueType": "NUMBER",
+          "description": "Başlangıç zorluk (Evolution 1). Küçük sayı = daha az can/hız/yoğunluk."
+        },
+        "level_8_difficulty_end": {
+          "defaultValue": {
+            "value": "9.5"
+          },
+          "valueType": "NUMBER",
+          "description": "Son zorluk (Evolution 25). Küçük sayı = daha az can/hız/yoğunluk."
+        }
+      }
+    },
+    "09 - Level 9": {
+      "description": "Sayıyı değiştirip Publish changes ile yayınla. Yeni koşuda uygulanır.",
+      "parameters": {
+        "level_9_boss_evolution": {
+          "defaultValue": {
+            "value": "27"
+          },
+          "valueType": "NUMBER",
+          "description": "Ana boss hangi Evolution sonunda gelsin? Büyük sayı = build için daha çok seçim."
+        },
+        "level_9_boss_hp_multiplier": {
+          "defaultValue": {
+            "value": "0.45"
+          },
+          "valueType": "NUMBER",
+          "description": "Ana boss can çarpanı. Küçük sayı = daha kolay boss."
+        },
+        "level_9_gold_reward": {
+          "defaultValue": {
+            "value": "522"
+          },
+          "valueType": "NUMBER",
+          "description": "Level kazanılınca verilen altın."
+        },
+        "level_9_miniboss_1_evolution": {
+          "defaultValue": {
+            "value": "9"
+          },
+          "valueType": "NUMBER",
+          "description": "1. miniboss hangi Evolution sonunda gelsin? Ana boss öncesinde olmalı."
+        },
+        "level_9_miniboss_2_evolution": {
+          "defaultValue": {
+            "value": "18"
+          },
+          "valueType": "NUMBER",
+          "description": "2. miniboss hangi Evolution sonunda gelsin? Ana boss öncesinde olmalı."
+        },
+        "level_9_miniboss_3_evolution": {
+          "defaultValue": {
+            "value": "23"
+          },
+          "valueType": "NUMBER",
+          "description": "3. miniboss hangi Evolution sonunda gelsin? Ana boss öncesinde olmalı."
+        },
+        "level_9_difficulty_start": {
+          "defaultValue": {
+            "value": "4.5"
+          },
+          "valueType": "NUMBER",
+          "description": "Başlangıç zorluk (Evolution 1). Küçük sayı = daha az can/hız/yoğunluk."
+        },
+        "level_9_difficulty_end": {
+          "defaultValue": {
+            "value": "10.5"
+          },
+          "valueType": "NUMBER",
+          "description": "Son zorluk (Evolution 27). Küçük sayı = daha az can/hız/yoğunluk."
+        }
+      }
+    },
+    "10 - Level 10": {
+      "description": "Sayıyı değiştirip Publish changes ile yayınla. Yeni koşuda uygulanır.",
+      "parameters": {
+        "level_10_boss_evolution": {
+          "defaultValue": {
+            "value": "30"
+          },
+          "valueType": "NUMBER",
+          "description": "Ana boss hangi Evolution sonunda gelsin? Büyük sayı = build için daha çok seçim."
+        },
+        "level_10_boss_hp_multiplier": {
+          "defaultValue": {
+            "value": "1"
+          },
+          "valueType": "NUMBER",
+          "description": "Ana boss can çarpanı. Küçük sayı = daha kolay boss."
+        },
+        "level_10_gold_reward": {
+          "defaultValue": {
+            "value": "580"
+          },
+          "valueType": "NUMBER",
+          "description": "Level kazanılınca verilen altın."
+        },
+        "level_10_miniboss_1_evolution": {
+          "defaultValue": {
+            "value": "8"
+          },
+          "valueType": "NUMBER",
+          "description": "1. miniboss hangi Evolution sonunda gelsin? Ana boss öncesinde olmalı."
+        },
+        "level_10_miniboss_2_evolution": {
+          "defaultValue": {
+            "value": "16"
+          },
+          "valueType": "NUMBER",
+          "description": "2. miniboss hangi Evolution sonunda gelsin? Ana boss öncesinde olmalı."
+        },
+        "level_10_miniboss_3_evolution": {
+          "defaultValue": {
+            "value": "24"
+          },
+          "valueType": "NUMBER",
+          "description": "3. miniboss hangi Evolution sonunda gelsin? Ana boss öncesinde olmalı."
+        },
+        "level_10_miniboss_3_hp_multiplier": {
+          "defaultValue": {
+            "value": "1.5"
+          },
+          "valueType": "NUMBER",
+          "description": "Miniboss can çarpanı. Küçük sayı = daha kolay."
+        },
+        "level_10_difficulty_start": {
+          "defaultValue": {
+            "value": "5"
+          },
+          "valueType": "NUMBER",
+          "description": "Başlangıç zorluk (Evolution 1). Küçük sayı = daha az can/hız/yoğunluk."
+        },
+        "level_10_difficulty_point_2": {
+          "defaultValue": {
+            "value": "8"
+          },
+          "valueType": "NUMBER",
+          "description": "Ara zorluk (Evolution 15). Küçük sayı = daha az can/hız/yoğunluk."
+        },
+        "level_10_difficulty_end": {
+          "defaultValue": {
+            "value": "12"
+          },
+          "valueType": "NUMBER",
+          "description": "Son zorluk (Evolution 30). Küçük sayı = daha az can/hız/yoğunluk."
+        }
+      }
+    },
+    "11 - Dusmanlar": {
+      "description": "Sayıyı değiştirip Publish changes ile yayınla. Yeni koşuda uygulanır.",
+      "parameters": {
+        "enemy_basic_hp": {
+          "defaultValue": {
+            "value": "1"
+          },
+          "valueType": "NUMBER",
+          "description": "BASIC: temel canı. Küçük sayı = daha kolay düşman."
+        },
+        "enemy_basic_speed": {
+          "defaultValue": {
+            "value": "1"
+          },
+          "valueType": "NUMBER",
+          "description": "BASIC: temel hız çarpanı. Küçük sayı = daha kolay düşman."
+        },
+        "enemy_basic_score": {
+          "defaultValue": {
+            "value": "50"
+          },
+          "valueType": "NUMBER",
+          "description": "BASIC: öldürme XP/skoru. "
+        },
+        "enemy_basic_radius": {
+          "defaultValue": {
+            "value": "25"
+          },
+          "valueType": "NUMBER",
+          "description": "BASIC: temel yarıçapı. "
+        },
+        "enemy_speedster_hp": {
+          "defaultValue": {
+            "value": "0.5"
+          },
+          "valueType": "NUMBER",
+          "description": "SPEEDSTER: temel canı. Küçük sayı = daha kolay düşman."
+        },
+        "enemy_speedster_speed": {
+          "defaultValue": {
+            "value": "1.9"
+          },
+          "valueType": "NUMBER",
+          "description": "SPEEDSTER: temel hız çarpanı. Küçük sayı = daha kolay düşman."
+        },
+        "enemy_speedster_score": {
+          "defaultValue": {
+            "value": "100"
+          },
+          "valueType": "NUMBER",
+          "description": "SPEEDSTER: öldürme XP/skoru. "
+        },
+        "enemy_speedster_radius": {
+          "defaultValue": {
+            "value": "20"
+          },
+          "valueType": "NUMBER",
+          "description": "SPEEDSTER: temel yarıçapı. "
+        },
+        "enemy_tank_hp": {
+          "defaultValue": {
+            "value": "5"
+          },
+          "valueType": "NUMBER",
+          "description": "TANK: temel canı. Küçük sayı = daha kolay düşman."
+        },
+        "enemy_tank_speed": {
+          "defaultValue": {
+            "value": "0.6"
+          },
+          "valueType": "NUMBER",
+          "description": "TANK: temel hız çarpanı. Küçük sayı = daha kolay düşman."
+        },
+        "enemy_tank_score": {
+          "defaultValue": {
+            "value": "200"
+          },
+          "valueType": "NUMBER",
+          "description": "TANK: öldürme XP/skoru. "
+        },
+        "enemy_tank_radius": {
+          "defaultValue": {
+            "value": "35"
+          },
+          "valueType": "NUMBER",
+          "description": "TANK: temel yarıçapı. "
+        },
+        "enemy_dasher_hp": {
+          "defaultValue": {
+            "value": "2"
+          },
+          "valueType": "NUMBER",
+          "description": "DASHER: temel canı. Küçük sayı = daha kolay düşman."
+        },
+        "enemy_dasher_speed": {
+          "defaultValue": {
+            "value": "1.5"
+          },
+          "valueType": "NUMBER",
+          "description": "DASHER: temel hız çarpanı. Küçük sayı = daha kolay düşman."
+        },
+        "enemy_dasher_score": {
+          "defaultValue": {
+            "value": "150"
+          },
+          "valueType": "NUMBER",
+          "description": "DASHER: öldürme XP/skoru. "
+        },
+        "enemy_dasher_radius": {
+          "defaultValue": {
+            "value": "20"
+          },
+          "valueType": "NUMBER",
+          "description": "DASHER: temel yarıçapı. "
+        },
+        "enemy_splitter_hp": {
+          "defaultValue": {
+            "value": "3"
+          },
+          "valueType": "NUMBER",
+          "description": "SPLITTER: temel canı. Küçük sayı = daha kolay düşman."
+        },
+        "enemy_splitter_speed": {
+          "defaultValue": {
+            "value": "0.6"
+          },
+          "valueType": "NUMBER",
+          "description": "SPLITTER: temel hız çarpanı. Küçük sayı = daha kolay düşman."
+        },
+        "enemy_splitter_score": {
+          "defaultValue": {
+            "value": "180"
+          },
+          "valueType": "NUMBER",
+          "description": "SPLITTER: öldürme XP/skoru. "
+        },
+        "enemy_splitter_radius": {
+          "defaultValue": {
+            "value": "35"
+          },
+          "valueType": "NUMBER",
+          "description": "SPLITTER: temel yarıçapı. "
+        },
+        "enemy_mini_splitter_hp": {
+          "defaultValue": {
+            "value": "0.5"
+          },
+          "valueType": "NUMBER",
+          "description": "MINI_SPLITTER: temel canı. Küçük sayı = daha kolay düşman."
+        },
+        "enemy_mini_splitter_speed": {
+          "defaultValue": {
+            "value": "0.9"
+          },
+          "valueType": "NUMBER",
+          "description": "MINI_SPLITTER: temel hız çarpanı. Küçük sayı = daha kolay düşman."
+        },
+        "enemy_mini_splitter_score": {
+          "defaultValue": {
+            "value": "30"
+          },
+          "valueType": "NUMBER",
+          "description": "MINI_SPLITTER: öldürme XP/skoru. "
+        },
+        "enemy_mini_splitter_radius": {
+          "defaultValue": {
+            "value": "20"
+          },
+          "valueType": "NUMBER",
+          "description": "MINI_SPLITTER: temel yarıçapı. "
+        },
+        "enemy_spawner_hp": {
+          "defaultValue": {
+            "value": "4"
+          },
+          "valueType": "NUMBER",
+          "description": "SPAWNER: temel canı. Küçük sayı = daha kolay düşman."
+        },
+        "enemy_spawner_speed": {
+          "defaultValue": {
+            "value": "0.4"
+          },
+          "valueType": "NUMBER",
+          "description": "SPAWNER: temel hız çarpanı. Küçük sayı = daha kolay düşman."
+        },
+        "enemy_spawner_score": {
+          "defaultValue": {
+            "value": "250"
+          },
+          "valueType": "NUMBER",
+          "description": "SPAWNER: öldürme XP/skoru. "
+        },
+        "enemy_spawner_radius": {
+          "defaultValue": {
+            "value": "30"
+          },
+          "valueType": "NUMBER",
+          "description": "SPAWNER: temel yarıçapı. "
+        },
+        "enemy_healer_hp": {
+          "defaultValue": {
+            "value": "6"
+          },
+          "valueType": "NUMBER",
+          "description": "HEALER: temel canı. Küçük sayı = daha kolay düşman."
+        },
+        "enemy_healer_speed": {
+          "defaultValue": {
+            "value": "0.7"
+          },
+          "valueType": "NUMBER",
+          "description": "HEALER: temel hız çarpanı. Küçük sayı = daha kolay düşman."
+        },
+        "enemy_healer_score": {
+          "defaultValue": {
+            "value": "500"
+          },
+          "valueType": "NUMBER",
+          "description": "HEALER: öldürme XP/skoru. "
+        },
+        "enemy_healer_radius": {
+          "defaultValue": {
+            "value": "30"
+          },
+          "valueType": "NUMBER",
+          "description": "HEALER: temel yarıçapı. "
+        },
+        "enemy_supertank_hp": {
+          "defaultValue": {
+            "value": "70"
+          },
+          "valueType": "NUMBER",
+          "description": "SUPERTANK: temel canı. Küçük sayı = daha kolay düşman."
+        },
+        "enemy_supertank_speed": {
+          "defaultValue": {
+            "value": "0.5"
+          },
+          "valueType": "NUMBER",
+          "description": "SUPERTANK: temel hız çarpanı. Küçük sayı = daha kolay düşman."
+        },
+        "enemy_supertank_score": {
+          "defaultValue": {
+            "value": "600"
+          },
+          "valueType": "NUMBER",
+          "description": "SUPERTANK: öldürme XP/skoru. "
+        },
+        "enemy_supertank_radius": {
+          "defaultValue": {
+            "value": "45"
+          },
+          "valueType": "NUMBER",
+          "description": "SUPERTANK: temel yarıçapı. "
+        }
+      }
+    },
+    "12 - Baslangic build": {
+      "description": "Sayıyı değiştirip Publish changes ile yayınla. Yeni koşuda uygulanır.",
+      "parameters": {
+        "player_shot_count": {
+          "defaultValue": {
+            "value": "1"
+          },
+          "valueType": "NUMBER",
+          "description": "Başlangıç mermi adedi."
+        },
+        "player_shot_speed": {
+          "defaultValue": {
+            "value": "15"
+          },
+          "valueType": "NUMBER",
+          "description": "Mermi hızı."
+        },
+        "player_shot_size": {
+          "defaultValue": {
+            "value": "5"
+          },
+          "valueType": "NUMBER",
+          "description": "Mermi boyutu."
+        },
+        "player_piercing": {
+          "defaultValue": {
+            "value": "1"
+          },
+          "valueType": "NUMBER",
+          "description": "Merminin delme adedi."
+        },
+        "player_fire_rate": {
+          "defaultValue": {
+            "value": "400"
+          },
+          "valueType": "NUMBER",
+          "description": "Atışlar arası milisaniye. Küçük sayı = daha hızlı atış."
+        },
+        "player_spread": {
+          "defaultValue": {
+            "value": "0.1"
+          },
+          "valueType": "NUMBER",
+          "description": "Mermi saçılması."
+        },
+        "player_shield": {
+          "defaultValue": {
+            "value": "0"
+          },
+          "valueType": "NUMBER",
+          "description": "Başlangıç kalkanı."
+        },
+        "player_max_shields": {
+          "defaultValue": {
+            "value": "2"
+          },
+          "valueType": "NUMBER",
+          "description": "Kalkan sınırı."
+        },
+        "player_crit_chance": {
+          "defaultValue": {
+            "value": "0"
+          },
+          "valueType": "NUMBER",
+          "description": "Kritik ihtimali: 0.1 = %10."
+        },
+        "player_crit_multiplier": {
+          "defaultValue": {
+            "value": "2"
+          },
+          "valueType": "NUMBER",
+          "description": "Kritik hasar çarpanı."
+        },
+        "player_damage_multiplier": {
+          "defaultValue": {
+            "value": "1"
+          },
+          "valueType": "NUMBER",
+          "description": "Genel hasar çarpanı."
+        },
+        "player_boss_damage_multiplier": {
+          "defaultValue": {
+            "value": "1"
+          },
+          "valueType": "NUMBER",
+          "description": "Boss hasar çarpanı."
+        }
+      }
+    },
+    "13 - XP ve Evolution": {
+      "description": "Sayıyı değiştirip Publish changes ile yayınla. Yeni koşuda uygulanır.",
+      "parameters": {
+        "xp_initial_step": {
+          "defaultValue": {
+            "value": "600"
+          },
+          "valueType": "NUMBER",
+          "description": "İlk perk seçimi için gereken XP."
+        },
+        "xp_step_growth": {
+          "defaultValue": {
+            "value": "1.1"
+          },
+          "valueType": "NUMBER",
+          "description": "Her perkten sonra XP adımının büyüme çarpanı."
+        },
+        "xp_step_addition": {
+          "defaultValue": {
+            "value": "200"
+          },
+          "valueType": "NUMBER",
+          "description": "Her perkten sonra XP adımına eklenen miktar."
+        }
+      }
+    },
+    "14 - Spawn ve zorluk": {
+      "description": "Sayıyı değiştirip Publish changes ile yayınla. Yeni koşuda uygulanır.",
+      "parameters": {
+        "scaling_spawn_base_ms": {
+          "defaultValue": {
+            "value": "1100"
+          },
+          "valueType": "NUMBER",
+          "description": "Temel düşman spawn aralığı, milisaniye. Büyük sayı = daha seyrek."
+        },
+        "scaling_spawn_minimum_ms": {
+          "defaultValue": {
+            "value": "240"
+          },
+          "valueType": "NUMBER",
+          "description": "Spawn aralığının alt sınırı, milisaniye."
+        },
+        "scaling_spawn_difficulty": {
+          "defaultValue": {
+            "value": "0.25"
+          },
+          "valueType": "NUMBER",
+          "description": "Zorluk arttıkça spawn hızlanması."
+        },
+        "scaling_hp_linear": {
+          "defaultValue": {
+            "value": "1"
+          },
+          "valueType": "NUMBER",
+          "description": "Zorluğun düşman canına doğrusal etkisi."
+        },
+        "scaling_hp_quadratic": {
+          "defaultValue": {
+            "value": "0.12"
+          },
+          "valueType": "NUMBER",
+          "description": "Zorluğun düşman canına karesel etkisi."
+        },
+        "scaling_enemy_speed_difficulty": {
+          "defaultValue": {
+            "value": "0.05"
+          },
+          "valueType": "NUMBER",
+          "description": "Zorluk arttıkça düşman hız artışı."
+        },
+        "scaling_miniboss_hp_difficulty": {
+          "defaultValue": {
+            "value": "0.12"
+          },
+          "valueType": "NUMBER",
+          "description": "Özel can çarpanı olmayan minibossların zorluğa göre can artışı."
+        }
+      }
+    },
+    "15 - Perkler": {
+      "description": "Sayıyı değiştirip Publish changes ile yayınla. Yeni koşuda uygulanır.",
+      "parameters": {
+        "perk_rapid_fire_multiplier": {
+          "defaultValue": {
+            "value": "0.8"
+          },
+          "valueType": "NUMBER",
+          "description": "Rapid Fire: atış aralığı çarpanı. 0.8 = %20 daha kısa aralık."
+        },
+        "perk_machine_gun_multiplier": {
+          "defaultValue": {
+            "value": "0.7"
+          },
+          "valueType": "NUMBER",
+          "description": "Machine Gun: atış aralığı çarpanı. Küçük sayı = daha güçlü."
+        },
+        "perk_sniper_speed_multiplier": {
+          "defaultValue": {
+            "value": "1.5"
+          },
+          "valueType": "NUMBER",
+          "description": "Sniper: mermi hız çarpanı."
+        },
+        "perk_sniper_fire_multiplier": {
+          "defaultValue": {
+            "value": "1.3"
+          },
+          "valueType": "NUMBER",
+          "description": "Sniper: atış aralığı çarpanı."
+        },
+        "perk_freeze_frames": {
+          "defaultValue": {
+            "value": "60"
+          },
+          "valueType": "NUMBER",
+          "description": "Freeze süresi. 60 frame yaklaşık 1 saniye."
+        },
+        "perk_knockback": {
+          "defaultValue": {
+            "value": "5"
+          },
+          "valueType": "NUMBER",
+          "description": "Knockback itme gücü."
+        },
+        "perk_orbital_count": {
+          "defaultValue": {
+            "value": "2"
+          },
+          "valueType": "NUMBER",
+          "description": "Orbitals perkinde eklenen küre adedi."
+        },
+        "perk_giant_bullet_multiplier": {
+          "defaultValue": {
+            "value": "1.3"
+          },
+          "valueType": "NUMBER",
+          "description": "Giant Bullet: mermi boyutu çarpanı."
+        },
+        "perk_explosive_radius": {
+          "defaultValue": {
+            "value": "40"
+          },
+          "valueType": "NUMBER",
+          "description": "Explosive Shot: patlama yarıçapı."
+        },
+        "perk_synergy_chance": {
+          "defaultValue": {
+            "value": "0.6"
+          },
+          "valueType": "NUMBER",
+          "description": "Build ile uyumlu perk teklif ihtimali: 0.6 = %60."
+        }
+      }
+    },
+    "16 - Miniboss dalgalari": {
+      "description": "Sayıyı değiştirip Publish changes ile yayınla. Yeni koşuda uygulanır.",
+      "parameters": {
+        "miniboss_initial_cooldown": {
+          "defaultValue": {
+            "value": "100"
+          },
+          "valueType": "NUMBER",
+          "description": "İlk dalgaya kadar bekleme: 60 frame yaklaşık 1 saniye."
+        },
+        "miniboss_max_nodes": {
+          "defaultValue": {
+            "value": "7"
+          },
+          "valueType": "NUMBER",
+          "description": "Yeni dalga başlatmayı durduran aktif birlik eşiği."
+        },
+        "miniboss_telegraph_frames": {
+          "defaultValue": {
+            "value": "72"
+          },
+          "valueType": "NUMBER",
+          "description": "Dalgadan önce uyarı süresi: 60 frame yaklaşık 1 saniye."
+        },
+        "miniboss_wave_early": {
+          "defaultValue": {
+            "value": "320"
+          },
+          "valueType": "NUMBER",
+          "description": "İlk faz dalga aralığı, frame."
+        },
+        "miniboss_wave_middle": {
+          "defaultValue": {
+            "value": "260"
+          },
+          "valueType": "NUMBER",
+          "description": "Orta faz dalga aralığı, frame."
+        },
+        "miniboss_wave_late": {
+          "defaultValue": {
+            "value": "210"
+          },
+          "valueType": "NUMBER",
+          "description": "Son faz dalga aralığı, frame."
+        },
+        "miniboss_node_minimum_hp": {
+          "defaultValue": {
+            "value": "2"
+          },
+          "valueType": "NUMBER",
+          "description": "Miniboss birliklerinin minimum temel canı."
+        },
+        "miniboss_node_protection_multiplier": {
+          "defaultValue": {
+            "value": "0.58"
+          },
+          "valueType": "NUMBER",
+          "description": "Birlikler varken minibossun aldığı hasar çarpanı. Büyük sayı = daha kolay."
+        }
+      }
+    },
+    "17 - Kalici yukseltmeler": {
+      "description": "Sayıyı değiştirip Publish changes ile yayınla. Yeni koşuda uygulanır.",
+      "parameters": {
+        "meta_damage_step": {
+          "defaultValue": {
+            "value": "0.06"
+          },
+          "valueType": "NUMBER",
+          "description": "damage: her satın alınan kademenin etkisi."
+        },
+        "meta_damage_base_cost": {
+          "defaultValue": {
+            "value": "120"
+          },
+          "valueType": "NUMBER",
+          "description": "damage: ilk kademe altın fiyatı."
+        },
+        "meta_speed_step": {
+          "defaultValue": {
+            "value": "0.025"
+          },
+          "valueType": "NUMBER",
+          "description": "speed: her satın alınan kademenin etkisi."
+        },
+        "meta_speed_base_cost": {
+          "defaultValue": {
+            "value": "150"
+          },
+          "valueType": "NUMBER",
+          "description": "speed: ilk kademe altın fiyatı."
+        },
+        "meta_critical_step": {
+          "defaultValue": {
+            "value": "0.01"
+          },
+          "valueType": "NUMBER",
+          "description": "critical: her satın alınan kademenin etkisi."
+        },
+        "meta_critical_base_cost": {
+          "defaultValue": {
+            "value": "150"
+          },
+          "valueType": "NUMBER",
+          "description": "critical: ilk kademe altın fiyatı."
+        },
+        "meta_automation_step": {
+          "defaultValue": {
+            "value": "0.07"
+          },
+          "valueType": "NUMBER",
+          "description": "automation: her satın alınan kademenin etkisi."
+        },
+        "meta_automation_base_cost": {
+          "defaultValue": {
+            "value": "120"
+          },
+          "valueType": "NUMBER",
+          "description": "automation: ilk kademe altın fiyatı."
+        },
+        "meta_cost_growth": {
+          "defaultValue": {
+            "value": "1.32"
+          },
+          "valueType": "NUMBER",
+          "description": "Kalıcı yükseltmelerde her kademenin fiyat çarpanı."
+        }
+      }
+    },
+    "18 - Dusman secimi - ileri ayarlar": {
+      "description": "Sayıyı değiştirip Publish changes ile yayınla. Yeni koşuda uygulanır.",
+      "parameters": {
+        "spawn_healer_difficulty": {
+          "defaultValue": {
+            "value": "5"
+          },
+          "valueType": "NUMBER",
+          "description": "HEALER: Görünmeye başladığı zorluk eşiği. İhtimaller HEALER → SUPERTANK → SPAWNER → SPLITTER → TANK → DASHER → SPEEDSTER sırasıyla artmalıdır."
+        },
+        "spawn_healer_chance": {
+          "defaultValue": {
+            "value": "0.04"
+          },
+          "valueType": "NUMBER",
+          "description": "HEALER: Kümülatif spawn ihtimali, 0–1. İhtimaller HEALER → SUPERTANK → SPAWNER → SPLITTER → TANK → DASHER → SPEEDSTER sırasıyla artmalıdır."
+        },
+        "spawn_healer_cap": {
+          "defaultValue": {
+            "value": "3"
+          },
+          "valueType": "NUMBER",
+          "description": "HEALER: Aynı anda aktif adet sınırı. İhtimaller HEALER → SUPERTANK → SPAWNER → SPLITTER → TANK → DASHER → SPEEDSTER sırasıyla artmalıdır."
+        },
+        "spawn_supertank_difficulty": {
+          "defaultValue": {
+            "value": "9"
+          },
+          "valueType": "NUMBER",
+          "description": "SUPERTANK: Görünmeye başladığı zorluk eşiği. İhtimaller HEALER → SUPERTANK → SPAWNER → SPLITTER → TANK → DASHER → SPEEDSTER sırasıyla artmalıdır."
+        },
+        "spawn_supertank_chance": {
+          "defaultValue": {
+            "value": "0.08"
+          },
+          "valueType": "NUMBER",
+          "description": "SUPERTANK: Kümülatif spawn ihtimali, 0–1. İhtimaller HEALER → SUPERTANK → SPAWNER → SPLITTER → TANK → DASHER → SPEEDSTER sırasıyla artmalıdır."
+        },
+        "spawn_spawner_difficulty": {
+          "defaultValue": {
+            "value": "4"
+          },
+          "valueType": "NUMBER",
+          "description": "SPAWNER: Görünmeye başladığı zorluk eşiği. İhtimaller HEALER → SUPERTANK → SPAWNER → SPLITTER → TANK → DASHER → SPEEDSTER sırasıyla artmalıdır."
+        },
+        "spawn_spawner_chance": {
+          "defaultValue": {
+            "value": "0.15"
+          },
+          "valueType": "NUMBER",
+          "description": "SPAWNER: Kümülatif spawn ihtimali, 0–1. İhtimaller HEALER → SUPERTANK → SPAWNER → SPLITTER → TANK → DASHER → SPEEDSTER sırasıyla artmalıdır."
+        },
+        "spawn_spawner_cap": {
+          "defaultValue": {
+            "value": "3"
+          },
+          "valueType": "NUMBER",
+          "description": "SPAWNER: Aynı anda aktif adet sınırı. İhtimaller HEALER → SUPERTANK → SPAWNER → SPLITTER → TANK → DASHER → SPEEDSTER sırasıyla artmalıdır."
+        },
+        "spawn_splitter_difficulty": {
+          "defaultValue": {
+            "value": "3"
+          },
+          "valueType": "NUMBER",
+          "description": "SPLITTER: Görünmeye başladığı zorluk eşiği. İhtimaller HEALER → SUPERTANK → SPAWNER → SPLITTER → TANK → DASHER → SPEEDSTER sırasıyla artmalıdır."
+        },
+        "spawn_splitter_chance": {
+          "defaultValue": {
+            "value": "0.25"
+          },
+          "valueType": "NUMBER",
+          "description": "SPLITTER: Kümülatif spawn ihtimali, 0–1. İhtimaller HEALER → SUPERTANK → SPAWNER → SPLITTER → TANK → DASHER → SPEEDSTER sırasıyla artmalıdır."
+        },
+        "spawn_tank_difficulty": {
+          "defaultValue": {
+            "value": "2"
+          },
+          "valueType": "NUMBER",
+          "description": "TANK: Görünmeye başladığı zorluk eşiği. İhtimaller HEALER → SUPERTANK → SPAWNER → SPLITTER → TANK → DASHER → SPEEDSTER sırasıyla artmalıdır."
+        },
+        "spawn_tank_chance": {
+          "defaultValue": {
+            "value": "0.35"
+          },
+          "valueType": "NUMBER",
+          "description": "TANK: Kümülatif spawn ihtimali, 0–1. İhtimaller HEALER → SUPERTANK → SPAWNER → SPLITTER → TANK → DASHER → SPEEDSTER sırasıyla artmalıdır."
+        },
+        "spawn_dasher_difficulty": {
+          "defaultValue": {
+            "value": "3"
+          },
+          "valueType": "NUMBER",
+          "description": "DASHER: Görünmeye başladığı zorluk eşiği. İhtimaller HEALER → SUPERTANK → SPAWNER → SPLITTER → TANK → DASHER → SPEEDSTER sırasıyla artmalıdır."
+        },
+        "spawn_dasher_chance": {
+          "defaultValue": {
+            "value": "0.5"
+          },
+          "valueType": "NUMBER",
+          "description": "DASHER: Kümülatif spawn ihtimali, 0–1. İhtimaller HEALER → SUPERTANK → SPAWNER → SPLITTER → TANK → DASHER → SPEEDSTER sırasıyla artmalıdır."
+        },
+        "spawn_speedster_difficulty": {
+          "defaultValue": {
+            "value": "1"
+          },
+          "valueType": "NUMBER",
+          "description": "SPEEDSTER: Görünmeye başladığı zorluk eşiği. İhtimaller HEALER → SUPERTANK → SPAWNER → SPLITTER → TANK → DASHER → SPEEDSTER sırasıyla artmalıdır."
+        },
+        "spawn_speedster_chance": {
+          "defaultValue": {
+            "value": "0.6"
+          },
+          "valueType": "NUMBER",
+          "description": "SPEEDSTER: Kümülatif spawn ihtimali, 0–1. İhtimaller HEALER → SUPERTANK → SPAWNER → SPLITTER → TANK → DASHER → SPEEDSTER sırasıyla artmalıdır."
+        }
+      }
+    }
+  }
+}

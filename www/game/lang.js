@@ -207,7 +207,7 @@ const Localization = {
 
             // Perks
             perk_rapid_fire_title: "Rapid Fire",
-            perk_rapid_fire_desc: "Increases fire rate by 20%.",
+            perk_rapid_fire_desc: "Increases fire rate by {value}%.",
             perk_machine_gun_title: "Machine Gun",
             perk_machine_gun_desc: "Greatly increases fire rate but less spread",
             perk_sniper_title: "Sniper Shot",
@@ -221,7 +221,7 @@ const Localization = {
             perk_side_cannons_title: "Side Cannons",
             perk_side_cannons_desc: "Fires additional shots to the left and right.",
             perk_orbitals_title: "Plasma Orbs",
-            perk_orbitals_desc: "2 protective orbs orbit around you dealing damage.",
+            perk_orbitals_desc: "{gain} protective orbs orbit around you dealing damage.",
             perk_orbital_size_title: "Massive Orbs",
             perk_orbital_size_desc: "Increases the size of Plasma Orbs by 50%.",
             perk_screen_wrap_title: "Wormhole Bullets",
@@ -237,7 +237,7 @@ const Localization = {
             perk_back_shot_title: "Rear Guard",
             perk_back_shot_desc: "Fires an additional bullet backwards.",
             perk_giant_bullet_title: "Cannonball",
-            perk_giant_bullet_desc: "Bullets become 30% larger and easier to hit.",
+            perk_giant_bullet_desc: "Bullets become {value}% larger and easier to hit.",
             perk_shotgun_title: "Shotgun",
             perk_shotgun_desc: "Fires +2 more bullets but spreads more.",
             perk_chain_lightning_title: "Chain Lightning",
@@ -258,7 +258,7 @@ const Localization = {
             perk_critical_lens_desc: "Increases Critical Chance by 10% and Critical Damage by 50%.",
             perk_laser_damage_title: "Focused Beam",
             perk_laser_damage_desc: "Increases Orbital Laser damage by %100.",
-            perk_orbitals_desc_dynamic: "(Current: {value} Orbs) + 2 Plasma Orbs.",
+            perk_orbitals_desc_dynamic: "(Current: {value} Orbs) + {gain} Plasma Orbs.",
             perk_split_shot_desc_dynamic: "(Current: {value} fragments) + 1 Fragment on hit.",
 
             // Electric Aura
@@ -501,7 +501,7 @@ const Localization = {
 
             // Perks
             perk_rapid_fire_title: "Seri Atış",
-            perk_rapid_fire_desc: "Atış hızını %20 artırır.",
+            perk_rapid_fire_desc: "Atış hızını %{value} artırır.",
             perk_machine_gun_title: "Makineli Tüfek",
             perk_machine_gun_desc: "Atış hızını büyük ölçüde artırır ama isabeti azaltır.",
             perk_sniper_title: "Keskin Nişancı",
@@ -515,7 +515,7 @@ const Localization = {
             perk_side_cannons_title: "Yan Toplar",
             perk_side_cannons_desc: "Sola ve sağa ek atışlar yapar.",
             perk_orbitals_title: "Yörünge Kalkanı",
-            perk_orbitals_desc: "Etrafınızda dönen ve hasar veren koruyucu 2 küre.",
+            perk_orbitals_desc: "Etrafınızda dönen ve hasar veren koruyucu {gain} küre.",
             perk_orbital_size_title: "Devasa Yörüngeler",
             perk_orbital_size_desc: "Yörünge Kalkanlarının boyutunu %50 artırır.",
             perk_screen_wrap_title: "Solucan Deliği",
@@ -531,7 +531,7 @@ const Localization = {
             perk_back_shot_title: "Arka Koruma",
             perk_back_shot_desc: "Arkaya doğru ek bir mermi atar.",
             perk_giant_bullet_title: "Gülle",
-            perk_giant_bullet_desc: "Mermiler %30 büyür ve vurması kolaylaşır.",
+            perk_giant_bullet_desc: "Mermiler %{value} büyür ve vurması kolaylaşır.",
             perk_shotgun_title: "Pompalı",
             perk_shotgun_desc: "+2 mermi atar ama dağılım artar.",
             perk_chain_lightning_title: "Elektrik",
@@ -552,7 +552,7 @@ const Localization = {
             perk_critical_lens_desc: "Kritik Şansını %10 ve Kritik Hasarı %50 artırır.",
             perk_laser_damage_title: "Odaklanmış Lazer",
             perk_laser_damage_desc: "Yörünge Lazeri hasarını %100 artırır.",
-            perk_orbitals_desc_dynamic: "(Mevcut: {value} koruma) + 1 Yörünge Kalkanı.",
+            perk_orbitals_desc_dynamic: "(Mevcut: {value} koruma) + {gain} Yörünge Kalkanı.",
             perk_split_shot_desc_dynamic: "(Mevcut: {value} parça) + 1 Düşmanı parçalara ayırır.",
 
             // Electric Aura
@@ -744,7 +744,7 @@ const Localization = {
 
             // Perks
             perk_rapid_fire_title: "Tir Rapide",
-            perk_rapid_fire_desc: "Augmente la cadencé de 20%.",
+            perk_rapid_fire_desc: "Augmente la cadencé de {value}%.",
             perk_machine_gun_title: "Mitrailleuse",
             perk_machine_gun_desc: "Augmente grandement la cadence mais réduit la précision.",
             perk_sniper_title: "Sniper",
@@ -758,7 +758,7 @@ const Localization = {
             perk_side_cannons_title: "Canons Latéraux",
             perk_side_cannons_desc: "Tire des coups supplémentaires à gauche et à droite.",
             perk_orbitals_title: "Bouclier Orbital",
-            perk_orbitals_desc: "2 boules protecteurs tourne autour de vous inflige des dégâts.",
+            perk_orbitals_desc: "{gain} boules protecteurs tourne autour de vous inflige des dégâts.",
             perk_orbital_size_title: "Orbites Massives",
             perk_orbital_size_desc: "Augmente la taille des Boucliers Orbitaux de 50%.",
             perk_screen_wrap_title: "Trou de Ver",
@@ -774,7 +774,7 @@ const Localization = {
             perk_back_shot_title: "Arrière-Garde",
             perk_back_shot_desc: "Tire un projectile supplémentaire vers l'arrière.",
             perk_giant_bullet_title: "Boulet de Canon",
-            perk_giant_bullet_desc: "Les tirs sont 30% plus gros et plus faciles à toucher.",
+            perk_giant_bullet_desc: "Les tirs sont {value}% plus gros et plus faciles à toucher.",
             perk_shotgun_title: "Fusil à Pompe",
             perk_shotgun_desc: "Tire +2 projectiles mais plus dispersés.",
             perk_chain_lightning_title: "Chaîne d'Éclairs",
@@ -795,7 +795,7 @@ const Localization = {
             perk_critical_lens_desc: "Augmente la Chance Critique de 10% et les Dégâts Critiques de 50%.",
             perk_laser_damage_title: "Rayon Concentré",
             perk_laser_damage_desc: "Augmente les dégâts du Laser Orbital de 100%.",
-            perk_orbitals_desc_dynamic: "(Actuel : {value} protection) + 1 Bouclier Orbital.",
+            perk_orbitals_desc_dynamic: "(Actuel : {value} protection) + {gain} Bouclier Orbital.",
             perk_split_shot_desc_dynamic: "(Actuel : {value} fragments) + 1 Fragment à l'impact.",
 
             // Electric Aura
@@ -971,7 +971,7 @@ const Localization = {
 
             // Perks
             perk_rapid_fire_title: "Fuego Rápido",
-            perk_rapid_fire_desc: "Aumenta la velocidad de disparo en un 20%.",
+            perk_rapid_fire_desc: "Aumenta la velocidad de disparo en un {value}%.",
             perk_machine_gun_title: "Ametralladora",
             perk_machine_gun_desc: "Aumenta mucho la velocidad de disparo pero reduce la precisión.",
             perk_sniper_title: "Francotirador",
@@ -985,7 +985,7 @@ const Localization = {
             perk_side_cannons_title: "Cañones Laterales",
             perk_side_cannons_desc: "Dispara tiros adicionales a la izquierda y derecha.",
             perk_orbitals_title: "Orbes de Plasma",
-            perk_orbitals_desc: "2 orbes protectores orbitan a tu alrededor causando daño.",
+            perk_orbitals_desc: "{gain} orbes protectores orbitan a tu alrededor causando daño.",
             perk_orbital_size_title: "Orbes Masivos",
             perk_orbital_size_desc: "Aumenta el tamaño de los Orbes de Plasma en un 50%.",
             perk_screen_wrap_title: "Balas de Agujero de Gusano",
@@ -1001,7 +1001,7 @@ const Localization = {
             perk_back_shot_title: "Guardia Trasera",
             perk_back_shot_desc: "Dispara una bala adicional hacia atrás.",
             perk_giant_bullet_title: "Bala de Cañón",
-            perk_giant_bullet_desc: "Las balas son un 30% más grandes y más fáciles de acertar.",
+            perk_giant_bullet_desc: "Las balas son un {value}% más grandes y más fáciles de acertar.",
             perk_shotgun_title: "Escopeta",
             perk_shotgun_desc: "Dispara +2 balas más pero con mayor dispersión.",
             perk_chain_lightning_title: "Relámpago en Cadena",
@@ -1022,7 +1022,7 @@ const Localization = {
             perk_critical_lens_desc: "Aumenta la Probabilidad Crítica en un 10% y el Daño Crítico en un 50%.",
             perk_laser_damage_title: "Rayo Concentrado",
             perk_laser_damage_desc: "Aumenta el daño del Láser Orbital en un 100%.",
-            perk_orbitals_desc_dynamic: "(Actual: {value} Orbes) + 2 Orbes de Plasma.",
+            perk_orbitals_desc_dynamic: "(Actual: {value} Orbes) + {gain} Orbes de Plasma.",
             perk_split_shot_desc_dynamic: "(Actual: {value} fragmentos) + 1 Fragmento al impactar.",
 
             // Electric Aura
@@ -1198,7 +1198,7 @@ const Localization = {
 
             // Perks
             perk_rapid_fire_title: "Schnellfeuer",
-            perk_rapid_fire_desc: "Erhöht die Feuerrate um 20%.",
+            perk_rapid_fire_desc: "Erhöht die Feuerrate um {value}%.",
             perk_machine_gun_title: "Maschinengewehr",
             perk_machine_gun_desc: "Erhöht die Feuerrate stark, verringert aber die Genauigkeit.",
             perk_sniper_title: "Scharfschütze",
@@ -1212,7 +1212,7 @@ const Localization = {
             perk_side_cannons_title: "Seitenkanonen",
             perk_side_cannons_desc: "Feuert zusätzliche Schüsse nach links und rechts.",
             perk_orbitals_title: "Plasma-Kugeln",
-            perk_orbitals_desc: "2 schützende Kugeln kreisen um dich und verursachen Schaden.",
+            perk_orbitals_desc: "{gain} schützende Kugeln kreisen um dich und verursachen Schaden.",
             perk_orbital_size_title: "Massive Kugeln",
             perk_orbital_size_desc: "Erhöht die Größe der Plasma-Kugeln um 50%.",
             perk_screen_wrap_title: "Wurmloch-Geschosse",
@@ -1228,7 +1228,7 @@ const Localization = {
             perk_back_shot_title: "Rückwache",
             perk_back_shot_desc: "Feuert ein zusätzliches Geschoss nach hinten.",
             perk_giant_bullet_title: "Kanonenkugel",
-            perk_giant_bullet_desc: "Geschosse werden 30% größer und leichter zu treffen.",
+            perk_giant_bullet_desc: "Geschosse werden {value}% größer und leichter zu treffen.",
             perk_shotgun_title: "Schrotflinte",
             perk_shotgun_desc: "Feuert +2 weitere Geschosse, aber mit mehr Streuung.",
             perk_chain_lightning_title: "Kettenblitz",
@@ -1249,7 +1249,7 @@ const Localization = {
             perk_critical_lens_desc: "Erhöht kritische Chance um 10% und kritischen Schaden um 50%.",
             perk_laser_damage_title: "Fokussierter Strahl",
             perk_laser_damage_desc: "Erhöht den Schaden des Orbitallasers um 100%.",
-            perk_orbitals_desc_dynamic: "(Aktuell: {value} Kugeln) + 2 Plasma-Kugeln.",
+            perk_orbitals_desc_dynamic: "(Aktuell: {value} Kugeln) + {gain} Plasma-Kugeln.",
             perk_split_shot_desc_dynamic: "(Aktuell: {value} Splitter) + 1 Splitter bei Treffer.",
 
             // Electric Aura
@@ -1425,7 +1425,7 @@ const Localization = {
 
             // Perks
             perk_rapid_fire_title: "Fuoco Rapido",
-            perk_rapid_fire_desc: "Aumenta la velocità di fuoco del 20%.",
+            perk_rapid_fire_desc: "Aumenta la velocità di fuoco del {value}%.",
             perk_machine_gun_title: "Mitragliatrice",
             perk_machine_gun_desc: "Aumenta notevolmente la velocità di fuoco ma riduce la precisione.",
             perk_sniper_title: "Cecchino",
@@ -1439,7 +1439,7 @@ const Localization = {
             perk_side_cannons_title: "Cannoni Laterali",
             perk_side_cannons_desc: "Spara colpi aggiuntivi a sinistra e destra.",
             perk_orbitals_title: "Sfere di Plasma",
-            perk_orbitals_desc: "2 sfere protettive orbitano intorno a te causando danni.",
+            perk_orbitals_desc: "{gain} sfere protettive orbitano intorno a te causando danni.",
             perk_orbital_size_title: "Sfere Massive",
             perk_orbital_size_desc: "Aumenta la dimensione delle Sfere di Plasma del 50%.",
             perk_screen_wrap_title: "Proiettili Wormhole",
@@ -1455,7 +1455,7 @@ const Localization = {
             perk_back_shot_title: "Guardia Posteriore",
             perk_back_shot_desc: "Spara un proiettile aggiuntivo all'indietro.",
             perk_giant_bullet_title: "Palla di Cannone",
-            perk_giant_bullet_desc: "I proiettili diventano del 30% più grandi e più facili da colpire.",
+            perk_giant_bullet_desc: "I proiettili diventano del {value}% più grandi e più facili da colpire.",
             perk_shotgun_title: "Fucile a Pompa",
             perk_shotgun_desc: "Spara +2 proiettili in più ma con maggiore dispersione.",
             perk_chain_lightning_title: "Fulmine a Catena",
@@ -1476,7 +1476,7 @@ const Localization = {
             perk_critical_lens_desc: "Aumenta la Probabilità Critica del 10% e il Danno Critico del 50%.",
             perk_laser_damage_title: "Raggio Concentrato",
             perk_laser_damage_desc: "Aumenta i danni del Laser Orbitale del 100%.",
-            perk_orbitals_desc_dynamic: "(Attuale: {value} Sfere) + 2 Sfere di Plasma.",
+            perk_orbitals_desc_dynamic: "(Attuale: {value} Sfere) + {gain} Sfere di Plasma.",
             perk_split_shot_desc_dynamic: "(Attuale: {value} frammenti) + 1 Frammento all'impatto.",
 
             // Electric Aura

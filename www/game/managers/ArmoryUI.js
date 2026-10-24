@@ -253,7 +253,9 @@ const ArmoryUI = {
         if (!grid || typeof PremiumStoreManager === 'undefined') return;
         grid.innerHTML = '';
 
-        const offerIds = ['remove_ads', 'starter_pack', 'premium_cosmetic_pack'];
+        // Forced ads are gone for everyone; do not sell their removal to new players.
+        const offerIds = ['starter_pack', 'premium_cosmetic_pack'];
+        if (PremiumStoreManager.state.adsRemoved) offerIds.unshift('remove_ads');
         offerIds.forEach(id => {
             const prod = PremiumStoreManager.getLocalizedProduct(id);
             if (!prod) return;

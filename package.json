@@ -5,7 +5,13 @@
     "test:menus": "node tests/menu-visual.cjs",
     "test:audio": "node tests/menu-audio.cjs",
     "test:runtime": "node tests/runtime-readiness.cjs",
-    "test:cosmetics": "node tests/cosmetic-presentation.cjs"
+    "test:cosmetics": "node tests/cosmetic-presentation.cjs",
+    "test:levels": "node tests/levels.cjs",
+    "test:early": "node tests/early-gameplay.cjs",
+    "test:hub": "node tests/hub-discovery.cjs",
+    "dev": "python scripts/serve.py",
+    "test:balance": "node --test tests/game-balance.cjs && node tests/remote-config-browser.cjs",
+    "config:export": "node scripts/remote-config.cjs --export"
   },
   "dependencies": {
     "@capacitor-community/admob": "^8.1.0",

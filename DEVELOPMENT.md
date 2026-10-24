@@ -1,5 +1,22 @@
 # Neon Blast
 
+Local preview: `npm run dev` (localhost:8000, uncached assets and correct JS MIME types).
+
+Level/Evolution progress, ten boss encounters and tuning are documented in
+`docs/LEVEL_PROGRESS.md`. Firebase Remote Config setup, tuning and publication:
+`docs/REMOTE_CONFIG.md` (`game_balance_v1`). `npm run config:export` generates
+validated defaults; `npm run test:balance` checks fetch/cache/run snapshots.
+Edit `www/game/level-config.js` for local encounter defaults,
+difficulty curves, boss HP and optional gold overrides. Permanent gold upgrades
+live in `www/game/meta-progress.js`; the shared menu hub is `main-hub.js` and
+`www/main-hub.css`. New Levels reset perks; interrupted attempts resume their
+saved build. There is no Level selector. `npm run test:levels` checks this flow.
+Victories use `www/game/level-win.js`. Defeats use `www/game/level-lose.js`
+with same-Level Retry and Main Menu; failed attempts pay no run/VIP gold. `www/game/encyclopedia.js` records only
+visible encounters and revealed perk cards, using actual game images/icons.
+`npm run test:hub` checks discoveries, hidden unknown entries, persistence,
+responsive layouts, delayed startup and resilience to a missing ad script.
+
 Yayın hazırlığı ve dışarıda kalan gerçek cihaz kontrolleri `docs/RELEASE_READINESS.md`
 içindedir; TR/EN Play metinleri `docs/store-listing.json` içinde taslaktır.
 `npm run test:runtime` çevrimdışı telefon akışını, kayıtlı oyuncu verilerini,

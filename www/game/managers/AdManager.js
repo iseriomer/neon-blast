@@ -45,7 +45,6 @@ const AdManager = {
     async preload() {
         if (!this.isNative() || this.isAdPlaying || !await this.init()) return;
         const types = ['rewarded'];
-        if (typeof PremiumStoreManager === 'undefined' || PremiumStoreManager.shouldShowInterstitial()) types.push('interstitial');
         await Promise.allSettled(types.map(type => this._prepare(type)));
     },
     _prepare(type) {
@@ -73,13 +72,8 @@ const AdManager = {
         return slot.pending;
     },
     shouldShowAfterRun(activeDurationMs) {
-        if (typeof PremiumStoreManager !== 'undefined' && !PremiumStoreManager.shouldShowInterstitial()) return false;
-        if (!Number.isFinite(activeDurationMs) || activeDurationMs < this.CONFIG.minRunDurationMs) return false;
-        this._eligibleRuns++;
-        if (this._eligibleRuns < this.CONFIG.interstitialEveryRuns || this.isAdPlaying) return false;
-        if (this._lastFullscreenAt && Date.now() - this._lastFullscreenAt < this.CONFIG.fullscreenCooldownMs) return false;
-        // Never make the game-over screen wait for an unsolicited ad to load.
-        return this.isDev() || (this.isNative() && this.isReady('interstitial'));
+        // Campaign retries and victories are never interrupted by unsolicited ads.
+        return false;
     },
     async init() {
         if (!this.isNative()) return true;

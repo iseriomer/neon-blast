@@ -72,7 +72,7 @@
             });
             document.getElementById('analytics-choice').addEventListener('change', event => GameTelemetry.setConsent(event.target.checked));
             document.getElementById('ad-privacy-options').addEventListener('click', async () => {
-                await AdManager.showPrivacyOptions();
+                await window.AdManager?.showPrivacyOptions();
             });
             document.getElementById('restore-purchases-btn').addEventListener('click', async event => {
                 event.currentTarget.disabled = true;
@@ -84,7 +84,7 @@
                 if (modal.classList.contains('hidden')) return;
                 if (event.key === 'Escape') this.close();
                 if (event.key === 'Tab') {
-                    const controls = [...modal.querySelectorAll('button:not(:disabled), a[href], input')].filter(el => el.getClientRects().length);
+                    const controls = [...modal.querySelectorAll('button:not(:disabled), a[href], input, select')].filter(el => el.getClientRects().length);
                     const first = controls[0], last = controls.at(-1);
                     if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
                     else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
@@ -95,14 +95,15 @@
             const modal = document.getElementById('player-options-modal');
             document.getElementById('options-sfx-toggle').checked = getSFXEnabled();
             document.getElementById('analytics-choice').checked = GameTelemetry.hasConsent();
-            document.getElementById('ad-privacy-options').classList.toggle('hidden', !AdManager.privacyOptionsRequired);
-            document.getElementById('restore-purchases-btn').classList.toggle('hidden', !AdManager.isNative());
+            document.getElementById('ad-privacy-options').classList.toggle('hidden', !window.AdManager?.privacyOptionsRequired);
+            document.getElementById('restore-purchases-btn').classList.toggle('hidden', !window.Capacitor?.isNativePlatform?.());
             const instructions = document.getElementById('aim-instructions');
             instructions.dataset.i18n = touch() ? 'aim_touch' : 'aim_mouse';
             Localization.apply();
             modal.classList.remove('hidden');
             this.returnFocus = document.activeElement;
-            document.getElementById('player-options-close').focus();
+            document.getElementById('player-options-close').focus({ preventScroll: true });
+            modal.querySelector('.player-options-card').scrollTop = 0;
         },
         close() {
             document.getElementById('player-options-modal').classList.add('hidden');

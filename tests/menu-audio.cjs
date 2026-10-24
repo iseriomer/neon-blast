@@ -77,7 +77,7 @@ const server = http.createServer((req, res) => {
         await page.waitForTimeout(100);
         assert.ok(await page.evaluate(() => sampleStarts > 0), 'first gesture plays a real sample');
         assert.ok(await page.evaluate(() => menuCues.includes('reward')), 'successful daily claim has reward cue');
-        await page.locator('#armory-btn').click();
+        await page.locator( '[data-hub-tab="armory"]' ).click();
         await page.waitForTimeout(100);
         const beforeTab = await page.evaluate(() => sampleStarts);
         await page.locator('[data-tab="cores"]').click();
@@ -112,7 +112,7 @@ const server = http.createServer((req, res) => {
         const wheelCues = await page.evaluate(() => menuCues);
         assert.ok(wheelCues.includes('decrypt') && wheelCues.includes('tick') && wheelCues.includes('reward'), 'wheel start, crossings and reward are audible');
         await page.locator('#ls-close-btn').click();
-        await page.locator('#armory-btn').click();
+        await page.locator( '[data-hub-tab="armory"]' ).click();
         await page.evaluate(() => {
             window.menuCues = [];
             ArmoryUI.executePackOpening('pack_alpha', true);

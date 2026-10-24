@@ -59,8 +59,12 @@ class BossOmegaCore extends BossBase {
 
         this.orbitAngle += orbitSpeed;
 
-        let targetX = player.x + Math.cos(this.orbitAngle) * orbitRadius;
-        let targetY = player.y + Math.sin(this.orbitAngle) * orbitRadius;
+        // Fit the orbit to the actual arena. A fixed 350 px orbit hid the first
+        // boss beyond mobile edges, where player projectiles are despawned.
+        const orbitX = Math.min(orbitRadius, Math.max(this.radius + player.radius + 24, CANVAS.width / 2 - this.radius - 16));
+        const orbitY = Math.min(orbitRadius, Math.max(this.radius + player.radius + 24, CANVAS.height / 2 - this.radius - 16));
+        let targetX = player.x + Math.cos(this.orbitAngle) * orbitX;
+        let targetY = player.y + Math.sin(this.orbitAngle) * orbitY;
 
         // Smooth Lerp
         this.x += (targetX - this.x) * chaseSpeed;
@@ -81,17 +85,17 @@ class BossOmegaCore extends BossBase {
         if (this.phase === 1) {
             if (this.cooldowns.minion <= 0) {
                 this.spawnMinions();
-                this.cooldowns.minion = 80;
+                this.cooldowns.minion = 150;
             }
             if (this.cooldowns.missile <= 0) {
                 this.shootHomingMissile(player);
-                this.cooldowns.missile = 60;
+                this.cooldowns.missile = 120;
             }
         } else {
             // Phase 2: Spiral Bullet Hell
             if (this.cooldowns.spiral <= 0) {
                 this.spiralShoot();
-                this.cooldowns.spiral = 15;
+                this.cooldowns.spiral = 90;
             }
         }
     }
